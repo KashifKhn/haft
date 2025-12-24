@@ -82,6 +82,10 @@ func GetVersion() string {
 	return version
 }
 
+func SetVersion(v string) {
+	version = v
+}
+
 func IsVerbose() bool {
 	return verbose
 }
