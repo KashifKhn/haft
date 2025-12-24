@@ -36,6 +36,7 @@ n_docs/
 !README.md
 !AGENTS.md
 !CONTRIBUTING.md
+!docs/**/*.md
 *.log
 
 # Build output
