@@ -1,0 +1,298 @@
+package generate
+
+import (
+	"os"
+	"path/filepath"
+	"testing"
+
+	"github.com/spf13/afero"
+	"github.com/stretchr/testify/assert"
+	"github.com/stretchr/testify/require"
+)
+
+func TestNewCommand(t *testing.T) {
+	cmd := NewCommand()
+
+	assert.Equal(t, "generate", cmd.Use)
+	assert.Contains(t, cmd.Aliases, "g")
+	assert.NotEmpty(t, cmd.Short)
+	assert.NotEmpty(t, cmd.Long)
+	assert.NotEmpty(t, cmd.Example)
+}
+
+func TestResourceCommandExists(t *testing.T) {
+	cmd := NewCommand()
+	commands := cmd.Commands()
+
+	var found bool
+	for _, c := range commands {
+		if c.Use == "resource [name]" {
+			found = true
+			break
+		}
+	}
+
+	assert.True(t, found, "resource subcommand should exist")
+}
+
+func TestResourceCommandFlags(t *testing.T) {
+	cmd := newResourceCommand()
+
+	packageFlag := cmd.Flags().Lookup("package")
+	noInteractiveFlag := cmd.Flags().Lookup("no-interactive")
+	skipEntityFlag := cmd.Flags().Lookup("skip-entity")
+	skipRepositoryFlag := cmd.Flags().Lookup("skip-repository")
+
+	assert.NotNil(t, packageFlag)
+	assert.Equal(t, "p", packageFlag.Shorthand)
+	assert.NotNil(t, noInteractiveFlag)
+	assert.NotNil(t, skipEntityFlag)
+	assert.NotNil(t, skipRepositoryFlag)
+}
+
+func TestValidateResourceName(t *testing.T) {
+	tests := []struct {
+		name    string
+		input   string
+		wantErr bool
+	}{
+		{"valid User", "User", false},
+		{"valid user", "user", false},
+		{"valid Product123", "Product123", false},
+		{"invalid single char", "A", true},
+		{"invalid starts with number", "123User", true},
+		{"invalid contains hyphen", "User-Profile", true},
+		{"invalid contains underscore", "User_Profile", true},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			err := validateResourceName(tt.input)
+			if tt.wantErr {
+				assert.Error(t, err)
+			} else {
+				assert.NoError(t, err)
+			}
+		})
+	}
+}
+
+func TestToPascalCase(t *testing.T) {
+	tests := []struct {
+		input    string
+		expected string
+	}{
+		{"user", "User"},
+		{"user-profile", "UserProfile"},
+		{"user_profile", "UserProfile"},
+		{"UserProfile", "UserProfile"},
+		{"userProfile", "UserProfile"},
+		{"PRODUCT", "Product"},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.input, func(t *testing.T) {
+			result := toPascalCase(tt.input)
+			assert.Equal(t, tt.expected, result)
+		})
+	}
+}
+
+func TestToCamelCase(t *testing.T) {
+	tests := []struct {
+		input    string
+		expected string
+	}{
+		{"User", "user"},
+		{"user-profile", "userProfile"},
+		{"user_profile", "userProfile"},
+		{"PRODUCT", "product"},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.input, func(t *testing.T) {
+			result := toCamelCase(tt.input)
+			assert.Equal(t, tt.expected, result)
+		})
+	}
+}
+
+func TestBuildTemplateData(t *testing.T) {
+	cfg := ResourceConfig{
+		Name:          "User",
+		BasePackage:   "com.example.demo",
+		HasLombok:     true,
+		HasJpa:        true,
+		HasValidation: false,
+	}
+
+	data := buildTemplateData(cfg)
+
+	assert.Equal(t, "User", data["Name"])
+	assert.Equal(t, "user", data["NameLower"])
+	assert.Equal(t, "user", data["NameCamel"])
+	assert.Equal(t, "com.example.demo", data["BasePackage"])
+	assert.Equal(t, true, data["HasLombok"])
+	assert.Equal(t, true, data["HasJpa"])
+	assert.Equal(t, false, data["HasValidation"])
+}
+
+func TestValidateResourceConfig(t *testing.T) {
+	tests := []struct {
+		name    string
+		cfg     ResourceConfig
+		wantErr bool
+		errMsg  string
+	}{
+		{
+			name:    "valid config",
+			cfg:     ResourceConfig{Name: "User", BasePackage: "com.example"},
+			wantErr: false,
+		},
+		{
+			name:    "missing name",
+			cfg:     ResourceConfig{BasePackage: "com.example"},
+			wantErr: true,
+			errMsg:  "resource name is required",
+		},
+		{
+			name:    "missing package",
+			cfg:     ResourceConfig{Name: "User"},
+			wantErr: true,
+			errMsg:  "base package is required",
+		},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			err := validateResourceConfig(tt.cfg)
+			if tt.wantErr {
+				assert.Error(t, err)
+				assert.Contains(t, err.Error(), tt.errMsg)
+			} else {
+				assert.NoError(t, err)
+			}
+		})
+	}
+}
+
+func TestFindSourcePath(t *testing.T) {
+	fs := afero.NewMemMapFs()
+
+	tempDir := "/testproject"
+	srcPath := filepath.Join(tempDir, "src", "main", "java")
+	require.NoError(t, fs.MkdirAll(srcPath, 0755))
+
+	result := findSourcePath(tempDir)
+
+	assert.Empty(t, result)
+}
+
+func TestFindSourcePathRealFS(t *testing.T) {
+	tempDir, err := os.MkdirTemp("", "haft-test")
+	require.NoError(t, err)
+	defer os.RemoveAll(tempDir)
+
+	srcPath := filepath.Join(tempDir, "src", "main", "java")
+	require.NoError(t, os.MkdirAll(srcPath, 0755))
+
+	result := findSourcePath(tempDir)
+
+	assert.Equal(t, srcPath, result)
+}
+
+func TestFindSourcePathNotFound(t *testing.T) {
+	tempDir, err := os.MkdirTemp("", "haft-test-empty")
+	require.NoError(t, err)
+	defer os.RemoveAll(tempDir)
+
+	result := findSourcePath(tempDir)
+
+	assert.Empty(t, result)
+}
+
+func TestFormatRelativePath(t *testing.T) {
+	base := "/home/user/project"
+	path := "/home/user/project/src/main/java/User.java"
+
+	result := formatRelativePath(base, path)
+
+	assert.Equal(t, "src/main/java/User.java", result)
+}
+
+func TestValidatePackageName(t *testing.T) {
+	tests := []struct {
+		name    string
+		input   string
+		wantErr bool
+	}{
+		{"valid com.example", "com.example", false},
+		{"valid com.example.demo", "com.example.demo", false},
+		{"valid io.github.user", "io.github.user", false},
+		{"empty is valid", "", false},
+		{"invalid starts uppercase", "Com.example", true},
+		{"invalid contains hyphen", "com-example", true},
+		{"invalid starts with dot", ".com.example", true},
+		{"invalid ends with dot", "com.example.", true},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			err := validatePackageName(tt.input)
+			if tt.wantErr {
+				assert.Error(t, err)
+			} else {
+				assert.NoError(t, err)
+			}
+		})
+	}
+}
+
+func TestDetectStatusText(t *testing.T) {
+	assert.Equal(t, "detected", detectStatusText(true))
+	assert.Equal(t, "not detected", detectStatusText(false))
+}
+
+func TestCapitalize(t *testing.T) {
+	tests := []struct {
+		input    string
+		expected string
+	}{
+		{"user", "User"},
+		{"User", "User"},
+		{"", ""},
+		{"a", "A"},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.input, func(t *testing.T) {
+			assert.Equal(t, tt.expected, capitalize(tt.input))
+		})
+	}
+}
+
+func TestSplitWords(t *testing.T) {
+	tests := []struct {
+		input    string
+		expected []string
+	}{
+		{"user-profile", []string{"user", "profile"}},
+		{"user_profile", []string{"user", "profile"}},
+		{"UserProfile", []string{"User", "Profile"}},
+		{"user", []string{"user"}},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.input, func(t *testing.T) {
+			result := splitWords(tt.input)
+			assert.Equal(t, tt.expected, result)
+		})
+	}
+}
+
+func TestIsUpper(t *testing.T) {
+	assert.True(t, isUpper('A'))
+	assert.True(t, isUpper('Z'))
+	assert.False(t, isUpper('a'))
+	assert.False(t, isUpper('1'))
+}
