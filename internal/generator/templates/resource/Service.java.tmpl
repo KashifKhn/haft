@@ -1,0 +1,19 @@
+package {{.BasePackage}}.service;
+
+import {{.BasePackage}}.dto.{{.Name}}Request;
+import {{.BasePackage}}.dto.{{.Name}}Response;
+
+import java.util.List;
+
+public interface {{.Name}}Service {
+
+    List<{{.Name}}Response> findAll();
+
+    {{.Name}}Response findById(Long id);
+
+    {{.Name}}Response create({{.Name}}Request request);
+
+    {{.Name}}Response update(Long id, {{.Name}}Request request);
+
+    void delete(Long id);
+}

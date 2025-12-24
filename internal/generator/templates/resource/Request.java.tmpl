@@ -1,0 +1,22 @@
+package {{.BasePackage}}.dto;
+
+{{if .HasLombok}}
+import lombok.*;
+{{end}}
+{{if .HasValidation}}
+import jakarta.validation.constraints.*;
+{{end}}
+
+{{if .HasLombok}}
+@Getter
+@Setter
+@NoArgsConstructor
+@AllArgsConstructor
+@Builder
+{{end}}
+public class {{.Name}}Request {
+{{if not .HasLombok}}
+    public {{.Name}}Request() {
+    }
+{{end}}
+}

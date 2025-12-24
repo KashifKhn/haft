@@ -1,0 +1,45 @@
+package {{.BasePackage}}.mapper;
+
+import org.springframework.stereotype.Component;
+
+import {{.BasePackage}}.entity.{{.Name}};
+import {{.BasePackage}}.dto.{{.Name}}Request;
+import {{.BasePackage}}.dto.{{.Name}}Response;
+
+@Component
+public class {{.Name}}Mapper {
+
+    public {{.Name}}Response toResponse({{.Name}} entity) {
+        if (entity == null) {
+            return null;
+        }
+        {{if .HasLombok}}
+        return {{.Name}}Response.builder()
+                .id(entity.getId())
+                .build();
+        {{else}}
+        {{.Name}}Response response = new {{.Name}}Response();
+        response.setId(entity.getId());
+        return response;
+        {{end}}
+    }
+
+    public {{.Name}} toEntity({{.Name}}Request request) {
+        if (request == null) {
+            return null;
+        }
+        {{if .HasLombok}}
+        return {{.Name}}.builder()
+                .build();
+        {{else}}
+        {{.Name}} entity = new {{.Name}}();
+        return entity;
+        {{end}}
+    }
+
+    public void updateEntity({{.Name}} entity, {{.Name}}Request request) {
+        if (entity == null || request == null) {
+            return;
+        }
+    }
+}
