@@ -71,21 +71,66 @@ curl -fsSL https://raw.githubusercontent.com/KashifKhn/haft/main/install.sh | ba
 ```
 
 <details>
-<summary>Other installation methods</summary>
+<summary><strong>Linux</strong></summary>
 
-**Go**
+```bash
+# AMD64
+curl -L https://github.com/KashifKhn/haft/releases/latest/download/haft-linux-amd64.tar.gz | tar xz
+sudo mv haft-linux-amd64 /usr/local/bin/haft
+
+# ARM64
+curl -L https://github.com/KashifKhn/haft/releases/latest/download/haft-linux-arm64.tar.gz | tar xz
+sudo mv haft-linux-arm64 /usr/local/bin/haft
+```
+
+</details>
+
+<details>
+<summary><strong>macOS</strong></summary>
+
+```bash
+# Intel
+curl -L https://github.com/KashifKhn/haft/releases/latest/download/haft-darwin-amd64.tar.gz | tar xz
+sudo mv haft-darwin-amd64 /usr/local/bin/haft
+
+# Apple Silicon
+curl -L https://github.com/KashifKhn/haft/releases/latest/download/haft-darwin-arm64.tar.gz | tar xz
+sudo mv haft-darwin-arm64 /usr/local/bin/haft
+```
+
+</details>
+
+<details>
+<summary><strong>Windows</strong></summary>
+
+```powershell
+Invoke-WebRequest -Uri "https://github.com/KashifKhn/haft/releases/latest/download/haft-windows-amd64.zip" -OutFile "haft.zip"
+Expand-Archive -Path "haft.zip" -DestinationPath "."
+Move-Item "haft-windows-amd64.exe" "$env:LOCALAPPDATA\Microsoft\WindowsApps\haft.exe"
+```
+
+Or download manually from [Releases](https://github.com/KashifKhn/haft/releases).
+
+</details>
+
+<details>
+<summary><strong>Go</strong></summary>
+
 ```bash
 go install github.com/KashifKhn/haft/cmd/haft@latest
 ```
 
-**From Source**
+</details>
+
+<details>
+<summary><strong>From Source</strong></summary>
+
 ```bash
-git clone https://github.com/KashifKhn/haft.git && cd haft && make build
+git clone https://github.com/KashifKhn/haft.git
+cd haft
+make build
+sudo mv bin/haft /usr/local/bin/
 ```
-
-**Manual Download**
-
-Download binaries from [Releases](https://github.com/KashifKhn/haft/releases) for Linux, macOS, or Windows.
 
 </details>
 
