@@ -51,7 +51,8 @@ const config: Config = {
       title: 'Haft',
       logo: {
         alt: 'Haft Logo',
-        src: 'img/logo.svg',
+        src: 'img/logo-light.png',
+        srcDark: 'img/logo-dark.png',
       },
       items: [
         {

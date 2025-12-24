@@ -30,12 +30,23 @@ function HomepageHeader() {
             GitHub
           </Link>
         </div>
-        <div style={{marginTop: '2rem'}}>
+        <div style={{marginTop: '2rem', display: 'flex', flexDirection: 'column', gap: '0.75rem', alignItems: 'center'}}>
           <code style={{
             backgroundColor: 'rgba(255,255,255,0.1)',
             padding: '0.5rem 1rem',
             borderRadius: '4px',
-            fontSize: '1.1rem'
+            fontSize: '0.95rem',
+            fontFamily: 'monospace'
+          }}>
+            curl -fsSL https://raw.githubusercontent.com/KashifKhn/haft/main/install.sh | bash
+          </code>
+          <span style={{fontSize: '0.85rem', opacity: 0.8}}>or</span>
+          <code style={{
+            backgroundColor: 'rgba(255,255,255,0.1)',
+            padding: '0.5rem 1rem',
+            borderRadius: '4px',
+            fontSize: '0.95rem',
+            fontFamily: 'monospace'
           }}>
             go install github.com/KashifKhn/haft/cmd/haft@latest
           </code>

@@ -14,9 +14,22 @@ Haft can be installed on Linux, macOS, and Windows.
 - **Java 17+** (for generated projects)
 - **Maven 3.6+** or **Gradle 7+** (for generated projects)
 
-## Using Go
+## Quick Install (Recommended)
 
 The easiest way to install Haft:
+
+```bash
+curl -fsSL https://raw.githubusercontent.com/KashifKhn/haft/main/install.sh | bash
+```
+
+This automatically:
+- Detects your OS and architecture
+- Downloads the latest release
+- Installs to `/usr/local/bin` or `~/.local/bin`
+
+## Using Go
+
+If you have Go installed:
 
 ```bash
 go install github.com/KashifKhn/haft/cmd/haft@latest
@@ -49,11 +62,11 @@ Download pre-built binaries from [GitHub Releases](https://github.com/KashifKhn/
 ```bash
 # AMD64
 curl -L https://github.com/KashifKhn/haft/releases/latest/download/haft-linux-amd64.tar.gz | tar xz
-sudo mv haft /usr/local/bin/
+sudo mv haft-linux-amd64 /usr/local/bin/haft
 
 # ARM64
 curl -L https://github.com/KashifKhn/haft/releases/latest/download/haft-linux-arm64.tar.gz | tar xz
-sudo mv haft /usr/local/bin/
+sudo mv haft-linux-arm64 /usr/local/bin/haft
 ```
 
 ### macOS
@@ -61,11 +74,11 @@ sudo mv haft /usr/local/bin/
 ```bash
 # Intel Mac
 curl -L https://github.com/KashifKhn/haft/releases/latest/download/haft-darwin-amd64.tar.gz | tar xz
-sudo mv haft /usr/local/bin/
+sudo mv haft-darwin-amd64 /usr/local/bin/haft
 
 # Apple Silicon
 curl -L https://github.com/KashifKhn/haft/releases/latest/download/haft-darwin-arm64.tar.gz | tar xz
-sudo mv haft /usr/local/bin/
+sudo mv haft-darwin-arm64 /usr/local/bin/haft
 ```
 
 ### Windows
@@ -79,10 +92,8 @@ Or using PowerShell:
 ```powershell
 # Download and extract
 Invoke-WebRequest -Uri "https://github.com/KashifKhn/haft/releases/latest/download/haft-windows-amd64.zip" -OutFile "haft.zip"
-Expand-Archive -Path "haft.zip" -DestinationPath "C:\Program Files\haft"
-
-# Add to PATH (run as Administrator)
-[Environment]::SetEnvironmentVariable("Path", $env:Path + ";C:\Program Files\haft", "Machine")
+Expand-Archive -Path "haft.zip" -DestinationPath "."
+Move-Item "haft-windows-amd64.exe" "$env:LOCALAPPDATA\Microsoft\WindowsApps\haft.exe"
 ```
 
 ## Verify Installation
@@ -94,7 +105,7 @@ haft version
 You should see output like:
 
 ```
-haft version 0.1.0
+haft version v0.1.1
 ```
 
 ## Shell Completions
@@ -132,6 +143,9 @@ haft completion powershell | Out-String | Invoke-Expression
 To update to the latest version:
 
 ```bash
+# Using the install script (recommended)
+curl -fsSL https://raw.githubusercontent.com/KashifKhn/haft/main/install.sh | bash
+
 # If installed via Go
 go install github.com/KashifKhn/haft/cmd/haft@latest
 
@@ -146,6 +160,9 @@ make build
 ```bash
 # Remove the binary
 sudo rm /usr/local/bin/haft
+
+# Or from ~/.local/bin
+rm ~/.local/bin/haft
 
 # Or if installed via Go
 rm $(which haft)

@@ -18,10 +18,16 @@ Haft is a command-line tool that supercharges Spring Boot development. While Spr
 ### 1. Install Haft
 
 ```bash
+curl -fsSL https://raw.githubusercontent.com/KashifKhn/haft/main/install.sh | bash
+```
+
+Or using Go:
+
+```bash
 go install github.com/KashifKhn/haft/cmd/haft@latest
 ```
 
-Or download from [GitHub Releases](https://github.com/KashifKhn/haft/releases).
+See [Installation](/docs/installation) for more options.
 
 ### 2. Create a New Project
 

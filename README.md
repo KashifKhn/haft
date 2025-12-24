@@ -1,33 +1,33 @@
 <p align="center">
-  <img src="assets/haft-logo.png" alt="Haft Logo" width="200"/>
+  <picture>
+    <source media="(prefers-color-scheme: dark)" srcset="assets/logo-dark.png">
+    <source media="(prefers-color-scheme: light)" srcset="assets/logo-light.png">
+    <img src="assets/logo-light.png" alt="Haft Logo" width="280"/>
+  </picture>
 </p>
-
-<h1 align="center">Haft</h1>
 
 <p align="center">
   <strong>The Spring Boot CLI that Spring forgot to build</strong>
 </p>
 
 <p align="center">
-  <a href="https://github.com/KashifKhn/haft/releases"><img src="https://img.shields.io/github/v/release/KashifKhn/haft?style=flat-square" alt="Release"></a>
+  <a href="https://github.com/KashifKhn/haft/releases"><img src="https://img.shields.io/github/v/release/KashifKhn/haft?style=flat-square&color=blue" alt="Release"></a>
   <a href="https://github.com/KashifKhn/haft/blob/main/LICENSE"><img src="https://img.shields.io/github/license/KashifKhn/haft?style=flat-square" alt="License"></a>
   <a href="https://github.com/KashifKhn/haft/actions"><img src="https://img.shields.io/github/actions/workflow/status/KashifKhn/haft/ci.yml?style=flat-square" alt="Build Status"></a>
   <a href="https://goreportcard.com/report/github.com/KashifKhn/haft"><img src="https://goreportcard.com/badge/github.com/KashifKhn/haft?style=flat-square" alt="Go Report Card"></a>
+  <a href="https://codecov.io/gh/KashifKhn/haft"><img src="https://img.shields.io/codecov/c/github/KashifKhn/haft?style=flat-square" alt="Coverage"></a>
 </p>
 
 <p align="center">
+  <a href="https://kashifkhn.github.io/haft">Documentation</a> •
   <a href="#installation">Installation</a> •
   <a href="#quick-start">Quick Start</a> •
   <a href="#features">Features</a> •
-  <a href="#commands">Commands</a> •
-  <a href="#contributing">Contributing</a>
+  <a href="https://github.com/KashifKhn/haft/issues">Issues</a> •
+  <a href="CONTRIBUTING.md">Contributing</a>
 </p>
 
 ---
-
-<p align="center">
-  <img src="assets/haft-demo.gif" alt="Haft Demo" width="800"/>
-</p>
 
 ## Why Haft?
 
@@ -55,6 +55,12 @@ haft generate resource User
 
 ## Installation
 
+### Quick Install (Recommended)
+
+```bash
+curl -fsSL https://raw.githubusercontent.com/KashifKhn/haft/main/install.sh | bash
+```
+
 ### Using Go
 
 ```bash
@@ -67,6 +73,7 @@ go install github.com/KashifKhn/haft/cmd/haft@latest
 git clone https://github.com/KashifKhn/haft.git
 cd haft
 make build
+./bin/haft --help
 ```
 
 ### Binary Releases
@@ -74,29 +81,46 @@ make build
 Download pre-built binaries from the [Releases](https://github.com/KashifKhn/haft/releases) page.
 
 <details>
-<summary>Linux</summary>
+<summary><strong>Linux</strong></summary>
 
 ```bash
+# AMD64
 curl -L https://github.com/KashifKhn/haft/releases/latest/download/haft-linux-amd64.tar.gz | tar xz
-sudo mv haft /usr/local/bin/
+sudo mv haft-linux-amd64 /usr/local/bin/haft
+
+# ARM64
+curl -L https://github.com/KashifKhn/haft/releases/latest/download/haft-linux-arm64.tar.gz | tar xz
+sudo mv haft-linux-arm64 /usr/local/bin/haft
 ```
 
 </details>
 
 <details>
-<summary>macOS</summary>
+<summary><strong>macOS</strong></summary>
 
 ```bash
+# Intel
 curl -L https://github.com/KashifKhn/haft/releases/latest/download/haft-darwin-amd64.tar.gz | tar xz
-sudo mv haft /usr/local/bin/
+sudo mv haft-darwin-amd64 /usr/local/bin/haft
+
+# Apple Silicon
+curl -L https://github.com/KashifKhn/haft/releases/latest/download/haft-darwin-arm64.tar.gz | tar xz
+sudo mv haft-darwin-arm64 /usr/local/bin/haft
 ```
 
 </details>
 
 <details>
-<summary>Windows</summary>
+<summary><strong>Windows</strong></summary>
 
-Download `haft-windows-amd64.zip` from the releases page and add to your PATH.
+Download `haft-windows-amd64.zip` from the [releases page](https://github.com/KashifKhn/haft/releases) and add to your PATH.
+
+Or using PowerShell:
+```powershell
+Invoke-WebRequest -Uri "https://github.com/KashifKhn/haft/releases/latest/download/haft-windows-amd64.zip" -OutFile "haft.zip"
+Expand-Archive -Path "haft.zip" -DestinationPath "."
+Move-Item "haft-windows-amd64.exe" "$env:LOCALAPPDATA\Microsoft\WindowsApps\haft.exe"
+```
 
 </details>
 
@@ -156,19 +180,19 @@ haft init [name] [flags]
 
 **Flags:**
 
-| Flag | Short | Description |
-|------|-------|-------------|
-| `--group` | `-g` | Group ID (e.g., com.example) |
-| `--artifact` | `-a` | Artifact ID |
-| `--java` | `-j` | Java version (17, 21, 25) |
-| `--spring` | `-s` | Spring Boot version |
-| `--build` | `-b` | Build tool (maven, gradle) |
-| `--deps` | | Dependencies (comma-separated) |
-| `--package` | | Base package name |
-| `--packaging` | | Packaging type (jar, war) |
-| `--config` | | Config format (properties, yaml) |
-| `--dir` | `-d` | Output directory |
-| `--no-interactive` | | Skip interactive wizard |
+| Flag | Short | Description | Default |
+|------|-------|-------------|---------|
+| `--group` | `-g` | Group ID (e.g., com.example) | - |
+| `--artifact` | `-a` | Artifact ID | - |
+| `--java` | `-j` | Java version (17, 21, 25) | `21` |
+| `--spring` | `-s` | Spring Boot version | `3.4.0` |
+| `--build` | `-b` | Build tool (maven, gradle) | `maven` |
+| `--deps` | | Dependencies (comma-separated) | - |
+| `--package` | | Base package name | - |
+| `--packaging` | | Packaging type (jar, war) | `jar` |
+| `--config` | | Config format (properties, yaml) | `yaml` |
+| `--dir` | `-d` | Output directory | `.` |
+| `--no-interactive` | | Skip interactive wizard | `false` |
 
 **Examples:**
 
@@ -256,9 +280,9 @@ The dependency picker organizes all Spring starters by category:
 
 ## Requirements
 
-- Go 1.21+ (for building from source)
-- Java 17+ (for generated projects)
-- Maven 3.6+ or Gradle 7+ (for generated projects)
+- **Go 1.21+** (for building from source)
+- **Java 17+** (for generated projects)
+- **Maven 3.6+** or **Gradle 7+** (for generated projects)
 
 ## Roadmap
 
@@ -276,7 +300,7 @@ The dependency picker organizes all Spring starters by category:
 
 ## Contributing
 
-We welcome contributions! Please see [CONTRIBUTING.md](CONTRIBUTING.md) for guidelines.
+We welcome contributions! Please see our [Contributing Guide](CONTRIBUTING.md) for details.
 
 ```bash
 # Clone the repository
@@ -296,11 +320,19 @@ make build
 ./bin/haft --help
 ```
 
+## Support
+
+- [Documentation](https://kashifkhn.github.io/haft) - Full documentation
+- [Issues](https://github.com/KashifKhn/haft/issues) - Bug reports and feature requests
+- [Discussions](https://github.com/KashifKhn/haft/discussions) - Questions and community
+
 ## License
 
 Haft is open-source software licensed under the [MIT License](LICENSE).
 
 ## Acknowledgments
+
+Built with these amazing projects:
 
 - [Cobra](https://github.com/spf13/cobra) - CLI framework
 - [Bubble Tea](https://github.com/charmbracelet/bubbletea) - TUI framework
@@ -310,5 +342,5 @@ Haft is open-source software licensed under the [MIT License](LICENSE).
 ---
 
 <p align="center">
-  <sub>Built with ❤️ for the Spring Boot community</sub>
+  <sub>Built with care for the Spring Boot community</sub>
 </p>

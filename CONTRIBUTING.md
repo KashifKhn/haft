@@ -2,6 +2,14 @@
 
 Thank you for your interest in contributing to Haft! This document provides guidelines and information for contributors.
 
+<p align="center">
+  <a href="#getting-started">Getting Started</a> •
+  <a href="#development-setup">Development</a> •
+  <a href="#code-standards">Code Standards</a> •
+  <a href="#pull-request-process">Pull Requests</a> •
+  <a href="#testing">Testing</a>
+</p>
+
 ## Table of Contents
 
 - [Code of Conduct](#code-of-conduct)
@@ -12,6 +20,7 @@ Thank you for your interest in contributing to Haft! This document provides guid
 - [Pull Request Process](#pull-request-process)
 - [Testing](#testing)
 - [Project Structure](#project-structure)
+- [Getting Help](#getting-help)
 
 ## Code of Conduct
 
@@ -21,9 +30,9 @@ By participating in this project, you agree to maintain a respectful and inclusi
 
 ### Prerequisites
 
-- Go 1.21 or higher
-- Git
-- Make (optional, but recommended)
+- [Go 1.21](https://go.dev/dl/) or higher
+- [Git](https://git-scm.com/)
+- [Make](https://www.gnu.org/software/make/) (optional, but recommended)
 
 ### Fork and Clone
 
@@ -55,10 +64,10 @@ go build -o bin/haft ./cmd/haft
 
 ```bash
 # Run all tests
-go test ./...
+make test
 
 # Run tests with coverage
-go test -cover ./...
+make test-cover
 
 # Run specific package tests
 go test ./internal/generator/... -v
@@ -75,9 +84,20 @@ go test -run TestFunctionName ./...
 ./bin/haft init
 ```
 
+### Available Make Commands
+
+| Command | Description |
+|---------|-------------|
+| `make build` | Build the binary |
+| `make test` | Run all tests |
+| `make test-cover` | Run tests with coverage |
+| `make lint` | Run golangci-lint |
+| `make fmt` | Format code |
+| `make clean` | Remove build artifacts |
+
 ## Code Standards
 
-Haft follows strict coding standards to maintain quality and consistency.
+Haft follows strict coding standards to maintain quality and consistency. Please read [AGENTS.md](AGENTS.md) for detailed guidelines.
 
 ### No Comments Policy
 
@@ -193,12 +213,16 @@ type: short description
 ```
 
 **Types:**
-- `feat`: New feature
-- `fix`: Bug fix
-- `docs`: Documentation changes
-- `refactor`: Code refactoring
-- `test`: Adding or updating tests
-- `chore`: Maintenance tasks
+
+| Type | Description |
+|------|-------------|
+| `feat` | New feature |
+| `fix` | Bug fix |
+| `docs` | Documentation changes |
+| `refactor` | Code refactoring |
+| `test` | Adding or updating tests |
+| `chore` | Maintenance tasks |
+| `ci` | CI/CD changes |
 
 **Examples:**
 
@@ -225,8 +249,8 @@ refactor: extract validation logic to separate package
 
 3. **Test your changes**:
    ```bash
-   go test ./...
-   go build ./...
+   make test
+   make build
    ```
 
 4. **Commit your changes**:
@@ -247,25 +271,34 @@ refactor: extract validation logic to separate package
 ### Before Submitting
 
 - [ ] Code follows the [Code Standards](#code-standards)
-- [ ] All tests pass (`go test ./...`)
-- [ ] Build succeeds (`go build ./...`)
-- [ ] No new linter warnings
+- [ ] All tests pass (`make test`)
+- [ ] Build succeeds (`make build`)
+- [ ] No new linter warnings (`make lint`)
 - [ ] Commit messages follow conventions
 
-### PR Description
+### PR Description Template
 
-Include in your PR description:
+```markdown
+## Summary
+Brief description of changes
 
-1. **What** - Brief description of changes
-2. **Why** - Motivation for the change
-3. **How** - Implementation approach (if complex)
-4. **Testing** - How you tested the changes
+## Changes
+- Change 1
+- Change 2
+
+## Testing
+How you tested the changes
+
+## Related Issues
+Fixes #123
+```
 
 ### Review Process
 
 1. Maintainers will review your PR
 2. Address any requested changes
-3. Once approved, your PR will be merged
+3. Once approved, your PR will be merged to `dev`
+4. Changes will be released in the next version
 
 ## Testing
 
@@ -317,9 +350,11 @@ func TestParser_ParseBytes(t *testing.T) {
 
 ### Testing Libraries
 
-- `github.com/stretchr/testify` - Assertions
-- `github.com/spf13/afero` - Filesystem mocking
-- `github.com/charmbracelet/x/exp/teatest` - TUI testing
+| Library | Purpose |
+|---------|---------|
+| [testify](https://github.com/stretchr/testify) | Assertions |
+| [afero](https://github.com/spf13/afero) | Filesystem mocking |
+| [teatest](https://github.com/charmbracelet/x/exp/teatest) | TUI testing |
 
 ## Project Structure
 
@@ -345,6 +380,8 @@ haft/
 │       ├── components/       # Reusable TUI components
 │       ├── styles/           # Lip Gloss styles
 │       └── wizard/           # Wizard orchestration
+├── assets/                   # Logo and images
+├── docs/                     # Docusaurus documentation
 ├── AGENTS.md                 # AI coding guidelines
 ├── CONTRIBUTING.md           # This file
 ├── go.mod
@@ -368,8 +405,9 @@ Dependencies flow inward. Inner layers should not depend on outer layers.
 
 ## Getting Help
 
-- **Issues**: Open a [GitHub Issue](https://github.com/KashifKhn/haft/issues) for bugs or feature requests
-- **Discussions**: Use [GitHub Discussions](https://github.com/KashifKhn/haft/discussions) for questions
+- **Documentation**: [https://kashifkhn.github.io/haft](https://kashifkhn.github.io/haft)
+- **Issues**: [GitHub Issues](https://github.com/KashifKhn/haft/issues) - Bug reports and feature requests
+- **Discussions**: [GitHub Discussions](https://github.com/KashifKhn/haft/discussions) - Questions and community
 
 ## Recognition
 
@@ -379,4 +417,6 @@ Contributors will be recognized in:
 
 ---
 
-Thank you for contributing to Haft!
+<p align="center">
+  Thank you for contributing to Haft!
+</p>
