@@ -9,7 +9,7 @@ import (
 )
 
 var (
-	version = "0.1.0-dev"
+	version = "dev"
 	verbose bool
 	noColor bool
 )
@@ -84,6 +84,7 @@ func GetVersion() string {
 
 func SetVersion(v string) {
 	version = v
+	rootCmd.Version = v
 }
 
 func IsVerbose() bool {
