@@ -1,6 +1,10 @@
 package root
 
 import (
+	"os"
+
+	initcmd "github.com/KashifKhn/haft/internal/cli/init"
+	"github.com/KashifKhn/haft/internal/logger"
 	"github.com/spf13/cobra"
 )
 
@@ -37,6 +41,17 @@ Features:
   # Add dependencies
   haft add lombok
   haft add validation`,
+	PersistentPreRun: func(cmd *cobra.Command, args []string) {
+		initLogger()
+	},
+}
+
+func initLogger() {
+	logger.SetDefault(logger.New(logger.Options{
+		NoColor: noColor,
+		Verbose: verbose,
+		Output:  os.Stderr,
+	}))
 }
 
 func Execute() error {
@@ -44,10 +59,14 @@ func Execute() error {
 }
 
 func init() {
-	rootCmd.PersistentFlags().BoolVarP(&verbose, "verbose", "v", false, "Enable verbose output")
+	rootCmd.PersistentFlags().BoolVar(&verbose, "verbose", false, "Enable verbose output")
 	rootCmd.PersistentFlags().BoolVar(&noColor, "no-color", false, "Disable colored output")
 
+	rootCmd.Version = version
+	rootCmd.SetVersionTemplate("haft version {{.Version}}\n")
+
 	rootCmd.AddCommand(versionCmd)
+	rootCmd.AddCommand(initcmd.NewCommand())
 }
 
 var versionCmd = &cobra.Command{
@@ -57,4 +76,20 @@ var versionCmd = &cobra.Command{
 	Run: func(cmd *cobra.Command, args []string) {
 		cmd.Println("haft version", version)
 	},
+}
+
+func GetVersion() string {
+	return version
+}
+
+func SetVersion(v string) {
+	version = v
+}
+
+func IsVerbose() bool {
+	return verbose
+}
+
+func IsNoColor() bool {
+	return noColor
 }

@@ -35,8 +35,12 @@ n_docs/
 *.md
 !README.md
 !AGENTS.md
+!CONTRIBUTING.md
+!docs/**/*.md
 *.log
 
 # Build output
 bin/
+/haft
 
+tui_demo

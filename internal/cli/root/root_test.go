@@ -44,5 +44,65 @@ func TestGlobalFlagsExist(t *testing.T) {
 
 	assert.NotNil(t, verboseFlag)
 	assert.NotNil(t, noColorFlag)
-	assert.Equal(t, "v", verboseFlag.Shorthand)
+	assert.Empty(t, verboseFlag.Shorthand)
+}
+
+func TestVersionFlag(t *testing.T) {
+	buf := new(bytes.Buffer)
+	rootCmd.SetOut(buf)
+	rootCmd.SetArgs([]string{"--version"})
+
+	err := rootCmd.Execute()
+
+	assert.NoError(t, err)
+	assert.Contains(t, buf.String(), "haft version")
+}
+
+func TestGetVersion(t *testing.T) {
+	v := GetVersion()
+	assert.NotEmpty(t, v)
+	assert.Equal(t, "0.1.0-dev", v)
+}
+
+func TestVerboseFlagSetsState(t *testing.T) {
+	originalVerbose := verbose
+	defer func() { verbose = originalVerbose }()
+
+	rootCmd.SetArgs([]string{"--verbose", "version"})
+	buf := new(bytes.Buffer)
+	rootCmd.SetOut(buf)
+
+	_ = rootCmd.Execute()
+
+	assert.True(t, IsVerbose())
+}
+
+func TestNoColorFlagSetsState(t *testing.T) {
+	originalNoColor := noColor
+	defer func() { noColor = originalNoColor }()
+
+	rootCmd.SetArgs([]string{"--no-color", "version"})
+	buf := new(bytes.Buffer)
+	rootCmd.SetOut(buf)
+
+	_ = rootCmd.Execute()
+
+	assert.True(t, IsNoColor())
+}
+
+func TestInitLoggerCalled(t *testing.T) {
+	originalVerbose := verbose
+	originalNoColor := noColor
+	defer func() {
+		verbose = originalVerbose
+		noColor = originalNoColor
+	}()
+
+	rootCmd.SetArgs([]string{"version"})
+	buf := new(bytes.Buffer)
+	rootCmd.SetOut(buf)
+
+	err := rootCmd.Execute()
+
+	assert.NoError(t, err)
 }

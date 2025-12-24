@@ -1,0 +1,29 @@
+package {{.BasePackage}}.dto;
+
+{{if .HasLombok}}
+import lombok.*;
+{{end}}
+
+{{if .HasLombok}}
+@Getter
+@Setter
+@NoArgsConstructor
+@AllArgsConstructor
+@Builder
+{{end}}
+public class {{.Name}}Response {
+
+    private Long id;
+{{if not .HasLombok}}
+    public {{.Name}}Response() {
+    }
+
+    public Long getId() {
+        return id;
+    }
+
+    public void setId(Long id) {
+        this.id = id;
+    }
+{{end}}
+}

@@ -1,0 +1,31 @@
+package {{.BasePackage}}.entity;
+
+import jakarta.persistence.*;
+{{if .HasLombok}}
+import lombok.*;
+{{end}}
+
+@Entity
+@Table(name = "{{plural .NameLower}}")
+{{if .HasLombok}}
+@Getter
+@Setter
+@NoArgsConstructor
+@AllArgsConstructor
+@Builder
+{{end}}
+public class {{.Name}} {
+
+    @Id
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
+    private Long id;
+{{if not .HasLombok}}
+    public Long getId() {
+        return id;
+    }
+
+    public void setId(Long id) {
+        this.id = id;
+    }
+{{end}}
+}

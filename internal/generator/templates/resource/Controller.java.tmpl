@@ -1,0 +1,49 @@
+package {{.BasePackage}}.controller;
+
+import org.springframework.http.ResponseEntity;
+import org.springframework.web.bind.annotation.*;
+{{if .HasValidation}}
+import jakarta.validation.Valid;
+{{end}}
+import {{.BasePackage}}.service.{{.Name}}Service;
+import {{.BasePackage}}.dto.{{.Name}}Request;
+import {{.BasePackage}}.dto.{{.Name}}Response;
+
+import java.util.List;
+
+@RestController
+@RequestMapping("/api/{{plural .NameLower}}")
+public class {{.Name}}Controller {
+
+    private final {{.Name}}Service {{.NameCamel}}Service;
+
+    public {{.Name}}Controller({{.Name}}Service {{.NameCamel}}Service) {
+        this.{{.NameCamel}}Service = {{.NameCamel}}Service;
+    }
+
+    @GetMapping
+    public ResponseEntity<List<{{.Name}}Response>> getAll() {
+        return ResponseEntity.ok({{.NameCamel}}Service.findAll());
+    }
+
+    @GetMapping("/{id}")
+    public ResponseEntity<{{.Name}}Response> getById(@PathVariable Long id) {
+        return ResponseEntity.ok({{.NameCamel}}Service.findById(id));
+    }
+
+    @PostMapping
+    public ResponseEntity<{{.Name}}Response> create({{if .HasValidation}}@Valid {{end}}@RequestBody {{.Name}}Request request) {
+        return ResponseEntity.ok({{.NameCamel}}Service.create(request));
+    }
+
+    @PutMapping("/{id}")
+    public ResponseEntity<{{.Name}}Response> update(@PathVariable Long id, {{if .HasValidation}}@Valid {{end}}@RequestBody {{.Name}}Request request) {
+        return ResponseEntity.ok({{.NameCamel}}Service.update(id, request));
+    }
+
+    @DeleteMapping("/{id}")
+    public ResponseEntity<Void> delete(@PathVariable Long id) {
+        {{.NameCamel}}Service.delete(id);
+        return ResponseEntity.noContent().build();
+    }
+}
