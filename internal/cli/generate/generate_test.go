@@ -291,3 +291,78 @@ func TestIsUpper(t *testing.T) {
 	assert.False(t, isUpper('a'))
 	assert.False(t, isUpper('1'))
 }
+
+func TestBuildResourceWizardSteps(t *testing.T) {
+	cfg := ResourceConfig{
+		Name:        "User",
+		BasePackage: "com.example.demo",
+	}
+
+	steps, keys := buildResourceWizardSteps(cfg)
+
+	assert.Len(t, steps, 2)
+	assert.Len(t, keys, 2)
+	assert.Equal(t, "name", keys[0])
+	assert.Equal(t, "basePackage", keys[1])
+}
+
+func TestBuildResourceWizardStepsWithEmptyConfig(t *testing.T) {
+	cfg := ResourceConfig{}
+
+	steps, keys := buildResourceWizardSteps(cfg)
+
+	assert.Len(t, steps, 2)
+	assert.Equal(t, []string{"name", "basePackage"}, keys)
+}
+
+func TestExtractResourceWizardValuesPreservesDetectedFeatures(t *testing.T) {
+	cfg := ResourceConfig{
+		Name:          "",
+		BasePackage:   "",
+		HasLombok:     true,
+		HasJpa:        true,
+		HasValidation: true,
+	}
+
+	cfg.Name = "Product"
+	cfg.BasePackage = "com.example.shop"
+
+	assert.Equal(t, "Product", cfg.Name)
+	assert.Equal(t, "com.example.shop", cfg.BasePackage)
+	assert.True(t, cfg.HasLombok)
+	assert.True(t, cfg.HasJpa)
+	assert.True(t, cfg.HasValidation)
+}
+
+func TestResourceConfigAutoDetection(t *testing.T) {
+	tests := []struct {
+		name          string
+		hasLombok     bool
+		hasJpa        bool
+		hasValidation bool
+	}{
+		{"all detected", true, true, true},
+		{"only lombok", true, false, false},
+		{"only jpa", false, true, false},
+		{"only validation", false, false, true},
+		{"none detected", false, false, false},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			cfg := ResourceConfig{
+				Name:          "User",
+				BasePackage:   "com.example",
+				HasLombok:     tt.hasLombok,
+				HasJpa:        tt.hasJpa,
+				HasValidation: tt.hasValidation,
+			}
+
+			data := buildTemplateData(cfg)
+
+			assert.Equal(t, tt.hasLombok, data["HasLombok"])
+			assert.Equal(t, tt.hasJpa, data["HasJpa"])
+			assert.Equal(t, tt.hasValidation, data["HasValidation"])
+		})
+	}
+}
