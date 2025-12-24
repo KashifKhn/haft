@@ -31,17 +31,20 @@ This page tracks the development progress of Haft.
 - [x] **Maven Parser**
   - [x] Read pom.xml files
   - [x] Write pom.xml files
-  - [x] Dependency detection (Lombok, MapStruct, etc.)
+  - [x] Dependency detection (Lombok, JPA, Validation)
 
-### In Progress
-
-- [ ] **Resource Generation** (`haft generate resource`)
-  - [ ] Entity generation
-  - [ ] Repository generation
-  - [ ] Service generation
-  - [ ] Controller generation
-  - [ ] DTO generation
-  - [ ] Mapper generation
+- [x] **Resource Generation** (`haft generate resource`)
+  - [x] Controller generation with CRUD endpoints
+  - [x] Service interface generation
+  - [x] Service implementation generation
+  - [x] Repository generation
+  - [x] Entity generation (with/without Lombok)
+  - [x] Request/Response DTO generation
+  - [x] Mapper generation
+  - [x] ResourceNotFoundException generation
+  - [x] Smart dependency detection from pom.xml
+  - [x] Interactive TUI wizard
+  - [x] File safety (skip existing files)
 
 ## Upcoming: 0.2.0
 
@@ -120,6 +123,13 @@ Want to help? Check the [GitHub Issues](https://github.com/KashifKhn/haft/issues
 See [Contributing](/docs/contributing) for guidelines.
 
 ## Changelog
+
+### v0.1.2 (Upcoming)
+
+- Feature: `haft generate resource` command
+- Feature: Interactive wizard for resource generation
+- Feature: Auto-detect Lombok, JPA, Validation from pom.xml
+- Feature: Smart code generation based on dependencies
 
 ### v0.1.1
 
