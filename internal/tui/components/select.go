@@ -9,8 +9,9 @@ import (
 )
 
 type SelectItem struct {
-	Label string
-	Value string
+	Label       string
+	Value       string
+	Description string
 }
 
 type SelectModel struct {
@@ -18,18 +19,22 @@ type SelectModel struct {
 	cursor    int
 	selected  int
 	label     string
+	helpText  string
 	submitted bool
+	goBack    bool
 }
 
 type SelectConfig struct {
-	Label string
-	Items []SelectItem
+	Label    string
+	Items    []SelectItem
+	HelpText string
 }
 
 func NewSelect(cfg SelectConfig) SelectModel {
 	return SelectModel{
 		items:    cfg.Items,
 		label:    cfg.Label,
+		helpText: cfg.HelpText,
 		cursor:   0,
 		selected: -1,
 	}
@@ -56,7 +61,7 @@ func (m SelectModel) Update(msg tea.Msg) (SelectModel, tea.Cmd) {
 			m.submitted = true
 			return m, nil
 		case "esc":
-			m.submitted = true
+			m.goBack = true
 			return m, nil
 		}
 	}
@@ -86,9 +91,17 @@ func (m SelectModel) View() string {
 		}
 
 		b.WriteString(fmt.Sprintf("%s%s\n", cursor, line))
+
+		if item.Description != "" && m.cursor == i {
+			b.WriteString(fmt.Sprintf("     %s\n", styles.Subtle.Render(item.Description)))
+		}
 	}
 
-	b.WriteString(styles.RenderHelp("↑/↓: navigate • enter: select • esc: cancel"))
+	if m.helpText != "" {
+		b.WriteString("\n" + styles.RenderHelp(m.helpText))
+	} else {
+		b.WriteString(styles.RenderHelp("↑/↓: navigate • enter: select"))
+	}
 
 	return b.String()
 }
@@ -109,6 +122,15 @@ func (m SelectModel) SelectedItem() (SelectItem, bool) {
 
 func (m SelectModel) Submitted() bool {
 	return m.submitted
+}
+
+func (m SelectModel) GoBack() bool {
+	return m.goBack
+}
+
+func (m *SelectModel) Reset() {
+	m.submitted = false
+	m.goBack = false
 }
 
 func (m SelectModel) SelectedIndex() int {

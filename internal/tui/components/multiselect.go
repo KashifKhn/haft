@@ -19,6 +19,7 @@ type MultiSelectModel struct {
 	cursor    int
 	label     string
 	submitted bool
+	goBack    bool
 	required  bool
 	minSelect int
 	maxSelect int
@@ -71,7 +72,7 @@ func (m MultiSelectModel) Update(msg tea.Msg) (MultiSelectModel, tea.Cmd) {
 			m.submitted = true
 			return m, nil
 		case "esc":
-			m.submitted = true
+			m.goBack = true
 			return m, nil
 		case "a":
 			m.selectAll()
@@ -199,4 +200,14 @@ func (m MultiSelectModel) Validate() error {
 
 func (m MultiSelectModel) Submitted() bool {
 	return m.submitted
+}
+
+func (m MultiSelectModel) GoBack() bool {
+	return m.goBack
+}
+
+func (m *MultiSelectModel) Reset() {
+	m.submitted = false
+	m.goBack = false
+	m.err = nil
 }

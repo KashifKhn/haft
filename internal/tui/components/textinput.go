@@ -10,15 +10,19 @@ type TextInputModel struct {
 	textInput   textinput.Model
 	label       string
 	placeholder string
+	helpText    string
 	required    bool
 	validator   func(string) error
 	err         error
 	submitted   bool
+	goBack      bool
 }
 
 type TextInputConfig struct {
 	Label       string
 	Placeholder string
+	Default     string
+	HelpText    string
 	Required    bool
 	CharLimit   int
 	Width       int
@@ -41,10 +45,15 @@ func NewTextInput(cfg TextInputConfig) TextInputModel {
 	ti.TextStyle = styles.Focused
 	ti.Cursor.Style = styles.Cursor
 
+	if cfg.Default != "" {
+		ti.SetValue(cfg.Default)
+	}
+
 	return TextInputModel{
 		textInput:   ti,
 		label:       cfg.Label,
 		placeholder: cfg.Placeholder,
+		helpText:    cfg.HelpText,
 		required:    cfg.Required,
 		validator:   cfg.Validator,
 	}
@@ -68,7 +77,7 @@ func (m TextInputModel) Update(msg tea.Msg) (TextInputModel, tea.Cmd) {
 			m.submitted = true
 			return m, nil
 		case tea.KeyEsc:
-			m.submitted = true
+			m.goBack = true
 			return m, nil
 		}
 	}
@@ -88,6 +97,10 @@ func (m TextInputModel) View() string {
 
 	if m.err != nil {
 		view += "\n" + styles.RenderError(m.err.Error())
+	}
+
+	if m.helpText != "" {
+		view += "\n" + styles.RenderHelp(m.helpText)
 	}
 
 	return view
@@ -113,6 +126,16 @@ func (m TextInputModel) Validate() error {
 
 func (m TextInputModel) Submitted() bool {
 	return m.submitted
+}
+
+func (m TextInputModel) GoBack() bool {
+	return m.goBack
+}
+
+func (m *TextInputModel) Reset() {
+	m.submitted = false
+	m.goBack = false
+	m.err = nil
 }
 
 func (m *TextInputModel) Focus() tea.Cmd {
