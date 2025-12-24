@@ -39,4 +39,5 @@ n_docs/
 
 # Build output
 bin/
+/haft
 
