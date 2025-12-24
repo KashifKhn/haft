@@ -42,20 +42,37 @@ This launches an interactive wizard that guides you through:
 - Build tool selection (Maven/Gradle)
 - Dependency selection from all Spring starters
 
-### 3. Run Your Project
+### 3. Generate Resources
 
 ```bash
 cd my-app
+haft generate resource User
+```
+
+This creates a complete CRUD structure:
+
+- `UserController.java` — REST endpoints
+- `UserService.java` — Service interface
+- `UserServiceImpl.java` — Service implementation
+- `UserRepository.java` — JPA repository
+- `User.java` — Entity
+- `UserRequest.java` / `UserResponse.java` — DTOs
+- `UserMapper.java` — Entity-DTO mapping
+
+### 4. Run Your Project
+
+```bash
 ./mvnw spring-boot:run
 ```
 
-That's it! You have a fully configured Spring Boot project.
+That's it! You have a fully configured Spring Boot project with CRUD endpoints.
 
 ## What's Next?
 
 - [Installation](/docs/installation) — Detailed installation options
 - [Why Haft?](/docs/why-haft) — Learn what makes Haft different
-- [haft init](/docs/commands/init) — Complete command reference
+- [haft init](/docs/commands/init) — Project initialization reference
+- [haft generate](/docs/commands/generate) — Resource generation reference
 - [Wizard Navigation](/docs/guides/wizard-navigation) — Master the TUI wizard
 
 ## Example: Non-Interactive Mode
@@ -63,12 +80,18 @@ That's it! You have a fully configured Spring Boot project.
 For CI/CD pipelines or scripting:
 
 ```bash
+# Create project
 haft init my-service \
   --group com.example \
   --java 21 \
   --spring 3.4.1 \
   --deps web,data-jpa,lombok,validation \
   --no-interactive
+
+# Generate resources
+cd my-service
+haft generate resource User --no-interactive
+haft generate resource Product --no-interactive
 ```
 
 ## Getting Help
@@ -79,6 +102,8 @@ haft --help
 
 # Command-specific help
 haft init --help
+haft generate --help
+haft generate resource --help
 ```
 
 Join the community:
