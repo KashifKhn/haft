@@ -8,9 +8,8 @@ import (
 	"strings"
 
 	"github.com/KashifKhn/haft/internal/config"
-	"github.com/KashifKhn/haft/internal/generator"
+	"github.com/KashifKhn/haft/internal/initializr"
 	"github.com/KashifKhn/haft/internal/tui/components"
-	"github.com/KashifKhn/haft/internal/tui/styles"
 	"github.com/KashifKhn/haft/internal/tui/wizard"
 	tea "github.com/charmbracelet/bubbletea"
 	"github.com/spf13/afero"
@@ -22,11 +21,15 @@ type ProjectConfig struct {
 	GroupId           string
 	ArtifactId        string
 	Description       string
+	PackageName       string
 	JavaVersion       string
 	SpringBootVersion string
 	BuildTool         string
+	Packaging         string
+	ConfigFormat      string
 	Dependencies      []string
 	Architecture      string
+	InitGit           bool
 }
 
 func NewCommand() *cobra.Command {
@@ -37,28 +40,33 @@ func NewCommand() *cobra.Command {
 
 The init command creates a new Spring Boot project with the specified
 configuration. If no name is provided, an interactive wizard will guide
-you through the setup process.`,
-		Example: `  # Interactive mode
+you through the setup process.
+
+The wizard presents all dependencies from Spring Initializr organized by
+category (Web, SQL, NoSQL, Security, etc.) with descriptions and search.`,
+		Example: `  # Interactive mode (recommended)
   haft init
 
   # With project name
   haft init my-app
 
-  # With project name in specific directory
-  haft init my-app --dir ./projects
-
   # Non-interactive with all options
-  haft init my-app -g com.example -j 21 -s 3.4.0 -b maven --deps web,jpa,lombok --no-interactive`,
+  haft init my-app -g com.example -j 21 -s 3.4.0 -b maven --deps web,data-jpa,lombok --no-interactive`,
 		Args: cobra.MaximumNArgs(1),
 		RunE: runInit,
 	}
 
 	cmd.Flags().StringP("dir", "d", ".", "Directory to create project in")
 	cmd.Flags().StringP("group", "g", "", "Group ID (e.g., com.example)")
-	cmd.Flags().StringP("java", "j", "", "Java version (11, 17, 21)")
+	cmd.Flags().StringP("artifact", "a", "", "Artifact ID")
+	cmd.Flags().String("description", "", "Project description")
+	cmd.Flags().String("package", "", "Base package name")
+	cmd.Flags().StringP("java", "j", "", "Java version (17, 21, 25)")
 	cmd.Flags().StringP("spring", "s", "", "Spring Boot version")
 	cmd.Flags().StringP("build", "b", "", "Build tool (maven, gradle)")
-	cmd.Flags().StringSlice("deps", nil, "Dependencies (web,jpa,security,validation,lombok,h2,postgresql,mysql)")
+	cmd.Flags().String("packaging", "", "Packaging type (jar, war)")
+	cmd.Flags().String("config", "", "Config format (properties, yaml)")
+	cmd.Flags().StringSlice("deps", nil, "Dependencies (comma-separated IDs)")
 	cmd.Flags().Bool("no-interactive", false, "Skip interactive wizard")
 
 	return cmd
@@ -67,59 +75,68 @@ you through the setup process.`,
 func runInit(cmd *cobra.Command, args []string) error {
 	noInteractive, _ := cmd.Flags().GetBool("no-interactive")
 
-	var projectCfg ProjectConfig
+	var cfg ProjectConfig
 
 	if len(args) > 0 {
-		projectCfg.Name = args[0]
-		projectCfg.ArtifactId = toArtifactId(args[0])
+		cfg.Name = args[0]
+		cfg.ArtifactId = toArtifactId(args[0])
 	}
 
-	if group, _ := cmd.Flags().GetString("group"); group != "" {
-		projectCfg.GroupId = group
+	if v, _ := cmd.Flags().GetString("group"); v != "" {
+		cfg.GroupId = v
 	}
-	if java, _ := cmd.Flags().GetString("java"); java != "" {
-		projectCfg.JavaVersion = java
+	if v, _ := cmd.Flags().GetString("artifact"); v != "" {
+		cfg.ArtifactId = v
 	}
-	if spring, _ := cmd.Flags().GetString("spring"); spring != "" {
-		projectCfg.SpringBootVersion = spring
+	if v, _ := cmd.Flags().GetString("description"); v != "" {
+		cfg.Description = v
 	}
-	if build, _ := cmd.Flags().GetString("build"); build != "" {
-		projectCfg.BuildTool = build
+	if v, _ := cmd.Flags().GetString("package"); v != "" {
+		cfg.PackageName = v
+	}
+	if v, _ := cmd.Flags().GetString("java"); v != "" {
+		cfg.JavaVersion = v
+	}
+	if v, _ := cmd.Flags().GetString("spring"); v != "" {
+		cfg.SpringBootVersion = v
+	}
+	if v, _ := cmd.Flags().GetString("build"); v != "" {
+		cfg.BuildTool = v
+	}
+	if v, _ := cmd.Flags().GetString("packaging"); v != "" {
+		cfg.Packaging = v
+	}
+	if v, _ := cmd.Flags().GetString("config"); v != "" {
+		cfg.ConfigFormat = v
 	}
 	if deps, _ := cmd.Flags().GetStringSlice("deps"); len(deps) > 0 {
-		projectCfg.Dependencies = deps
+		cfg.Dependencies = deps
 	}
 
-	if !noInteractive && needsWizard(projectCfg) {
+	if !noInteractive {
 		var err error
-		projectCfg, err = runWizard(projectCfg)
+		cfg, err = runWizard(cfg)
 		if err != nil {
 			return err
 		}
 	}
 
-	if err := applyDefaults(&projectCfg); err != nil {
+	if err := applyDefaults(&cfg); err != nil {
 		return err
 	}
 
-	if err := validateConfig(projectCfg); err != nil {
+	if err := validateConfig(cfg); err != nil {
 		return err
 	}
 
 	dir, _ := cmd.Flags().GetString("dir")
-	projectDir := filepath.Join(dir, projectCfg.ArtifactId)
+	projectDir := filepath.Join(dir, cfg.ArtifactId)
 
-	return generateProject(projectCfg, projectDir)
-}
-
-func needsWizard(cfg ProjectConfig) bool {
-	return cfg.Name == "" || cfg.GroupId == "" || cfg.JavaVersion == "" ||
-		cfg.SpringBootVersion == "" || cfg.BuildTool == ""
+	return generateProject(cfg, projectDir)
 }
 
 func runWizard(cfg ProjectConfig) (ProjectConfig, error) {
-	steps := buildWizardSteps(cfg)
-	stepKeys := []string{"name", "groupId", "javaVersion", "springVersion", "buildTool", "dependencies"}
+	steps, stepKeys := buildWizardSteps(cfg)
 
 	w := wizard.New(wizard.WizardConfig{
 		Title:    "Create New Spring Boot Project",
@@ -142,98 +159,279 @@ func runWizard(cfg ProjectConfig) (ProjectConfig, error) {
 		return cfg, fmt.Errorf("wizard cancelled")
 	}
 
-	if name := wiz.StringValue("name"); name != "" {
-		cfg.Name = name
-		cfg.ArtifactId = toArtifactId(name)
+	return extractWizardValues(wiz, cfg), nil
+}
+
+func buildWizardSteps(cfg ProjectConfig) ([]wizard.Step, []string) {
+	var steps []wizard.Step
+	var keys []string
+
+	steps = append(steps, wizard.NewTextInputStep(components.TextInputConfig{
+		Label:       "Project Name",
+		Placeholder: "demo",
+		Default:     cfg.Name,
+		Required:    true,
+		Validator:   validateProjectName,
+		HelpText:    "The display name for your project",
+	}))
+	keys = append(keys, "name")
+
+	steps = append(steps, wizard.NewTextInputStep(components.TextInputConfig{
+		Label:       "Group ID",
+		Placeholder: "com.example",
+		Default:     cfg.GroupId,
+		Required:    true,
+		Validator:   validateGroupId,
+		HelpText:    "The group ID for your project (e.g., com.company)",
+	}))
+	keys = append(keys, "groupId")
+
+	steps = append(steps, wizard.NewTextInputStep(components.TextInputConfig{
+		Label:       "Artifact ID",
+		Placeholder: "demo",
+		Default:     cfg.ArtifactId,
+		Required:    true,
+		Validator:   validateArtifactId,
+		HelpText:    "The artifact ID for your project (used in pom.xml)",
+	}))
+	keys = append(keys, "artifactId")
+
+	steps = append(steps, wizard.NewTextInputStep(components.TextInputConfig{
+		Label:       "Description",
+		Placeholder: "Demo project for Spring Boot",
+		Default:     cfg.Description,
+		HelpText:    "A short description of your project",
+	}))
+	keys = append(keys, "description")
+
+	steps = append(steps, wizard.NewTextInputStep(components.TextInputConfig{
+		Label:       "Package Name",
+		Placeholder: "com.example.demo",
+		Default:     cfg.PackageName,
+		Validator:   validatePackageName,
+		HelpText:    "Base package for your Java classes",
+	}))
+	keys = append(keys, "packageName")
+
+	javaItems := buildJavaVersionItems()
+	steps = append(steps, wizard.NewSelectStep(components.SelectConfig{
+		Label:    "Java Version",
+		Items:    javaItems,
+		HelpText: "Select the Java version for your project",
+	}))
+	keys = append(keys, "javaVersion")
+
+	bootItems := buildBootVersionItems()
+	steps = append(steps, wizard.NewSelectStep(components.SelectConfig{
+		Label:    "Spring Boot Version",
+		Items:    bootItems,
+		HelpText: "Select the Spring Boot version",
+	}))
+	keys = append(keys, "springVersion")
+
+	steps = append(steps, wizard.NewSelectStep(components.SelectConfig{
+		Label: "Build Tool",
+		Items: []components.SelectItem{
+			{Label: "Maven", Value: "maven", Description: "Build with Apache Maven"},
+			{Label: "Gradle - Groovy", Value: "gradle", Description: "Build with Gradle using Groovy DSL"},
+			{Label: "Gradle - Kotlin", Value: "gradle-kotlin", Description: "Build with Gradle using Kotlin DSL"},
+		},
+		HelpText: "Select the build tool for your project",
+	}))
+	keys = append(keys, "buildTool")
+
+	steps = append(steps, wizard.NewSelectStep(components.SelectConfig{
+		Label: "Packaging",
+		Items: []components.SelectItem{
+			{Label: "Jar", Value: "jar", Description: "Package as an executable JAR"},
+			{Label: "War", Value: "war", Description: "Package as a WAR for deployment to servlet container"},
+		},
+		HelpText: "Select the packaging type",
+	}))
+	keys = append(keys, "packaging")
+
+	steps = append(steps, wizard.NewSelectStep(components.SelectConfig{
+		Label: "Configuration Format",
+		Items: []components.SelectItem{
+			{Label: "Properties", Value: "properties", Description: "Use application.properties format"},
+			{Label: "YAML", Value: "yaml", Description: "Use application.yml format"},
+		},
+		HelpText: "Select the configuration file format",
+	}))
+	keys = append(keys, "configFormat")
+
+	depCategories := buildDepCategories()
+	steps = append(steps, wizard.NewDepPickerStep(components.DepPickerConfig{
+		Label:      "Dependencies",
+		Categories: depCategories,
+	}))
+	keys = append(keys, "dependencies")
+
+	steps = append(steps, wizard.NewSelectStep(components.SelectConfig{
+		Label: "Initialize Git Repository?",
+		Items: []components.SelectItem{
+			{Label: "Yes", Value: "yes", Description: "Initialize git and create initial commit"},
+			{Label: "No", Value: "no", Description: "Skip git initialization"},
+		},
+		HelpText: "Create a git repository in your project",
+	}))
+	keys = append(keys, "initGit")
+
+	return steps, keys
+}
+
+func buildJavaVersionItems() []components.SelectItem {
+	versions, err := initializr.GetJavaVersions()
+	if err != nil || len(versions) == 0 {
+		return []components.SelectItem{
+			{Label: "Java 21 (LTS)", Value: "21", Description: "Long Term Support version"},
+			{Label: "Java 17 (LTS)", Value: "17", Description: "Long Term Support version"},
+		}
 	}
-	if groupId := wiz.StringValue("groupId"); groupId != "" {
-		cfg.GroupId = groupId
+
+	var items []components.SelectItem
+	for _, v := range versions {
+		label := fmt.Sprintf("Java %s", v.Name)
+		desc := ""
+		switch v.ID {
+		case "21":
+			label = fmt.Sprintf("Java %s (LTS)", v.Name)
+			desc = "Long Term Support - Recommended"
+		case "17":
+			label = fmt.Sprintf("Java %s (LTS)", v.Name)
+			desc = "Long Term Support"
+		case "25":
+			desc = "Latest version"
+		}
+		items = append(items, components.SelectItem{
+			Label:       label,
+			Value:       v.ID,
+			Description: desc,
+		})
 	}
-	if javaVersion := wiz.StringValue("javaVersion"); javaVersion != "" {
-		cfg.JavaVersion = javaVersion
+	return items
+}
+
+func buildBootVersionItems() []components.SelectItem {
+	versions, err := initializr.GetBootVersions()
+	if err != nil || len(versions) == 0 {
+		return []components.SelectItem{
+			{Label: "3.4.0 (Latest)", Value: "3.4.0"},
+			{Label: "3.3.6", Value: "3.3.6"},
+		}
 	}
-	if springVersion := wiz.StringValue("springVersion"); springVersion != "" {
-		cfg.SpringBootVersion = springVersion
+
+	var items []components.SelectItem
+	for _, v := range versions {
+		if strings.Contains(v.Name, "SNAPSHOT") {
+			continue
+		}
+		items = append(items, components.SelectItem{
+			Label: v.Name,
+			Value: v.ID,
+		})
 	}
-	if buildTool := wiz.StringValue("buildTool"); buildTool != "" {
-		cfg.BuildTool = buildTool
+	return items
+}
+
+func buildDepCategories() []components.DepCategory {
+	categories, err := initializr.GetDependencyCategories()
+	if err != nil {
+		return getDefaultDepCategories()
+	}
+
+	var result []components.DepCategory
+	for _, cat := range categories {
+		depCat := components.DepCategory{Name: cat.Name}
+		for _, dep := range cat.Values {
+			depCat.Dependencies = append(depCat.Dependencies, components.DepItem{
+				ID:          dep.ID,
+				Name:        dep.Name,
+				Description: dep.Description,
+			})
+		}
+		if len(depCat.Dependencies) > 0 {
+			result = append(result, depCat)
+		}
+	}
+	return result
+}
+
+func getDefaultDepCategories() []components.DepCategory {
+	return []components.DepCategory{
+		{
+			Name: "Web",
+			Dependencies: []components.DepItem{
+				{ID: "web", Name: "Spring Web", Description: "Build web applications using Spring MVC"},
+				{ID: "webflux", Name: "Spring Reactive Web", Description: "Build reactive web applications"},
+			},
+		},
+		{
+			Name: "SQL",
+			Dependencies: []components.DepItem{
+				{ID: "data-jpa", Name: "Spring Data JPA", Description: "Persist data with JPA"},
+				{ID: "h2", Name: "H2 Database", Description: "In-memory database for development"},
+				{ID: "postgresql", Name: "PostgreSQL Driver", Description: "PostgreSQL JDBC driver"},
+				{ID: "mysql", Name: "MySQL Driver", Description: "MySQL JDBC driver"},
+			},
+		},
+		{
+			Name: "Developer Tools",
+			Dependencies: []components.DepItem{
+				{ID: "devtools", Name: "Spring Boot DevTools", Description: "Fast application restarts and LiveReload"},
+				{ID: "lombok", Name: "Lombok", Description: "Reduce boilerplate code"},
+			},
+		},
+		{
+			Name: "Security",
+			Dependencies: []components.DepItem{
+				{ID: "security", Name: "Spring Security", Description: "Secure your application"},
+			},
+		},
+	}
+}
+
+func extractWizardValues(wiz wizard.WizardModel, cfg ProjectConfig) ProjectConfig {
+	if v := wiz.StringValue("name"); v != "" {
+		cfg.Name = v
+	}
+	if v := wiz.StringValue("groupId"); v != "" {
+		cfg.GroupId = v
+	}
+	if v := wiz.StringValue("artifactId"); v != "" {
+		cfg.ArtifactId = v
+	} else if cfg.ArtifactId == "" && cfg.Name != "" {
+		cfg.ArtifactId = toArtifactId(cfg.Name)
+	}
+	if v := wiz.StringValue("description"); v != "" {
+		cfg.Description = v
+	}
+	if v := wiz.StringValue("packageName"); v != "" {
+		cfg.PackageName = v
+	}
+	if v := wiz.StringValue("javaVersion"); v != "" {
+		cfg.JavaVersion = v
+	}
+	if v := wiz.StringValue("springVersion"); v != "" {
+		cfg.SpringBootVersion = v
+	}
+	if v := wiz.StringValue("buildTool"); v != "" {
+		cfg.BuildTool = v
+	}
+	if v := wiz.StringValue("packaging"); v != "" {
+		cfg.Packaging = v
+	}
+	if v := wiz.StringValue("configFormat"); v != "" {
+		cfg.ConfigFormat = v
 	}
 	if deps := wiz.StringSliceValue("dependencies"); len(deps) > 0 {
 		cfg.Dependencies = deps
 	}
-
-	return cfg, nil
-}
-
-func buildWizardSteps(cfg ProjectConfig) []wizard.Step {
-	var steps []wizard.Step
-
-	if cfg.Name == "" {
-		steps = append(steps, wizard.NewTextInputStep(components.TextInputConfig{
-			Label:       "Project Name",
-			Placeholder: "my-spring-app",
-			Required:    true,
-			Validator:   validateProjectName,
-		}))
+	if v := wiz.StringValue("initGit"); v == "yes" {
+		cfg.InitGit = true
 	}
 
-	if cfg.GroupId == "" {
-		steps = append(steps, wizard.NewTextInputStep(components.TextInputConfig{
-			Label:       "Group ID",
-			Placeholder: "com.example",
-			Required:    true,
-			Validator:   validateGroupId,
-		}))
-	}
-
-	if cfg.JavaVersion == "" {
-		steps = append(steps, wizard.NewSelectStep(components.SelectConfig{
-			Label: "Java Version",
-			Items: []components.SelectItem{
-				{Label: "Java 21 (LTS) - Recommended", Value: "21"},
-				{Label: "Java 17 (LTS)", Value: "17"},
-				{Label: "Java 11 (LTS)", Value: "11"},
-			},
-		}))
-	}
-
-	if cfg.SpringBootVersion == "" {
-		steps = append(steps, wizard.NewSelectStep(components.SelectConfig{
-			Label: "Spring Boot Version",
-			Items: []components.SelectItem{
-				{Label: "3.4.0 (Latest)", Value: "3.4.0"},
-				{Label: "3.3.6", Value: "3.3.6"},
-				{Label: "3.2.12", Value: "3.2.12"},
-			},
-		}))
-	}
-
-	if cfg.BuildTool == "" {
-		steps = append(steps, wizard.NewSelectStep(components.SelectConfig{
-			Label: "Build Tool",
-			Items: []components.SelectItem{
-				{Label: "Maven", Value: "maven"},
-				{Label: "Gradle (Groovy)", Value: "gradle"},
-				{Label: "Gradle (Kotlin)", Value: "gradle-kotlin"},
-			},
-		}))
-	}
-
-	steps = append(steps, wizard.NewMultiSelectStep(components.MultiSelectConfig{
-		Label: "Dependencies",
-		Items: []components.MultiSelectItem{
-			{Label: "Spring Web", Value: "web"},
-			{Label: "Spring Data JPA", Value: "jpa"},
-			{Label: "Spring Security", Value: "security"},
-			{Label: "Spring Validation", Value: "validation"},
-			{Label: "Lombok", Value: "lombok"},
-			{Label: "H2 Database", Value: "h2"},
-			{Label: "PostgreSQL Driver", Value: "postgresql"},
-			{Label: "MySQL Driver", Value: "mysql"},
-		},
-	}))
-
-	return steps
+	return cfg
 }
 
 func applyDefaults(cfg *ProjectConfig) error {
@@ -241,14 +439,38 @@ func applyDefaults(cfg *ProjectConfig) error {
 	cm := config.NewConfigManager(afero.NewOsFs(), ".", homeDir)
 	globalCfg, _ := cm.LoadGlobalConfig()
 
+	if cfg.ArtifactId == "" && cfg.Name != "" {
+		cfg.ArtifactId = toArtifactId(cfg.Name)
+	}
+	if cfg.PackageName == "" && cfg.GroupId != "" && cfg.ArtifactId != "" {
+		cfg.PackageName = cfg.GroupId + "." + strings.ReplaceAll(cfg.ArtifactId, "-", "")
+	}
 	if cfg.JavaVersion == "" {
-		cfg.JavaVersion = globalCfg.Defaults.JavaVersion
+		if globalCfg.Defaults.JavaVersion != "" {
+			cfg.JavaVersion = globalCfg.Defaults.JavaVersion
+		} else {
+			cfg.JavaVersion = "21"
+		}
 	}
 	if cfg.SpringBootVersion == "" {
-		cfg.SpringBootVersion = globalCfg.Defaults.SpringBoot
+		if globalCfg.Defaults.SpringBoot != "" {
+			cfg.SpringBootVersion = globalCfg.Defaults.SpringBoot
+		} else {
+			cfg.SpringBootVersion = "3.4.0"
+		}
 	}
 	if cfg.BuildTool == "" {
-		cfg.BuildTool = globalCfg.Defaults.BuildTool
+		if globalCfg.Defaults.BuildTool != "" {
+			cfg.BuildTool = globalCfg.Defaults.BuildTool
+		} else {
+			cfg.BuildTool = "maven"
+		}
+	}
+	if cfg.Packaging == "" {
+		cfg.Packaging = "jar"
+	}
+	if cfg.ConfigFormat == "" {
+		cfg.ConfigFormat = "properties"
 	}
 	if cfg.Architecture == "" {
 		cfg.Architecture = globalCfg.Defaults.Architecture
@@ -290,319 +512,30 @@ func validateGroupId(groupId string) error {
 	return nil
 }
 
+func validateArtifactId(artifactId string) error {
+	if len(artifactId) < 2 {
+		return fmt.Errorf("artifact ID must be at least 2 characters")
+	}
+	if !regexp.MustCompile(`^[a-z][a-z0-9-]*$`).MatchString(artifactId) {
+		return fmt.Errorf("artifact ID must be lowercase and contain only letters, numbers, and hyphens")
+	}
+	return nil
+}
+
+func validatePackageName(pkg string) error {
+	if pkg == "" {
+		return nil
+	}
+	if !regexp.MustCompile(`^[a-z][a-z0-9]*(\.[a-z][a-z0-9]*)*$`).MatchString(pkg) {
+		return fmt.Errorf("invalid package name format")
+	}
+	return nil
+}
+
 func toArtifactId(name string) string {
 	name = strings.ToLower(name)
 	name = regexp.MustCompile(`[^a-z0-9-]`).ReplaceAllString(name, "-")
 	name = regexp.MustCompile(`-+`).ReplaceAllString(name, "-")
 	name = strings.Trim(name, "-")
 	return name
-}
-
-func generateProject(cfg ProjectConfig, projectDir string) error {
-	fs := afero.NewOsFs()
-
-	if exists, _ := afero.DirExists(fs, projectDir); exists {
-		return fmt.Errorf("directory %s already exists", projectDir)
-	}
-
-	fmt.Println()
-	fmt.Printf("  Creating project %s...\n", styles.Focused.Render(cfg.Name))
-	fmt.Println()
-
-	engine := generator.NewEngine(fs)
-
-	fmt.Printf("  %s Creating directory structure\n", styles.CheckMark)
-	if err := createDirectoryStructure(engine, projectDir, cfg); err != nil {
-		return fmt.Errorf("failed to create directory structure: %w", err)
-	}
-
-	fmt.Printf("  %s Generating project files\n", styles.CheckMark)
-	if err := generateProjectFiles(engine, projectDir, cfg); err != nil {
-		return fmt.Errorf("failed to generate project files: %w", err)
-	}
-
-	if cfg.BuildTool == "maven" {
-		fmt.Printf("  %s Adding Maven wrapper\n", styles.CheckMark)
-		if err := copyMavenWrapper(engine, projectDir); err != nil {
-			return fmt.Errorf("failed to copy Maven wrapper: %w", err)
-		}
-	}
-
-	fmt.Printf("  %s Writing configuration\n", styles.CheckMark)
-	if err := writeHaftConfig(fs, projectDir, cfg); err != nil {
-		return fmt.Errorf("failed to write .haft.yaml: %w", err)
-	}
-
-	fmt.Println()
-	fmt.Printf("  %s Project created successfully!\n", styles.SuccessText.Render("✓"))
-	fmt.Println()
-	fmt.Println(styles.HelpText.Render("  Next steps:"))
-	fmt.Println()
-	fmt.Printf("    %s cd %s\n", styles.Arrow, styles.Focused.Render(projectDir))
-	if cfg.BuildTool == "maven" {
-		fmt.Printf("    %s ./mvnw spring-boot:run\n", styles.Arrow)
-	} else {
-		fmt.Printf("    %s ./gradlew bootRun\n", styles.Arrow)
-	}
-	fmt.Println()
-
-	return nil
-}
-
-func createDirectoryStructure(engine *generator.Engine, projectDir string, cfg ProjectConfig) error {
-	basePackagePath := strings.ReplaceAll(cfg.GroupId, ".", string(os.PathSeparator))
-	artifactPath := strings.ReplaceAll(cfg.ArtifactId, "-", "")
-
-	dirs := []string{
-		filepath.Join(projectDir, "src", "main", "java", basePackagePath, artifactPath),
-		filepath.Join(projectDir, "src", "main", "java", basePackagePath, artifactPath, "controller"),
-		filepath.Join(projectDir, "src", "main", "java", basePackagePath, artifactPath, "service"),
-		filepath.Join(projectDir, "src", "main", "java", basePackagePath, artifactPath, "service", "impl"),
-		filepath.Join(projectDir, "src", "main", "java", basePackagePath, artifactPath, "repository"),
-		filepath.Join(projectDir, "src", "main", "java", basePackagePath, artifactPath, "entity"),
-		filepath.Join(projectDir, "src", "main", "java", basePackagePath, artifactPath, "dto"),
-		filepath.Join(projectDir, "src", "main", "java", basePackagePath, artifactPath, "mapper"),
-		filepath.Join(projectDir, "src", "main", "java", basePackagePath, artifactPath, "exception"),
-		filepath.Join(projectDir, "src", "main", "java", basePackagePath, artifactPath, "config"),
-		filepath.Join(projectDir, "src", "main", "resources"),
-		filepath.Join(projectDir, "src", "test", "java", basePackagePath, artifactPath),
-	}
-
-	for _, dir := range dirs {
-		if err := engine.GetFS().MkdirAll(dir, 0755); err != nil {
-			return err
-		}
-	}
-
-	return nil
-}
-
-func generateProjectFiles(engine *generator.Engine, projectDir string, cfg ProjectConfig) error {
-	basePackage := cfg.GroupId + "." + strings.ReplaceAll(cfg.ArtifactId, "-", "")
-	basePackagePath := strings.ReplaceAll(basePackage, ".", string(os.PathSeparator))
-	applicationName := toPascalCase(cfg.ArtifactId)
-
-	data := map[string]any{
-		"Name":              cfg.Name,
-		"GroupId":           cfg.GroupId,
-		"ArtifactId":        cfg.ArtifactId,
-		"Version":           "0.0.1-SNAPSHOT",
-		"Description":       cfg.Description,
-		"JavaVersion":       cfg.JavaVersion,
-		"SpringBootVersion": cfg.SpringBootVersion,
-		"BasePackage":       basePackage,
-		"ApplicationName":   applicationName,
-		"Dependencies":      buildDependencies(cfg.Dependencies),
-		"HasLombok":         contains(cfg.Dependencies, "lombok"),
-		"HasJpa":            contains(cfg.Dependencies, "jpa"),
-		"HasWeb":            contains(cfg.Dependencies, "web"),
-		"HasSecurity":       contains(cfg.Dependencies, "security"),
-		"HasValidation":     contains(cfg.Dependencies, "validation"),
-	}
-
-	if cfg.BuildTool == "maven" {
-		if err := engine.RenderAndWrite(
-			"project/pom.xml.tmpl",
-			filepath.Join(projectDir, "pom.xml"),
-			data,
-		); err != nil {
-			return err
-		}
-	}
-
-	if err := engine.RenderAndWrite(
-		"project/Application.java.tmpl",
-		filepath.Join(projectDir, "src", "main", "java", basePackagePath, applicationName+"Application.java"),
-		data,
-	); err != nil {
-		return err
-	}
-
-	if err := engine.RenderAndWrite(
-		"project/application.properties.tmpl",
-		filepath.Join(projectDir, "src", "main", "resources", "application.properties"),
-		data,
-	); err != nil {
-		return err
-	}
-
-	if err := engine.RenderAndWrite(
-		"project/ApplicationTests.java.tmpl",
-		filepath.Join(projectDir, "src", "test", "java", basePackagePath, applicationName+"ApplicationTests.java"),
-		data,
-	); err != nil {
-		return err
-	}
-
-	return nil
-}
-
-func writeHaftConfig(fs afero.Fs, projectDir string, cfg ProjectConfig) error {
-	basePackage := cfg.GroupId + "." + strings.ReplaceAll(cfg.ArtifactId, "-", "")
-
-	projectCfg := config.ProjectConfig{
-		Version: "1",
-		Project: config.ProjectSettings{
-			Name:        cfg.Name,
-			Group:       cfg.GroupId,
-			Artifact:    cfg.ArtifactId,
-			Description: cfg.Description,
-			Package:     basePackage,
-		},
-		Spring: config.SpringSettings{
-			Version: cfg.SpringBootVersion,
-		},
-		Java: config.JavaSettings{
-			Version: cfg.JavaVersion,
-		},
-		Build: config.BuildSettings{
-			Tool: cfg.BuildTool,
-		},
-		Architecture: config.ArchSettings{
-			Style: cfg.Architecture,
-		},
-		Database: config.DatabaseSettings{
-			Type: "h2",
-		},
-		Generators: config.GeneratorSettings{
-			DTO: config.DTOSettings{
-				Style: "record",
-			},
-			Tests: config.TestSettings{
-				Enabled: true,
-			},
-		},
-	}
-
-	homeDir, _ := os.UserHomeDir()
-	cm := config.NewConfigManager(fs, projectDir, homeDir)
-	return cm.SaveProjectConfig(&projectCfg)
-}
-
-type Dependency struct {
-	GroupId    string
-	ArtifactId string
-	Version    string
-	Scope      string
-}
-
-func buildDependencies(deps []string) []Dependency {
-	depMap := map[string]Dependency{
-		"web": {
-			GroupId:    "org.springframework.boot",
-			ArtifactId: "spring-boot-starter-web",
-		},
-		"jpa": {
-			GroupId:    "org.springframework.boot",
-			ArtifactId: "spring-boot-starter-data-jpa",
-		},
-		"security": {
-			GroupId:    "org.springframework.boot",
-			ArtifactId: "spring-boot-starter-security",
-		},
-		"validation": {
-			GroupId:    "org.springframework.boot",
-			ArtifactId: "spring-boot-starter-validation",
-		},
-		"lombok": {
-			GroupId:    "org.projectlombok",
-			ArtifactId: "lombok",
-			Scope:      "provided",
-		},
-		"h2": {
-			GroupId:    "com.h2database",
-			ArtifactId: "h2",
-			Scope:      "runtime",
-		},
-		"postgresql": {
-			GroupId:    "org.postgresql",
-			ArtifactId: "postgresql",
-			Scope:      "runtime",
-		},
-		"mysql": {
-			GroupId:    "com.mysql",
-			ArtifactId: "mysql-connector-j",
-			Scope:      "runtime",
-		},
-	}
-
-	normalizedDeps := normalizeDependencies(deps)
-
-	var result []Dependency
-	for _, dep := range normalizedDeps {
-		if d, ok := depMap[dep]; ok {
-			result = append(result, d)
-		}
-	}
-	return result
-}
-
-func normalizeDependencies(deps []string) []string {
-	hasJpa := contains(deps, "jpa")
-	hasH2 := contains(deps, "h2")
-	hasPostgres := contains(deps, "postgresql")
-	hasMysql := contains(deps, "mysql")
-
-	if hasJpa && !hasH2 && !hasPostgres && !hasMysql {
-		deps = append(deps, "h2")
-	}
-
-	return deps
-}
-
-func contains(slice []string, item string) bool {
-	for _, s := range slice {
-		if s == item {
-			return true
-		}
-	}
-	return false
-}
-
-func toPascalCase(s string) string {
-	s = strings.ReplaceAll(s, "-", " ")
-	s = strings.ReplaceAll(s, "_", " ")
-	words := strings.Fields(s)
-	for i, word := range words {
-		if len(word) > 0 {
-			words[i] = strings.ToUpper(word[:1]) + strings.ToLower(word[1:])
-		}
-	}
-	return strings.Join(words, "")
-}
-
-func copyMavenWrapper(engine *generator.Engine, projectDir string) error {
-	wrapperDir := filepath.Join(projectDir, ".mvn", "wrapper")
-	if err := engine.GetFS().MkdirAll(wrapperDir, 0755); err != nil {
-		return fmt.Errorf("failed to create .mvn/wrapper directory: %w", err)
-	}
-
-	propsContent, err := engine.ReadTemplateFile("wrapper/maven-wrapper.properties")
-	if err != nil {
-		return fmt.Errorf("failed to read maven-wrapper.properties: %w", err)
-	}
-	propsPath := filepath.Join(wrapperDir, "maven-wrapper.properties")
-	if err := engine.WriteFileWithPerm(propsPath, propsContent, 0644); err != nil {
-		return fmt.Errorf("failed to write maven-wrapper.properties: %w", err)
-	}
-
-	mvnwContent, err := engine.ReadTemplateFile("wrapper/mvnw")
-	if err != nil {
-		return fmt.Errorf("failed to read mvnw: %w", err)
-	}
-	mvnwPath := filepath.Join(projectDir, "mvnw")
-	if err := engine.WriteFileWithPerm(mvnwPath, mvnwContent, 0755); err != nil {
-		return fmt.Errorf("failed to write mvnw: %w", err)
-	}
-
-	mvnwCmdContent, err := engine.ReadTemplateFile("wrapper/mvnw.cmd")
-	if err != nil {
-		return fmt.Errorf("failed to read mvnw.cmd: %w", err)
-	}
-	mvnwCmdPath := filepath.Join(projectDir, "mvnw.cmd")
-	if err := engine.WriteFileWithPerm(mvnwCmdPath, mvnwCmdContent, 0644); err != nil {
-		return fmt.Errorf("failed to write mvnw.cmd: %w", err)
-	}
-
-	return nil
 }

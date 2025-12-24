@@ -82,6 +82,24 @@ func TestValidateGroupId(t *testing.T) {
 	}
 }
 
+func TestValidateArtifactId(t *testing.T) {
+	validIds := []string{"myapp", "my-app", "demo123"}
+	for _, id := range validIds {
+		t.Run("valid_"+id, func(t *testing.T) {
+			err := validateArtifactId(id)
+			assert.NoError(t, err)
+		})
+	}
+
+	invalidIds := []string{"a", "MyApp", "my_app", "-myapp"}
+	for _, id := range invalidIds {
+		t.Run("invalid_"+id, func(t *testing.T) {
+			err := validateArtifactId(id)
+			assert.Error(t, err)
+		})
+	}
+}
+
 func TestContains(t *testing.T) {
 	slice := []string{"a", "b", "c"}
 
@@ -92,7 +110,7 @@ func TestContains(t *testing.T) {
 }
 
 func TestBuildDependencies(t *testing.T) {
-	deps := buildDependencies([]string{"web", "jpa", "lombok"})
+	deps := buildDependencies([]string{"web", "data-jpa", "lombok"})
 
 	assert.Len(t, deps, 4)
 
@@ -121,7 +139,7 @@ func TestBuildDependencies(t *testing.T) {
 }
 
 func TestBuildDependenciesWithExplicitDb(t *testing.T) {
-	deps := buildDependencies([]string{"jpa", "postgresql"})
+	deps := buildDependencies([]string{"data-jpa", "postgresql"})
 
 	assert.Len(t, deps, 2)
 
@@ -143,26 +161,6 @@ func TestBuildDependenciesWithExplicitDb(t *testing.T) {
 	assert.False(t, hasH2)
 }
 
-func TestNeedsWizard(t *testing.T) {
-	empty := ProjectConfig{}
-	assert.True(t, needsWizard(empty))
-
-	partial := ProjectConfig{
-		Name:    "test",
-		GroupId: "com.example",
-	}
-	assert.True(t, needsWizard(partial))
-
-	complete := ProjectConfig{
-		Name:              "test",
-		GroupId:           "com.example",
-		JavaVersion:       "21",
-		SpringBootVersion: "3.4.0",
-		BuildTool:         "maven",
-	}
-	assert.False(t, needsWizard(complete))
-}
-
 func TestValidateConfig(t *testing.T) {
 	valid := ProjectConfig{
 		Name:       "test",
@@ -179,4 +177,14 @@ func TestValidateConfig(t *testing.T) {
 
 	noArtifact := ProjectConfig{Name: "test", GroupId: "com.example"}
 	assert.Error(t, validateConfig(noArtifact))
+}
+
+func TestNormalizeDependencies(t *testing.T) {
+	depsWithJpaNoDb := []string{"web", "data-jpa"}
+	normalized := normalizeDependencies(depsWithJpaNoDb)
+	assert.Contains(t, normalized, "h2")
+
+	depsWithJpaAndDb := []string{"web", "data-jpa", "postgresql"}
+	normalized = normalizeDependencies(depsWithJpaAndDb)
+	assert.NotContains(t, normalized, "h2")
 }
