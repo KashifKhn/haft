@@ -209,7 +209,16 @@ func buildWizardSteps(cfg ProjectConfig) ([]wizard.Step, []string) {
 		Placeholder: "com.example.demo",
 		Default:     cfg.PackageName,
 		Validator:   validatePackageName,
-		HelpText:    "Base package for your Java classes",
+		HelpText:    "Base package for your Java classes (auto-generated from Group ID + Artifact ID)",
+		DynamicDefault: func(values map[string]any) string {
+			groupId, _ := values["groupId"].(string)
+			artifactId, _ := values["artifactId"].(string)
+			if groupId != "" && artifactId != "" {
+				cleanArtifact := strings.ReplaceAll(artifactId, "-", "")
+				return groupId + "." + cleanArtifact
+			}
+			return ""
+		},
 	}))
 	keys = append(keys, "packageName")
 
