@@ -44,8 +44,11 @@ func Execute() error {
 }
 
 func init() {
-	rootCmd.PersistentFlags().BoolVarP(&verbose, "verbose", "v", false, "Enable verbose output")
+	rootCmd.PersistentFlags().BoolVar(&verbose, "verbose", false, "Enable verbose output")
 	rootCmd.PersistentFlags().BoolVar(&noColor, "no-color", false, "Disable colored output")
+
+	rootCmd.Version = version
+	rootCmd.SetVersionTemplate("haft version {{.Version}}\n")
 
 	rootCmd.AddCommand(versionCmd)
 }

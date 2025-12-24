@@ -44,5 +44,16 @@ func TestGlobalFlagsExist(t *testing.T) {
 
 	assert.NotNil(t, verboseFlag)
 	assert.NotNil(t, noColorFlag)
-	assert.Equal(t, "v", verboseFlag.Shorthand)
+	assert.Empty(t, verboseFlag.Shorthand)
+}
+
+func TestVersionFlag(t *testing.T) {
+	buf := new(bytes.Buffer)
+	rootCmd.SetOut(buf)
+	rootCmd.SetArgs([]string{"--version"})
+
+	err := rootCmd.Execute()
+
+	assert.NoError(t, err)
+	assert.Contains(t, buf.String(), "haft version")
 }
