@@ -61,7 +61,7 @@ func TestVersionFlag(t *testing.T) {
 func TestGetVersion(t *testing.T) {
 	v := GetVersion()
 	assert.NotEmpty(t, v)
-	assert.Equal(t, "0.1.0-dev", v)
+	assert.Equal(t, "dev", v)
 }
 
 func TestVerboseFlagSetsState(t *testing.T) {

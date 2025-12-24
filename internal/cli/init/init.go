@@ -479,7 +479,7 @@ func applyDefaults(cfg *ProjectConfig) error {
 		cfg.Packaging = "jar"
 	}
 	if cfg.ConfigFormat == "" {
-		cfg.ConfigFormat = "properties"
+		cfg.ConfigFormat = "yaml"
 	}
 	if cfg.Architecture == "" {
 		cfg.Architecture = globalCfg.Defaults.Architecture
