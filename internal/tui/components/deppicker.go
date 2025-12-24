@@ -210,8 +210,11 @@ func (m DepPickerModel) handleNavigation(msg tea.KeyMsg) (DepPickerModel, tea.Cm
 		m.selectAllVisible()
 	case "n":
 		m.selectNone()
-	case "c":
-		m.clearCategoryFilter()
+	case "0":
+		m.jumpToCategory(-1)
+	case "1", "2", "3", "4", "5", "6", "7", "8", "9":
+		idx := int(msg.String()[0] - '1')
+		m.jumpToCategory(idx)
 	}
 	return m, nil
 }
@@ -303,36 +306,47 @@ func (m *DepPickerModel) prevCategory() {
 	m.applyFilter()
 }
 
-func (m *DepPickerModel) clearCategoryFilter() {
-	m.categoryFilter = -1
-	m.searchQuery = ""
-	m.resetFilter()
+func (m *DepPickerModel) jumpToCategory(idx int) {
+	if idx == -1 {
+		m.categoryFilter = -1
+		m.applyFilter()
+		return
+	}
+	if idx >= 0 && idx < len(m.categories) {
+		m.categoryFilter = idx
+		m.applyFilter()
+	}
 }
 
 func (m DepPickerModel) renderCategoryTabs() string {
-	var tabs []string
+	var b strings.Builder
 
-	allLabel := "All"
 	if m.categoryFilter == -1 {
-		allLabel = "[All]"
-		tabs = append(tabs, styles.Focused.Render(allLabel))
+		b.WriteString(styles.Focused.Render("[0:All]"))
 	} else {
-		tabs = append(tabs, styles.Subtle.Render(allLabel))
+		b.WriteString(styles.Subtle.Render("0:All"))
 	}
 
-	for i, cat := range m.categories {
-		shortName := cat.Name
-		if len(shortName) > 12 {
-			shortName = shortName[:10] + ".."
+	maxShow := 9
+	if len(m.categories) < maxShow {
+		maxShow = len(m.categories)
+	}
+
+	for i := 0; i < maxShow; i++ {
+		b.WriteString(" ")
+		shortName := m.categories[i].Name
+		if len(shortName) > 10 {
+			shortName = shortName[:8] + ".."
 		}
+		label := fmt.Sprintf("%d:%s", i+1, shortName)
 		if i == m.categoryFilter {
-			tabs = append(tabs, styles.Focused.Render("["+shortName+"]"))
+			b.WriteString(styles.Focused.Render("[" + label + "]"))
 		} else {
-			tabs = append(tabs, styles.Subtle.Render(shortName))
+			b.WriteString(styles.Subtle.Render(label))
 		}
 	}
 
-	return strings.Join(tabs, " | ")
+	return b.String()
 }
 
 func (m DepPickerModel) View() string {
@@ -408,7 +422,7 @@ func (m DepPickerModel) View() string {
 	if m.searchMode {
 		b.WriteString(styles.RenderHelp("type to search • enter: apply • esc: cancel"))
 	} else {
-		b.WriteString(styles.RenderHelp("↑/↓: navigate • space: toggle • tab: category • /: search • c: clear • enter: confirm"))
+		b.WriteString(styles.RenderHelp("↑/↓: navigate • space: toggle • 0-9: category • /: search • enter: confirm"))
 	}
 
 	return b.String()
