@@ -3,6 +3,7 @@ package generate
 import (
 	"os"
 	"path/filepath"
+	"strings"
 	"testing"
 
 	"github.com/spf13/afero"
@@ -365,4 +366,125 @@ func TestResourceConfigAutoDetection(t *testing.T) {
 			assert.Equal(t, tt.hasValidation, data["HasValidation"])
 		})
 	}
+}
+
+func TestBuildTemplateDataAllCombinations(t *testing.T) {
+	tests := []struct {
+		name string
+		cfg  ResourceConfig
+	}{
+		{
+			name: "with lombok only",
+			cfg: ResourceConfig{
+				Name:          "Product",
+				BasePackage:   "com.shop",
+				HasLombok:     true,
+				HasJpa:        false,
+				HasValidation: false,
+			},
+		},
+		{
+			name: "with jpa only",
+			cfg: ResourceConfig{
+				Name:          "Order",
+				BasePackage:   "com.shop",
+				HasLombok:     false,
+				HasJpa:        true,
+				HasValidation: false,
+			},
+		},
+		{
+			name: "with validation only",
+			cfg: ResourceConfig{
+				Name:          "Customer",
+				BasePackage:   "com.shop",
+				HasLombok:     false,
+				HasJpa:        false,
+				HasValidation: true,
+			},
+		},
+		{
+			name: "with all features",
+			cfg: ResourceConfig{
+				Name:          "Invoice",
+				BasePackage:   "com.billing",
+				HasLombok:     true,
+				HasJpa:        true,
+				HasValidation: true,
+			},
+		},
+		{
+			name: "with no features",
+			cfg: ResourceConfig{
+				Name:          "Report",
+				BasePackage:   "com.reports",
+				HasLombok:     false,
+				HasJpa:        false,
+				HasValidation: false,
+			},
+		},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			data := buildTemplateData(tt.cfg)
+
+			assert.Equal(t, tt.cfg.Name, data["Name"])
+			assert.Equal(t, strings.ToLower(tt.cfg.Name), data["NameLower"])
+			assert.Equal(t, tt.cfg.BasePackage, data["BasePackage"])
+			assert.Equal(t, tt.cfg.HasLombok, data["HasLombok"])
+			assert.Equal(t, tt.cfg.HasJpa, data["HasJpa"])
+			assert.Equal(t, tt.cfg.HasValidation, data["HasValidation"])
+		})
+	}
+}
+
+func TestFindSourcePathWithAppDir(t *testing.T) {
+	tempDir, err := os.MkdirTemp("", "haft-test-app")
+	require.NoError(t, err)
+	defer os.RemoveAll(tempDir)
+
+	srcPath := filepath.Join(tempDir, "app", "src", "main", "java")
+	require.NoError(t, os.MkdirAll(srcPath, 0755))
+
+	result := findSourcePath(tempDir)
+
+	assert.Equal(t, srcPath, result)
+}
+
+func TestFormatRelativePathError(t *testing.T) {
+	result := formatRelativePath("/different/base", "/some/other/path/file.java")
+
+	assert.NotEmpty(t, result)
+}
+
+func TestToCamelCaseEmpty(t *testing.T) {
+	result := toCamelCase("")
+	assert.Equal(t, "", result)
+}
+
+func TestSplitWordsEmpty(t *testing.T) {
+	result := splitWords("")
+	assert.Nil(t, result)
+}
+
+func TestSplitWordsWithSpaces(t *testing.T) {
+	result := splitWords("hello world test")
+	assert.Equal(t, []string{"hello", "world", "test"}, result)
+}
+
+func TestResourceConfigStruct(t *testing.T) {
+	cfg := ResourceConfig{
+		Name:          "TestResource",
+		BasePackage:   "com.test.pkg",
+		HasLombok:     true,
+		HasJpa:        true,
+		HasValidation: true,
+	}
+
+	assert.Equal(t, "TestResource", cfg.Name)
+	assert.Equal(t, "com.test.pkg", cfg.BasePackage)
+	assert.True(t, cfg.HasLombok)
+	assert.True(t, cfg.HasJpa)
+	assert.True(t, cfg.HasValidation)
 }
