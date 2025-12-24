@@ -86,6 +86,18 @@ func (e *Engine) WriteFile(path string, content string) error {
 	return afero.WriteFile(e.fs, path, []byte(content), 0644)
 }
 
+func (e *Engine) WriteFileWithPerm(path string, content []byte, perm os.FileMode) error {
+	dir := filepath.Dir(path)
+	if err := e.fs.MkdirAll(dir, 0755); err != nil {
+		return err
+	}
+	return afero.WriteFile(e.fs, path, content, perm)
+}
+
+func (e *Engine) ReadTemplateFile(name string) ([]byte, error) {
+	return templateFS.ReadFile("templates/" + name)
+}
+
 func (e *Engine) RenderAndWrite(templateName string, outputPath string, data any) error {
 	content, err := e.RenderTemplate(templateName, data)
 	if err != nil {
