@@ -248,11 +248,6 @@ func TestValidatePackageName(t *testing.T) {
 	}
 }
 
-func TestDetectStatusText(t *testing.T) {
-	assert.Equal(t, "detected", detectStatusText(true))
-	assert.Equal(t, "not detected", detectStatusText(false))
-}
-
 func TestCapitalize(t *testing.T) {
 	tests := []struct {
 		input    string

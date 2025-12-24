@@ -265,6 +265,7 @@ func buildWizardSteps(cfg ProjectConfig) ([]wizard.Step, []string) {
 			{Label: "Properties", Value: "properties", Description: "Use application.properties format"},
 			{Label: "YAML", Value: "yaml", Description: "Use application.yml format"},
 		},
+		Default:  "yaml",
 		HelpText: "Select the configuration file format",
 	}))
 	keys = append(keys, "configFormat")
