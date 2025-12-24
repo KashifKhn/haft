@@ -13,32 +13,16 @@ BOLD='\033[1m'
 
 spinner() {
     local pid=$1
-    local delay=0.1
-    local spinstr='⠋⠙⠹⠸⠼⠴⠦⠧⠇⠏'
-    while kill -0 "$pid" 2>/dev/null; do
-        for i in $(seq 0 9); do
-            printf "\r  ${BLUE}%s${NC} %s" "$(echo "$spinstr" | cut -c$((i+1)))" "$2"
-            sleep $delay
-        done
-    done
-    printf "\r  ${GREEN}✓${NC} %s\n" "$2"
-}
-
-progress_bar() {
-    local current=$1
-    local total=$2
-    local width=40
-    local percentage=$((current * 100 / total))
-    local filled=$((current * width / total))
-    local empty=$((width - filled))
+    local msg=$2
+    local spin='⣾⣽⣻⢿⡿⣟⣯⣷'
+    local i=0
     
-    printf "\r  ["
-    printf "%${filled}s" | tr ' ' '='
-    if [ $filled -lt $width ]; then
-        printf ">"
-        printf "%$((empty - 1))s" | tr ' ' ' '
-    fi
-    printf "] %3d%%" "$percentage"
+    while kill -0 "$pid" 2>/dev/null; do
+        i=$(( (i + 1) % 8 ))
+        printf "\r  ${BLUE}%s${NC} %s" "$(echo "$spin" | cut -c$((i+1)))" "$msg"
+        sleep 0.1
+    done
+    printf "\r  ${GREEN}✓${NC} %s\n" "$msg"
 }
 
 get_latest_version() {
@@ -64,27 +48,13 @@ get_arch() {
     esac
 }
 
-download_with_progress() {
-    local url=$1
-    local output=$2
-    
-    if command -v curl >/dev/null 2>&1; then
-        curl -fSL --progress-bar "$url" -o "$output" 2>&1
-    elif command -v wget >/dev/null 2>&1; then
-        wget --progress=bar:force "$url" -O "$output" 2>&1
-    else
-        echo "${RED}Error: curl or wget required${NC}"
-        exit 1
-    fi
-}
-
 download_and_install() {
     VERSION=$1
     OS=$2
     ARCH=$3
 
     if [ "$OS" = "unknown" ] || [ "$ARCH" = "unknown" ]; then
-        echo "${RED}Error: Unsupported platform: OS=$(uname -s), Arch=$(uname -m)${NC}"
+        printf "  ${RED}✗${NC} Unsupported platform: OS=$(uname -s), Arch=$(uname -m)\n"
         exit 1
     fi
 
@@ -96,38 +66,23 @@ download_and_install() {
 
     DOWNLOAD_URL="https://github.com/${REPO}/releases/download/${VERSION}/${ARCHIVE}"
     
-    printf "  ${BLUE}→${NC} Downloading ${BOLD}%s %s${NC} for %s/%s\n" "$BINARY_NAME" "$VERSION" "$OS" "$ARCH"
+    printf "  ${BLUE}→${NC} Platform: ${BOLD}%s/%s${NC}\n" "$OS" "$ARCH"
     
     TMP_DIR=$(mktemp -d)
     trap 'rm -rf "$TMP_DIR"' EXIT
 
-    (download_with_progress "$DOWNLOAD_URL" "${TMP_DIR}/${ARCHIVE}") &
-    DOWNLOAD_PID=$!
-    
-    spinner $DOWNLOAD_PID "Downloading..."
-    
-    wait $DOWNLOAD_PID || {
-        printf "\r  ${RED}✗${NC} Download failed\n"
-        echo "${RED}Error: Failed to download ${DOWNLOAD_URL}${NC}"
-        exit 1
-    }
+    curl -fsSL "$DOWNLOAD_URL" -o "${TMP_DIR}/${ARCHIVE}" &
+    spinner $! "Downloading ${BINARY_NAME} ${VERSION}..."
 
     (
         cd "$TMP_DIR"
         if [ "$OS" = "windows" ]; then
-            unzip -q "$ARCHIVE"
+            unzip -q "$ARCHIVE" 2>/dev/null
         else
-            tar -xzf "$ARCHIVE"
+            tar -xzf "$ARCHIVE" 2>/dev/null
         fi
     ) &
-    EXTRACT_PID=$!
-    
-    spinner $EXTRACT_PID "Extracting..."
-    
-    wait $EXTRACT_PID || {
-        printf "\r  ${RED}✗${NC} Extraction failed\n"
-        exit 1
-    }
+    spinner $! "Extracting..."
 
     cd "$TMP_DIR"
     
@@ -152,40 +107,34 @@ download_and_install() {
             chmod +x "${INSTALL_DIR}/${BINARY_NAME}"
         fi
     ) &
-    INSTALL_PID=$!
-    
-    spinner $INSTALL_PID "Installing to ${INSTALL_DIR}..."
-    
-    wait $INSTALL_PID || {
-        printf "\r  ${RED}✗${NC} Installation failed\n"
-        exit 1
-    }
+    spinner $! "Installing to ${INSTALL_DIR}..."
 
     echo ""
-    printf "  ${GREEN}${BOLD}Successfully installed %s %s!${NC}\n" "$BINARY_NAME" "$VERSION"
+    printf "  ${GREEN}${BOLD}✓ Successfully installed %s %s${NC}\n" "$BINARY_NAME" "$VERSION"
     echo ""
     
     if [ "$INSTALL_DIR" = "$HOME/.local/bin" ]; then
-        if ! echo "$PATH" | grep -q "$HOME/.local/bin"; then
-            printf "  ${YELLOW}Note:${NC} Add to your PATH:\n"
-            case "$SHELL" in
-                */bash)
-                    printf "    ${BLUE}echo 'export PATH=\"\$HOME/.local/bin:\$PATH\"' >> ~/.bashrc${NC}\n"
-                    printf "    ${BLUE}source ~/.bashrc${NC}\n"
-                    ;;
-                */zsh)
-                    printf "    ${BLUE}echo 'export PATH=\"\$HOME/.local/bin:\$PATH\"' >> ~/.zshrc${NC}\n"
-                    printf "    ${BLUE}source ~/.zshrc${NC}\n"
-                    ;;
-                *)
-                    printf "    Add ${BLUE}%s${NC} to your PATH\n" "$INSTALL_DIR"
-                    ;;
-            esac
-            echo ""
-        fi
+        case "$PATH" in
+            *"$HOME/.local/bin"*) ;;
+            *)
+                printf "  ${YELLOW}!${NC} Add to your PATH:\n"
+                case "$SHELL" in
+                    */bash)
+                        printf "    ${BLUE}echo 'export PATH=\"\$HOME/.local/bin:\$PATH\"' >> ~/.bashrc && source ~/.bashrc${NC}\n"
+                        ;;
+                    */zsh)
+                        printf "    ${BLUE}echo 'export PATH=\"\$HOME/.local/bin:\$PATH\"' >> ~/.zshrc && source ~/.zshrc${NC}\n"
+                        ;;
+                    *)
+                        printf "    Add ${BLUE}%s${NC} to your PATH\n" "$INSTALL_DIR"
+                        ;;
+                esac
+                echo ""
+                ;;
+        esac
     fi
 
-    printf "  ${GREEN}→${NC} Run ${BOLD}'haft --help'${NC} to get started\n"
+    printf "  ${GREEN}→${NC} Run ${BOLD}haft --help${NC} to get started\n"
     echo ""
 }
 
@@ -205,9 +154,9 @@ main() {
     VERSION=${1:-}
     
     if [ -z "$VERSION" ]; then
-        printf "  ${BLUE}→${NC} Fetching latest version...\r"
+        printf "  ${BLUE}⣾${NC} Fetching latest version...\r"
         VERSION=$(get_latest_version)
-        printf "  ${GREEN}✓${NC} Latest version: ${BOLD}%s${NC}\n" "$VERSION"
+        printf "  ${GREEN}✓${NC} Latest version: ${BOLD}%s${NC}        \n" "$VERSION"
     fi
     
     if [ -z "$VERSION" ]; then
