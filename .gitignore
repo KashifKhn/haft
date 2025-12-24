@@ -37,3 +37,6 @@ n_docs/
 !AGENTS.md
 *.log
 
+# Build output
+bin/
+
