@@ -1,6 +1,9 @@
 package root
 
 import (
+	"os"
+
+	"github.com/KashifKhn/haft/internal/logger"
 	"github.com/spf13/cobra"
 )
 
@@ -37,6 +40,17 @@ Features:
   # Add dependencies
   haft add lombok
   haft add validation`,
+	PersistentPreRun: func(cmd *cobra.Command, args []string) {
+		initLogger()
+	},
+}
+
+func initLogger() {
+	logger.SetDefault(logger.New(logger.Options{
+		NoColor: noColor,
+		Verbose: verbose,
+		Output:  os.Stderr,
+	}))
 }
 
 func Execute() error {
@@ -60,4 +74,16 @@ var versionCmd = &cobra.Command{
 	Run: func(cmd *cobra.Command, args []string) {
 		cmd.Println("haft version", version)
 	},
+}
+
+func GetVersion() string {
+	return version
+}
+
+func IsVerbose() bool {
+	return verbose
+}
+
+func IsNoColor() bool {
+	return noColor
 }

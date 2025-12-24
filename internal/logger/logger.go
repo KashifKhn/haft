@@ -114,7 +114,7 @@ func customizeLogStyles(l *log.Logger, noColor bool) {
 	l.SetStyles(styles)
 }
 
-func (l *Logger) Success(msg string, keyvals ...interface{}) {
+func (l *Logger) Success(msg string, keyvals ...any) {
 	prefix := "✓"
 	if l.noColor {
 		prefix = "[OK]"
@@ -122,7 +122,7 @@ func (l *Logger) Success(msg string, keyvals ...interface{}) {
 	l.logger.Info(l.styles.Success.Render(prefix)+" "+msg, keyvals...)
 }
 
-func (l *Logger) Error(msg string, keyvals ...interface{}) {
+func (l *Logger) Error(msg string, keyvals ...any) {
 	prefix := "✗"
 	if l.noColor {
 		prefix = "[ERROR]"
@@ -130,7 +130,7 @@ func (l *Logger) Error(msg string, keyvals ...interface{}) {
 	l.logger.Error(l.styles.Error.Render(prefix)+" "+msg, keyvals...)
 }
 
-func (l *Logger) Warning(msg string, keyvals ...interface{}) {
+func (l *Logger) Warning(msg string, keyvals ...any) {
 	prefix := "⚠"
 	if l.noColor {
 		prefix = "[WARN]"
@@ -138,7 +138,7 @@ func (l *Logger) Warning(msg string, keyvals ...interface{}) {
 	l.logger.Warn(l.styles.Warning.Render(prefix)+" "+msg, keyvals...)
 }
 
-func (l *Logger) Info(msg string, keyvals ...interface{}) {
+func (l *Logger) Info(msg string, keyvals ...any) {
 	prefix := "ℹ"
 	if l.noColor {
 		prefix = "[INFO]"
@@ -146,7 +146,7 @@ func (l *Logger) Info(msg string, keyvals ...interface{}) {
 	l.logger.Info(l.styles.Info.Render(prefix)+" "+msg, keyvals...)
 }
 
-func (l *Logger) Debug(msg string, keyvals ...interface{}) {
+func (l *Logger) Debug(msg string, keyvals ...any) {
 	l.logger.Debug(msg, keyvals...)
 }
 
@@ -154,7 +154,7 @@ func (l *Logger) Print(msg string) {
 	l.logger.Print(msg)
 }
 
-func (l *Logger) Fatal(msg string, keyvals ...interface{}) {
+func (l *Logger) Fatal(msg string, keyvals ...any) {
 	l.Error(msg, keyvals...)
 	os.Exit(1)
 }
@@ -186,23 +186,23 @@ func SetDefault(l *Logger) {
 	defaultLogger = l
 }
 
-func Success(msg string, keyvals ...interface{}) {
+func Success(msg string, keyvals ...any) {
 	defaultLogger.Success(msg, keyvals...)
 }
 
-func Error(msg string, keyvals ...interface{}) {
+func Error(msg string, keyvals ...any) {
 	defaultLogger.Error(msg, keyvals...)
 }
 
-func Warning(msg string, keyvals ...interface{}) {
+func Warning(msg string, keyvals ...any) {
 	defaultLogger.Warning(msg, keyvals...)
 }
 
-func Info(msg string, keyvals ...interface{}) {
+func Info(msg string, keyvals ...any) {
 	defaultLogger.Info(msg, keyvals...)
 }
 
-func Debug(msg string, keyvals ...interface{}) {
+func Debug(msg string, keyvals ...any) {
 	defaultLogger.Debug(msg, keyvals...)
 }
 
