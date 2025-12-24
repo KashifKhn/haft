@@ -98,6 +98,30 @@ function HomepageFeatures() {
   );
 }
 
+function DemoSection() {
+  return (
+    <section style={{padding: '4rem 0', backgroundColor: 'var(--ifm-background-surface-color)'}}>
+      <div className="container">
+        <Heading as="h2" style={{textAlign: 'center', marginBottom: '2rem'}}>
+          See It In Action
+        </Heading>
+        <div style={{display: 'flex', justifyContent: 'center'}}>
+          <img 
+            src="/img/demo.gif" 
+            alt="Haft Demo" 
+            style={{
+              maxWidth: '800px', 
+              width: '100%', 
+              borderRadius: '12px',
+              boxShadow: '0 4px 20px rgba(0,0,0,0.3)'
+            }}
+          />
+        </div>
+      </div>
+    </section>
+  );
+}
+
 function ComparisonSection() {
   return (
     <section style={{padding: '4rem 0', backgroundColor: 'var(--ifm-background-surface-color)'}}>
@@ -190,6 +214,7 @@ export default function Home(): ReactNode {
       <HomepageHeader />
       <main>
         <HomepageFeatures />
+        <DemoSection />
         <ComparisonSection />
         <QuickStartSection />
       </main>
