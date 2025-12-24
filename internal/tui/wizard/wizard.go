@@ -15,6 +15,7 @@ const (
 	StepTypeInput StepType = iota
 	StepTypeSelect
 	StepTypeMultiSelect
+	StepTypeDepPicker
 	StepTypeConfirm
 )
 
@@ -25,6 +26,8 @@ type Step interface {
 	Value() any
 	Validate() error
 	Submitted() bool
+	GoBack() bool
+	Reset()
 }
 
 type TextInputStep struct {
@@ -61,6 +64,14 @@ func (s *TextInputStep) Submitted() bool {
 	return s.model.Submitted()
 }
 
+func (s *TextInputStep) GoBack() bool {
+	return s.model.GoBack()
+}
+
+func (s *TextInputStep) Reset() {
+	s.model.Reset()
+}
+
 type SelectStep struct {
 	model components.SelectModel
 }
@@ -95,6 +106,14 @@ func (s *SelectStep) Submitted() bool {
 	return s.model.Submitted()
 }
 
+func (s *SelectStep) GoBack() bool {
+	return s.model.GoBack()
+}
+
+func (s *SelectStep) Reset() {
+	s.model.Reset()
+}
+
 type MultiSelectStep struct {
 	model components.MultiSelectModel
 }
@@ -127,6 +146,56 @@ func (s *MultiSelectStep) Validate() error {
 
 func (s *MultiSelectStep) Submitted() bool {
 	return s.model.Submitted()
+}
+
+func (s *MultiSelectStep) GoBack() bool {
+	return s.model.GoBack()
+}
+
+func (s *MultiSelectStep) Reset() {
+	s.model.Reset()
+}
+
+type DepPickerStep struct {
+	model components.DepPickerModel
+}
+
+func NewDepPickerStep(cfg components.DepPickerConfig) *DepPickerStep {
+	return &DepPickerStep{model: components.NewDepPicker(cfg)}
+}
+
+func (s *DepPickerStep) Init() tea.Cmd {
+	return s.model.Init()
+}
+
+func (s *DepPickerStep) Update(msg tea.Msg) (Step, tea.Cmd) {
+	updated, cmd := s.model.Update(msg)
+	s.model = updated
+	return s, cmd
+}
+
+func (s *DepPickerStep) View() string {
+	return s.model.View()
+}
+
+func (s *DepPickerStep) Value() any {
+	return s.model.Values()
+}
+
+func (s *DepPickerStep) Validate() error {
+	return s.model.Validate()
+}
+
+func (s *DepPickerStep) Submitted() bool {
+	return s.model.Submitted()
+}
+
+func (s *DepPickerStep) GoBack() bool {
+	return s.model.GoBack()
+}
+
+func (s *DepPickerStep) Reset() {
+	s.model.Reset()
 }
 
 type WizardModel struct {
@@ -178,6 +247,17 @@ func (m WizardModel) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 
 	updatedStep, cmd := m.steps[m.currentStep].Update(msg)
 	m.steps[m.currentStep] = updatedStep
+
+	if updatedStep.GoBack() {
+		if m.currentStep > 0 {
+			m.steps[m.currentStep].Reset()
+			m.currentStep--
+			m.steps[m.currentStep].Reset()
+			return m, m.steps[m.currentStep].Init()
+		}
+		m.steps[m.currentStep].Reset()
+		return m, nil
+	}
 
 	if updatedStep.Submitted() {
 		if m.currentStep < len(m.stepKeys) {
