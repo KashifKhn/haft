@@ -76,18 +76,19 @@ function HomepageHeader() {
         </div>
 
         <div style={{marginTop: '2.5rem'}}>
-          <p style={{marginBottom: '0.75rem', opacity: 0.9, fontSize: '0.9rem'}}>Install with one command:</p>
+          <p style={{marginBottom: '0.75rem', opacity: 0.9, fontSize: '0.9rem', color: '#f5f3ff'}}>Install with one command:</p>
           <div style={{
-            backgroundColor: 'rgba(0,0,0,0.3)',
+            backgroundColor: 'rgba(0,0,0,0.4)',
             padding: '0.75rem 1.5rem',
             borderRadius: '8px',
             fontSize: '1rem',
             fontFamily: 'monospace',
             display: 'inline-flex',
             alignItems: 'center',
-            border: '1px solid rgba(255,255,255,0.1)'
+            border: '1px solid rgba(255,255,255,0.2)',
+            color: '#f5f3ff',
           }}>
-            <code style={{margin: 0}}>{INSTALL_COMMAND}</code>
+            <code style={{margin: 0, color: '#f5f3ff', background: 'transparent'}}>{INSTALL_COMMAND}</code>
             <CopyButton text={INSTALL_COMMAND} />
           </div>
         </div>
