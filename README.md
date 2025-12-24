@@ -51,6 +51,10 @@ haft generate resource User
 
 Done. All 8 files. Properly structured. Following your project's conventions.
 
+<p align="center">
+  <img src="assets/demo.gif" alt="Haft Demo" width="700"/>
+</p>
+
 ## Why Haft?
 
 | | Spring Initializr | Haft |
