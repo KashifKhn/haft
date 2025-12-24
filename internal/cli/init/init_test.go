@@ -201,3 +201,90 @@ func TestApplyDefaultsConfigFormat(t *testing.T) {
 	assert.NoError(t, err)
 	assert.Equal(t, "yaml", cfg.ConfigFormat)
 }
+
+func TestBuildWizardStepsConfigFormatDefault(t *testing.T) {
+	cfg := ProjectConfig{}
+
+	steps, keys := buildWizardSteps(cfg)
+
+	configFormatIdx := -1
+	for i, key := range keys {
+		if key == "configFormat" {
+			configFormatIdx = i
+			break
+		}
+	}
+
+	assert.NotEqual(t, -1, configFormatIdx, "configFormat step should exist")
+	assert.True(t, configFormatIdx < len(steps), "configFormat step index should be valid")
+}
+
+func TestApplyDefaultsAllFields(t *testing.T) {
+	cfg := &ProjectConfig{
+		Name:       "myapp",
+		GroupId:    "com.example",
+		ArtifactId: "myapp",
+	}
+
+	err := applyDefaults(cfg)
+
+	assert.NoError(t, err)
+	assert.Equal(t, "21", cfg.JavaVersion)
+	assert.Equal(t, "3.4.0", cfg.SpringBootVersion)
+	assert.Equal(t, "maven", cfg.BuildTool)
+	assert.Equal(t, "jar", cfg.Packaging)
+	assert.Equal(t, "yaml", cfg.ConfigFormat)
+	assert.Equal(t, "com.example.myapp", cfg.PackageName)
+	assert.Contains(t, cfg.Description, "myapp")
+}
+
+func TestApplyDefaultsPreservesExistingValues(t *testing.T) {
+	cfg := &ProjectConfig{
+		Name:              "myapp",
+		GroupId:           "com.example",
+		ArtifactId:        "myapp",
+		JavaVersion:       "17",
+		SpringBootVersion: "3.3.0",
+		BuildTool:         "gradle",
+		Packaging:         "war",
+		ConfigFormat:      "properties",
+		PackageName:       "com.custom.pkg",
+		Description:       "Custom description",
+	}
+
+	err := applyDefaults(cfg)
+
+	assert.NoError(t, err)
+	assert.Equal(t, "17", cfg.JavaVersion)
+	assert.Equal(t, "3.3.0", cfg.SpringBootVersion)
+	assert.Equal(t, "gradle", cfg.BuildTool)
+	assert.Equal(t, "war", cfg.Packaging)
+	assert.Equal(t, "properties", cfg.ConfigFormat)
+	assert.Equal(t, "com.custom.pkg", cfg.PackageName)
+	assert.Equal(t, "Custom description", cfg.Description)
+}
+
+func TestValidatePackageName(t *testing.T) {
+	tests := []struct {
+		name    string
+		input   string
+		wantErr bool
+	}{
+		{"valid com.example", "com.example", false},
+		{"valid com.example.demo", "com.example.demo", false},
+		{"empty is valid", "", false},
+		{"invalid uppercase", "Com.example", true},
+		{"invalid hyphen", "com-example", true},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			err := validatePackageName(tt.input)
+			if tt.wantErr {
+				assert.Error(t, err)
+			} else {
+				assert.NoError(t, err)
+			}
+		})
+	}
+}

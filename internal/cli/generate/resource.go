@@ -35,16 +35,17 @@ Creates the following files:
   - Controller (REST endpoints)
   - Service interface
   - ServiceImpl (implementation)
-  - Repository (JPA repository)
-  - Entity (JPA entity)
+  - Repository (JPA repository) - if JPA detected
+  - Entity (JPA entity) - if JPA detected
   - Request DTO
   - Response DTO
   - Mapper (entity <-> DTO conversion)
-  - ResourceNotFoundException (if not exists)
+  - ResourceNotFoundException (if JPA and not exists)
 
 The command auto-detects your project's base package from pom.xml and
 checks for Lombok, JPA, and Validation dependencies to customize the
-generated code accordingly.`,
+generated code accordingly. Dependencies not in your project are 
+automatically disabled.`,
 		Example: `  # Interactive mode
   haft generate resource
 
@@ -68,10 +69,14 @@ generated code accordingly.`,
 
 func runResource(cmd *cobra.Command, args []string) error {
 	noInteractive, _ := cmd.Flags().GetBool("no-interactive")
+	log := logger.Default()
 
 	cfg, err := detectProjectConfig()
-	if err != nil && noInteractive {
-		return fmt.Errorf("could not detect project configuration: %w", err)
+	if err != nil {
+		if noInteractive {
+			return fmt.Errorf("could not detect project configuration: %w", err)
+		}
+		log.Warning("Could not detect project config, using defaults")
 	}
 
 	if len(args) > 0 {
@@ -177,44 +182,7 @@ func buildResourceWizardSteps(cfg ResourceConfig) ([]wizard.Step, []string) {
 	}))
 	keys = append(keys, "basePackage")
 
-	steps = append(steps, wizard.NewSelectStep(components.SelectConfig{
-		Label: "Use Lombok annotations?",
-		Items: []components.SelectItem{
-			{Label: "Yes", Value: "yes", Description: "Generate code with Lombok annotations"},
-			{Label: "No", Value: "no", Description: "Generate traditional getters/setters"},
-		},
-		HelpText: fmt.Sprintf("Lombok %s in your project", detectStatusText(cfg.HasLombok)),
-	}))
-	keys = append(keys, "hasLombok")
-
-	steps = append(steps, wizard.NewSelectStep(components.SelectConfig{
-		Label: "Include JPA/Repository layer?",
-		Items: []components.SelectItem{
-			{Label: "Yes", Value: "yes", Description: "Generate Entity and Repository"},
-			{Label: "No", Value: "no", Description: "Skip database layer"},
-		},
-		HelpText: fmt.Sprintf("Spring Data JPA %s in your project", detectStatusText(cfg.HasJpa)),
-	}))
-	keys = append(keys, "hasJpa")
-
-	steps = append(steps, wizard.NewSelectStep(components.SelectConfig{
-		Label: "Add validation annotations?",
-		Items: []components.SelectItem{
-			{Label: "Yes", Value: "yes", Description: "Add @Valid to request DTOs"},
-			{Label: "No", Value: "no", Description: "Skip validation"},
-		},
-		HelpText: fmt.Sprintf("Spring Validation %s in your project", detectStatusText(cfg.HasValidation)),
-	}))
-	keys = append(keys, "hasValidation")
-
 	return steps, keys
-}
-
-func detectStatusText(detected bool) string {
-	if detected {
-		return "detected"
-	}
-	return "not detected"
 }
 
 func extractResourceWizardValues(wiz wizard.WizardModel, cfg ResourceConfig) ResourceConfig {
@@ -223,21 +191,6 @@ func extractResourceWizardValues(wiz wizard.WizardModel, cfg ResourceConfig) Res
 	}
 	if v := wiz.StringValue("basePackage"); v != "" {
 		cfg.BasePackage = v
-	}
-	if v := wiz.StringValue("hasLombok"); v == "yes" {
-		cfg.HasLombok = true
-	} else if v == "no" {
-		cfg.HasLombok = false
-	}
-	if v := wiz.StringValue("hasJpa"); v == "yes" {
-		cfg.HasJpa = true
-	} else if v == "no" {
-		cfg.HasJpa = false
-	}
-	if v := wiz.StringValue("hasValidation"); v == "yes" {
-		cfg.HasValidation = true
-	} else if v == "no" {
-		cfg.HasValidation = false
 	}
 
 	return cfg
@@ -322,6 +275,19 @@ func generateResource(cfg ResourceConfig, skipEntity, skipRepository bool) error
 
 	log.Info("Generating resource", "name", cfg.Name)
 
+	if cfg.HasLombok {
+		log.Debug("Using Lombok annotations")
+	}
+	if cfg.HasJpa {
+		log.Debug("Generating JPA Entity and Repository")
+	}
+	if cfg.HasValidation {
+		log.Debug("Adding @Valid annotations")
+	}
+
+	generatedCount := 0
+	skippedCount := 0
+
 	for _, t := range templates {
 		if t.skip {
 			continue
@@ -330,7 +296,8 @@ func generateResource(cfg ResourceConfig, skipEntity, skipRepository bool) error
 		outputPath := filepath.Join(basePath, t.subPackage, t.fileName)
 
 		if engine.FileExists(outputPath) {
-			log.Warning("File already exists, skipping", "path", outputPath)
+			log.Warning("File exists, skipping", "file", formatRelativePath(cwd, outputPath))
+			skippedCount++
 			continue
 		}
 
@@ -339,9 +306,16 @@ func generateResource(cfg ResourceConfig, skipEntity, skipRepository bool) error
 		}
 
 		log.Info("Created", "file", formatRelativePath(cwd, outputPath))
+		generatedCount++
 	}
 
-	log.Info("Resource generated successfully", "name", cfg.Name)
+	if generatedCount > 0 {
+		log.Success(fmt.Sprintf("Generated %d files for %s resource", generatedCount, cfg.Name))
+	}
+	if skippedCount > 0 {
+		log.Info(fmt.Sprintf("Skipped %d existing files", skippedCount))
+	}
+
 	return nil
 }
 

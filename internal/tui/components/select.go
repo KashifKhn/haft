@@ -28,14 +28,24 @@ type SelectConfig struct {
 	Label    string
 	Items    []SelectItem
 	HelpText string
+	Default  string
 }
 
 func NewSelect(cfg SelectConfig) SelectModel {
+	cursor := 0
+	if cfg.Default != "" {
+		for i, item := range cfg.Items {
+			if item.Value == cfg.Default {
+				cursor = i
+				break
+			}
+		}
+	}
 	return SelectModel{
 		items:    cfg.Items,
 		label:    cfg.Label,
 		helpText: cfg.HelpText,
-		cursor:   0,
+		cursor:   cursor,
 		selected: -1,
 	}
 }
