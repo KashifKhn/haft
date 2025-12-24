@@ -16,9 +16,8 @@ import (
 var templateFS embed.FS
 
 type Engine struct {
-	fs        afero.Fs
-	templates *template.Template
-	funcMap   template.FuncMap
+	fs      afero.Fs
+	funcMap template.FuncMap
 }
 
 func NewEngine(filesystem afero.Fs) *Engine {
