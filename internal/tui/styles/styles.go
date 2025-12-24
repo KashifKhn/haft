@@ -96,6 +96,16 @@ var (
 	Bullet    = Blurred.Render("•")
 )
 
+var (
+	Subtle = lipgloss.NewStyle().
+		Foreground(Muted)
+
+	CategoryStyle = lipgloss.NewStyle().
+			Foreground(Secondary).
+			Bold(true).
+			MarginTop(1)
+)
+
 func RenderTitle(text string) string {
 	return Title.Render(text)
 }
