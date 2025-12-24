@@ -2,7 +2,7 @@
   <picture>
     <source media="(prefers-color-scheme: dark)" srcset="assets/logo-dark.png">
     <source media="(prefers-color-scheme: light)" srcset="assets/logo-light.png">
-    <img src="assets/logo-light.png" alt="Haft Logo" width="280"/>
+    <img src="assets/logo-light.png" alt="Haft" width="320"/>
   </picture>
 </p>
 
@@ -11,336 +11,169 @@
 </p>
 
 <p align="center">
-  <a href="https://github.com/KashifKhn/haft/releases"><img src="https://img.shields.io/github/v/release/KashifKhn/haft?style=flat-square&color=blue" alt="Release"></a>
-  <a href="https://github.com/KashifKhn/haft/blob/main/LICENSE"><img src="https://img.shields.io/github/license/KashifKhn/haft?style=flat-square" alt="License"></a>
-  <a href="https://github.com/KashifKhn/haft/actions"><img src="https://img.shields.io/github/actions/workflow/status/KashifKhn/haft/ci.yml?style=flat-square" alt="Build Status"></a>
-  <a href="https://goreportcard.com/report/github.com/KashifKhn/haft"><img src="https://goreportcard.com/badge/github.com/KashifKhn/haft?style=flat-square" alt="Go Report Card"></a>
-  <a href="https://codecov.io/gh/KashifKhn/haft"><img src="https://img.shields.io/codecov/c/github/KashifKhn/haft?style=flat-square" alt="Coverage"></a>
+  <a href="https://github.com/KashifKhn/haft/releases"><img src="https://img.shields.io/github/v/release/KashifKhn/haft?style=for-the-badge&logo=github&color=blue" alt="Release"></a>
+  <a href="https://github.com/KashifKhn/haft/blob/main/LICENSE"><img src="https://img.shields.io/github/license/KashifKhn/haft?style=for-the-badge" alt="License"></a>
+  <a href="https://goreportcard.com/report/github.com/KashifKhn/haft"><img src="https://goreportcard.com/badge/github.com/KashifKhn/haft?style=for-the-badge" alt="Go Report"></a>
 </p>
 
 <p align="center">
-  <a href="https://kashifkhn.github.io/haft">Documentation</a> •
-  <a href="#installation">Installation</a> •
-  <a href="#quick-start">Quick Start</a> •
-  <a href="#features">Features</a> •
-  <a href="https://github.com/KashifKhn/haft/issues">Issues</a> •
-  <a href="CONTRIBUTING.md">Contributing</a>
+  <a href="https://kashifkhn.github.io/haft">Documentation</a> ·
+  <a href="https://github.com/KashifKhn/haft/releases">Releases</a> ·
+  <a href="https://github.com/KashifKhn/haft/issues">Report Bug</a> ·
+  <a href="https://github.com/KashifKhn/haft/discussions">Discussions</a>
 </p>
 
 ---
 
-## Why Haft?
+## The Problem
 
-**Spring Initializr** bootstraps your project. **Haft** is your lifecycle companion.
+You start a Spring Boot project with Spring Initializr. Great. Now what?
 
-While Spring Initializr gets you started, you're on your own after that. Every new entity means manually creating 8+ files: Entity, Repository, Service, ServiceImpl, Controller, Request DTO, Response DTO, Mapper, and Exception handler. Every. Single. Time.
+Every new feature means the same tedious ritual:
+- Create `UserEntity.java`
+- Create `UserRepository.java`  
+- Create `UserService.java`
+- Create `UserServiceImpl.java`
+- Create `UserController.java`
+- Create `UserRequest.java`
+- Create `UserResponse.java`
+- Create `UserMapper.java`
 
-**Haft changes that.**
+**8 files. Every. Single. Time.**
+
+Copy-paste from existing code. Fix the class names. Fix the imports. Miss something. Debug. Repeat.
+
+## The Solution
 
 ```bash
-# Instead of creating 8 files manually...
 haft generate resource User
-
-# Done. All files generated with proper layered architecture.
 ```
 
-## Features
+Done. All 8 files. Properly structured. Following your project's conventions.
 
-- **Interactive TUI Wizard** - Beautiful terminal UI for project setup
-- **Spring Initializr Integration** - All official dependencies with descriptions
-- **Smart Dependency Detection** - Detects Lombok, MapStruct, Validation from pom.xml
-- **Full CRUD Generation** - Entity, Repository, Service, Controller, DTOs in one command
-- **Maven Support** - Parse, read, and modify pom.xml programmatically
-- **Git Integration** - Optional repository initialization on project creation
+## Why Haft?
 
-## Installation
+| | Spring Initializr | Haft |
+|---|---|---|
+| Project Bootstrap | ✅ | ✅ |
+| Works Offline | ❌ | ✅ |
+| Resource Generation | ❌ | ✅ |
+| Dependency Management | ❌ | ✅ |
+| Interactive TUI | ❌ | ✅ |
+| Lifecycle Companion | ❌ | ✅ |
 
-### Quick Install (Recommended)
+**Haft works completely offline.** No web browser. No internet dependency. Just you and your terminal.
+
+## Install
 
 ```bash
 curl -fsSL https://raw.githubusercontent.com/KashifKhn/haft/main/install.sh | bash
 ```
 
-### Using Go
+<details>
+<summary>Other installation methods</summary>
 
+**Go**
 ```bash
 go install github.com/KashifKhn/haft/cmd/haft@latest
 ```
 
-### From Source
-
+**From Source**
 ```bash
-git clone https://github.com/KashifKhn/haft.git
-cd haft
-make build
-./bin/haft --help
+git clone https://github.com/KashifKhn/haft.git && cd haft && make build
 ```
 
-### Binary Releases
+**Manual Download**
 
-Download pre-built binaries from the [Releases](https://github.com/KashifKhn/haft/releases) page.
-
-<details>
-<summary><strong>Linux</strong></summary>
-
-```bash
-# AMD64
-curl -L https://github.com/KashifKhn/haft/releases/latest/download/haft-linux-amd64.tar.gz | tar xz
-sudo mv haft-linux-amd64 /usr/local/bin/haft
-
-# ARM64
-curl -L https://github.com/KashifKhn/haft/releases/latest/download/haft-linux-arm64.tar.gz | tar xz
-sudo mv haft-linux-arm64 /usr/local/bin/haft
-```
-
-</details>
-
-<details>
-<summary><strong>macOS</strong></summary>
-
-```bash
-# Intel
-curl -L https://github.com/KashifKhn/haft/releases/latest/download/haft-darwin-amd64.tar.gz | tar xz
-sudo mv haft-darwin-amd64 /usr/local/bin/haft
-
-# Apple Silicon
-curl -L https://github.com/KashifKhn/haft/releases/latest/download/haft-darwin-arm64.tar.gz | tar xz
-sudo mv haft-darwin-arm64 /usr/local/bin/haft
-```
-
-</details>
-
-<details>
-<summary><strong>Windows</strong></summary>
-
-Download `haft-windows-amd64.zip` from the [releases page](https://github.com/KashifKhn/haft/releases) and add to your PATH.
-
-Or using PowerShell:
-```powershell
-Invoke-WebRequest -Uri "https://github.com/KashifKhn/haft/releases/latest/download/haft-windows-amd64.zip" -OutFile "haft.zip"
-Expand-Archive -Path "haft.zip" -DestinationPath "."
-Move-Item "haft-windows-amd64.exe" "$env:LOCALAPPDATA\Microsoft\WindowsApps\haft.exe"
-```
+Download binaries from [Releases](https://github.com/KashifKhn/haft/releases) for Linux, macOS, or Windows.
 
 </details>
 
 ## Quick Start
 
-### Initialize a New Project
+### Create a New Project
 
 ```bash
-# Interactive mode (recommended)
 haft init
-
-# With project name
-haft init my-app
-
-# Non-interactive with options
-haft init my-app -g com.example -j 21 -s 3.4.1 --deps web,data-jpa,lombok
 ```
 
-The interactive wizard guides you through:
+An interactive wizard guides you through project setup:
 
-| Step | Description |
-|------|-------------|
-| Project Name | Your application name |
-| Group ID | Maven group (e.g., `com.example`) |
-| Artifact ID | Maven artifact name |
-| Description | Project description |
-| Package Name | Base package (auto-generated) |
-| Java Version | 17, 21 (LTS), or 25 |
-| Spring Boot | Latest stable versions |
-| Build Tool | Maven or Gradle |
-| Packaging | JAR or WAR |
-| Config Format | Properties or YAML |
-| Dependencies | Search & select from all Spring starters |
-| Git Init | Initialize git repository |
-
-### Wizard Navigation
-
-| Key | Action |
-|-----|--------|
-| `↑` `↓` | Navigate options |
-| `Enter` | Select / Confirm |
-| `Esc` | Go back to previous step |
-| `Space` | Toggle selection (multi-select) |
-| `/` | Search dependencies |
-| `Tab` | Next category |
-| `0-9` | Jump to category |
-
-## Commands
-
-### `haft init`
-
-Initialize a new Spring Boot project.
-
-```bash
-haft init [name] [flags]
+```
+? Project name: my-api
+? Group ID: com.example  
+? Java version: 21
+? Spring Boot: 3.4.1
+? Dependencies: web, data-jpa, lombok, validation
 ```
 
-**Flags:**
+### Non-Interactive Mode
 
-| Flag | Short | Description | Default |
-|------|-------|-------------|---------|
-| `--group` | `-g` | Group ID (e.g., com.example) | - |
-| `--artifact` | `-a` | Artifact ID | - |
-| `--java` | `-j` | Java version (17, 21, 25) | `21` |
-| `--spring` | `-s` | Spring Boot version | `3.4.0` |
-| `--build` | `-b` | Build tool (maven, gradle) | `maven` |
-| `--deps` | | Dependencies (comma-separated) | - |
-| `--package` | | Base package name | - |
-| `--packaging` | | Packaging type (jar, war) | `jar` |
-| `--config` | | Config format (properties, yaml) | `yaml` |
-| `--dir` | `-d` | Output directory | `.` |
-| `--no-interactive` | | Skip interactive wizard | `false` |
-
-**Examples:**
+Perfect for CI/CD and scripting:
 
 ```bash
-# Full interactive wizard
-haft init
-
-# Quick start with defaults
-haft init my-api -g com.company -j 21
-
-# CI/CD friendly (non-interactive)
-haft init user-service \
+haft init my-service \
   --group com.example \
   --java 21 \
-  --spring 3.4.1 \
-  --build maven \
-  --deps web,data-jpa,lombok,validation \
+  --deps web,data-jpa,lombok \
   --no-interactive
 ```
 
-### `haft generate resource` (Coming Soon)
-
-Generate a complete CRUD resource with all layers.
+### Generate Resources (Coming Soon)
 
 ```bash
-haft generate resource <name> [flags]
+haft generate resource Product
 ```
 
-Generates:
-- `Entity.java` - JPA entity with Lombok (if available)
-- `Repository.java` - Spring Data JPA repository
-- `Service.java` - Service interface
-- `ServiceImpl.java` - Service implementation
-- `Controller.java` - REST controller with CRUD endpoints
-- `Request.java` - Request DTO
-- `Response.java` - Response DTO
-- `Mapper.java` - MapStruct mapper (if available)
+Creates a complete CRUD stack with Entity, Repository, Service, Controller, and DTOs.
 
-### `haft add` (Coming Soon)
+## Features
 
-Add dependencies to your project.
+- **Interactive TUI** — Beautiful terminal interface with keyboard navigation
+- **Offline First** — No internet required, all metadata bundled
+- **Spring Initializr Parity** — All official starters and dependencies
+- **Smart Defaults** — Sensible defaults that match industry standards
+- **Back Navigation** — Made a mistake? Press `Esc` to go back
+- **Dependency Search** — Find any dependency with `/`
+- **Git Integration** — Initialize repository on project creation
 
-```bash
-haft add <dependency>
-```
+## Keyboard Shortcuts
 
-## Project Structure
-
-Generated projects follow Spring Boot best practices:
-
-```
-my-app/
-├── src/
-│   ├── main/
-│   │   ├── java/
-│   │   │   └── com/example/myapp/
-│   │   │       └── MyAppApplication.java
-│   │   └── resources/
-│   │       └── application.yml
-│   └── test/
-│       └── java/
-│           └── com/example/myapp/
-│               └── MyAppApplicationTests.java
-├── .gitignore
-├── mvnw
-├── mvnw.cmd
-└── pom.xml
-```
-
-## Dependency Categories
-
-The dependency picker organizes all Spring starters by category:
-
-| # | Category | Examples |
-|---|----------|----------|
-| 1 | Developer Tools | DevTools, Lombok, Configuration Processor |
-| 2 | Web | Spring Web, WebFlux, GraphQL, REST Docs |
-| 3 | SQL | JPA, JDBC, MySQL, PostgreSQL, H2 |
-| 4 | NoSQL | MongoDB, Redis, Elasticsearch, Cassandra |
-| 5 | Security | Spring Security, OAuth2, LDAP |
-| 6 | Messaging | Kafka, RabbitMQ, ActiveMQ |
-| 7 | Cloud | Config, Discovery, Gateway |
-| 8 | Observability | Actuator, Micrometer, Zipkin |
-| 9 | Testing | Testcontainers, Contract Testing |
-
-## Requirements
-
-- **Go 1.21+** (for building from source)
-- **Java 17+** (for generated projects)
-- **Maven 3.6+** or **Gradle 7+** (for generated projects)
+| Key | Action |
+|-----|--------|
+| `↑` `↓` | Navigate |
+| `Enter` | Select |
+| `Esc` | Go back |
+| `Space` | Toggle |
+| `/` | Search |
+| `Tab` | Next category |
+| `0-9` | Jump to category |
 
 ## Roadmap
 
-- [x] Interactive project initialization
-- [x] Spring Initializr dependency integration
-- [x] Maven pom.xml parser
-- [x] Back navigation in wizard
-- [x] Dependency search and filtering
-- [ ] `haft generate resource` - Full CRUD generator
-- [ ] `haft generate controller|service|entity` - Individual generators
-- [ ] `haft add` - Dependency manager
-- [ ] Gradle support improvements
-- [ ] Shell completions (bash, zsh, fish)
-- [ ] Custom templates support
+- [x] Project initialization wizard
+- [x] All Spring Initializr dependencies  
+- [x] Maven support
+- [x] Offline operation
+- [ ] `haft generate resource` — Full CRUD generation
+- [ ] `haft generate controller|service|entity` — Individual generators
+- [ ] `haft add` — Dependency management
+- [ ] Gradle improvements
+- [ ] Neovim integration
+- [ ] VS Code extension
+- [ ] IntelliJ plugin
+- [ ] Custom templates
 
 ## Contributing
 
-We welcome contributions! Please see our [Contributing Guide](CONTRIBUTING.md) for details.
-
-```bash
-# Clone the repository
-git clone https://github.com/KashifKhn/haft.git
-cd haft
-
-# Install dependencies
-go mod download
-
-# Run tests
-go test ./...
-
-# Build
-make build
-
-# Run
-./bin/haft --help
-```
-
-## Support
-
-- [Documentation](https://kashifkhn.github.io/haft) - Full documentation
-- [Issues](https://github.com/KashifKhn/haft/issues) - Bug reports and feature requests
-- [Discussions](https://github.com/KashifKhn/haft/discussions) - Questions and community
+Contributions are welcome. See [CONTRIBUTING.md](CONTRIBUTING.md) for guidelines.
 
 ## License
 
-Haft is open-source software licensed under the [MIT License](LICENSE).
-
-## Acknowledgments
-
-Built with these amazing projects:
-
-- [Cobra](https://github.com/spf13/cobra) - CLI framework
-- [Bubble Tea](https://github.com/charmbracelet/bubbletea) - TUI framework
-- [Lip Gloss](https://github.com/charmbracelet/lipgloss) - Style definitions
-- [Spring Initializr](https://start.spring.io) - Dependency metadata
+MIT License. See [LICENSE](LICENSE) for details.
 
 ---
 
 <p align="center">
-  <sub>Built with care for the Spring Boot community</sub>
+  <sub>Built for developers who value their time</sub>
 </p>
