@@ -188,3 +188,16 @@ func TestNormalizeDependencies(t *testing.T) {
 	normalized = normalizeDependencies(depsWithJpaAndDb)
 	assert.NotContains(t, normalized, "h2")
 }
+
+func TestApplyDefaultsConfigFormat(t *testing.T) {
+	cfg := &ProjectConfig{
+		Name:       "test",
+		GroupId:    "com.example",
+		ArtifactId: "test",
+	}
+
+	err := applyDefaults(cfg)
+
+	assert.NoError(t, err)
+	assert.Equal(t, "yaml", cfg.ConfigFormat)
+}
