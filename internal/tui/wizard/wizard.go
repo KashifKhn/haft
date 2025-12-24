@@ -28,6 +28,7 @@ type Step interface {
 	Submitted() bool
 	GoBack() bool
 	Reset()
+	OnEnter(values map[string]any)
 }
 
 type TextInputStep struct {
@@ -72,6 +73,10 @@ func (s *TextInputStep) Reset() {
 	s.model.Reset()
 }
 
+func (s *TextInputStep) OnEnter(values map[string]any) {
+	s.model.ApplyDynamicDefault(values)
+}
+
 type SelectStep struct {
 	model components.SelectModel
 }
@@ -113,6 +118,8 @@ func (s *SelectStep) GoBack() bool {
 func (s *SelectStep) Reset() {
 	s.model.Reset()
 }
+
+func (s *SelectStep) OnEnter(values map[string]any) {}
 
 type MultiSelectStep struct {
 	model components.MultiSelectModel
@@ -156,6 +163,8 @@ func (s *MultiSelectStep) Reset() {
 	s.model.Reset()
 }
 
+func (s *MultiSelectStep) OnEnter(values map[string]any) {}
+
 type DepPickerStep struct {
 	model components.DepPickerModel
 }
@@ -198,6 +207,8 @@ func (s *DepPickerStep) Reset() {
 	s.model.Reset()
 }
 
+func (s *DepPickerStep) OnEnter(values map[string]any) {}
+
 type WizardModel struct {
 	title       string
 	steps       []Step
@@ -226,6 +237,7 @@ func New(cfg WizardConfig) WizardModel {
 
 func (m WizardModel) Init() tea.Cmd {
 	if len(m.steps) > 0 {
+		m.steps[0].OnEnter(m.values)
 		return m.steps[0].Init()
 	}
 	return nil
@@ -266,6 +278,7 @@ func (m WizardModel) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 
 		if m.currentStep < len(m.steps)-1 {
 			m.currentStep++
+			m.steps[m.currentStep].OnEnter(m.values)
 			return m, m.steps[m.currentStep].Init()
 		} else {
 			m.completed = true

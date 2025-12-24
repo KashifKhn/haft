@@ -7,26 +7,28 @@ import (
 )
 
 type TextInputModel struct {
-	textInput   textinput.Model
-	label       string
-	placeholder string
-	helpText    string
-	required    bool
-	validator   func(string) error
-	err         error
-	submitted   bool
-	goBack      bool
+	textInput      textinput.Model
+	label          string
+	placeholder    string
+	helpText       string
+	required       bool
+	validator      func(string) error
+	dynamicDefault func(map[string]any) string
+	err            error
+	submitted      bool
+	goBack         bool
 }
 
 type TextInputConfig struct {
-	Label       string
-	Placeholder string
-	Default     string
-	HelpText    string
-	Required    bool
-	CharLimit   int
-	Width       int
-	Validator   func(string) error
+	Label          string
+	Placeholder    string
+	Default        string
+	HelpText       string
+	Required       bool
+	CharLimit      int
+	Width          int
+	Validator      func(string) error
+	DynamicDefault func(map[string]any) string
 }
 
 func NewTextInput(cfg TextInputConfig) TextInputModel {
@@ -50,12 +52,13 @@ func NewTextInput(cfg TextInputConfig) TextInputModel {
 	}
 
 	return TextInputModel{
-		textInput:   ti,
-		label:       cfg.Label,
-		placeholder: cfg.Placeholder,
-		helpText:    cfg.HelpText,
-		required:    cfg.Required,
-		validator:   cfg.Validator,
+		textInput:      ti,
+		label:          cfg.Label,
+		placeholder:    cfg.Placeholder,
+		helpText:       cfg.HelpText,
+		required:       cfg.Required,
+		validator:      cfg.Validator,
+		dynamicDefault: cfg.DynamicDefault,
 	}
 }
 
@@ -148,6 +151,14 @@ func (m *TextInputModel) Blur() {
 
 func (m *TextInputModel) SetValue(value string) {
 	m.textInput.SetValue(value)
+}
+
+func (m *TextInputModel) ApplyDynamicDefault(values map[string]any) {
+	if m.dynamicDefault != nil && m.textInput.Value() == "" {
+		if defaultVal := m.dynamicDefault(values); defaultVal != "" {
+			m.textInput.SetValue(defaultVal)
+		}
+	}
 }
 
 func (m TextInputModel) Focused() bool {
