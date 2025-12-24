@@ -1,14 +1,14 @@
 ---
 sidebar_position: 11
 title: Roadmap
-description: Haft development roadmap
+description: Haft development roadmap and future plans
 ---
 
 # Roadmap
 
 This page tracks the development progress of Haft.
 
-## Current Version: 0.1.0
+## Current Version: 0.1.x
 
 ### Completed
 
@@ -19,6 +19,7 @@ This page tracks the development progress of Haft.
   - [x] Gradle project generation (basic)
   - [x] YAML and Properties config formats
   - [x] Git repository initialization
+  - [x] **Offline operation** — No internet required
 
 - [x] **Wizard Features**
   - [x] 12-step configuration wizard
@@ -31,11 +32,6 @@ This page tracks the development progress of Haft.
   - [x] Read pom.xml files
   - [x] Write pom.xml files
   - [x] Dependency detection (Lombok, MapStruct, etc.)
-
-- [x] **Developer Experience**
-  - [x] Comprehensive CLI help
-  - [x] Colored terminal output
-  - [x] Non-interactive mode for CI/CD
 
 ### In Progress
 
@@ -60,7 +56,7 @@ This page tracks the development progress of Haft.
 - [ ] **Dependency Manager**
   - [ ] `haft add <dependency>`
   - [ ] `haft remove <dependency>`
-  - [ ] Dependency search
+  - [ ] Interactive dependency search
 
 - [ ] **Shell Completions**
   - [ ] Bash completion
@@ -70,30 +66,48 @@ This page tracks the development progress of Haft.
 
 ## Future: 0.3.0+
 
-### Planned Features
+### Editor Integration
+
+We believe developers should stay in their editor. The first integration will be for Neovim.
+
+- [ ] **Neovim Plugin** (Priority)
+  - [ ] `:HaftInit` — Initialize project from Neovim
+  - [ ] `:HaftGenerate` — Generate resources
+  - [ ] `:HaftAdd` — Add dependencies
+  - [ ] Telescope integration for dependency search
+  - [ ] Floating window for wizard
+
+- [ ] **VS Code Extension**
+  - [ ] Command palette integration
+  - [ ] Sidebar panel
+  - [ ] Status bar integration
+
+- [ ] **IntelliJ Plugin**
+  - [ ] Tool window integration
+  - [ ] Actions and shortcuts
+
+### Advanced Features
 
 - [ ] **Custom Templates**
   - [ ] Local template directory
   - [ ] Project-level templates
   - [ ] Template inheritance
-
-- [ ] **Gradle Improvements**
-  - [ ] Full Gradle support
-  - [ ] Gradle Kotlin DSL
+  - [ ] Template variables
 
 - [ ] **Architecture Support**
-  - [ ] Hexagonal architecture option
-  - [ ] Clean architecture option
-  - [ ] Modular monolith support
+  - [ ] Hexagonal architecture
+  - [ ] Clean architecture
+  - [ ] Modular monolith
 
 - [ ] **Additional Generators**
   - [ ] Exception handler generation
   - [ ] Configuration class generation
   - [ ] Test class generation
+  - [ ] Security configuration
 
-- [ ] **IDE Integration**
-  - [ ] VS Code extension
-  - [ ] IntelliJ plugin
+- [ ] **Gradle Improvements**
+  - [ ] Full Gradle support
+  - [ ] Gradle Kotlin DSL
 
 ## Contributing
 
@@ -107,13 +121,20 @@ See [Contributing](/docs/contributing) for guidelines.
 
 ## Changelog
 
-### v0.1.0 (Current)
+### v0.1.1
+
+- Fix: Config format default to YAML
+- Fix: Version injection via ldflags
+- Fix: Install script spinner animation
+
+### v0.1.0
 
 - Initial release
 - `haft init` command with full wizard
 - Spring Initializr integration
 - Maven project generation
 - Maven parser for pom.xml
+- Offline operation
 
 ---
 
