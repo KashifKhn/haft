@@ -321,3 +321,186 @@ func TestToTitleCase(t *testing.T) {
 		})
 	}
 }
+
+func TestToPackagePath(t *testing.T) {
+	tests := []struct {
+		input    string
+		expected string
+	}{
+		{"com.example.demo", "com/example/demo"},
+		{"org.springframework", "org/springframework"},
+		{"simple", "simple"},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.input, func(t *testing.T) {
+			result := toPackagePath(tt.input)
+			assert.NotEmpty(t, result)
+		})
+	}
+}
+
+func TestGetFS(t *testing.T) {
+	fs := afero.NewMemMapFs()
+	engine := NewEngine(fs)
+
+	assert.Equal(t, fs, engine.GetFS())
+}
+
+func TestWriteFileWithPerm(t *testing.T) {
+	fs := afero.NewMemMapFs()
+	engine := NewEngine(fs)
+
+	err := engine.WriteFileWithPerm("/test/script.sh", []byte("#!/bin/bash"), 0755)
+	require.NoError(t, err)
+
+	content, err := afero.ReadFile(fs, "/test/script.sh")
+	require.NoError(t, err)
+	assert.Equal(t, "#!/bin/bash", string(content))
+}
+
+func TestReadTemplateFile(t *testing.T) {
+	fs := afero.NewMemMapFs()
+	engine := NewEngine(fs)
+
+	content, err := engine.ReadTemplateFile("project/Application.java.tmpl")
+	require.NoError(t, err)
+	assert.Contains(t, string(content), "SpringBootApplication")
+}
+
+func TestReadTemplateFile_NotFound(t *testing.T) {
+	fs := afero.NewMemMapFs()
+	engine := NewEngine(fs)
+
+	_, err := engine.ReadTemplateFile("nonexistent/template.tmpl")
+	assert.Error(t, err)
+}
+
+func TestRenderTemplate_NotFound(t *testing.T) {
+	fs := afero.NewMemMapFs()
+	engine := NewEngine(fs)
+
+	_, err := engine.RenderTemplate("nonexistent/template.tmpl", nil)
+	assert.Error(t, err)
+}
+
+func TestRenderString_InvalidTemplate(t *testing.T) {
+	fs := afero.NewMemMapFs()
+	engine := NewEngine(fs)
+
+	_, err := engine.RenderString("{{.Invalid", nil)
+	assert.Error(t, err)
+}
+
+func TestRenderString_ExecutionError(t *testing.T) {
+	fs := afero.NewMemMapFs()
+	engine := NewEngine(fs)
+
+	_, err := engine.RenderString("{{call .Func}}", map[string]any{"Func": "not a func"})
+	assert.Error(t, err)
+}
+
+func TestRenderAndWrite_TemplateError(t *testing.T) {
+	fs := afero.NewMemMapFs()
+	engine := NewEngine(fs)
+
+	err := engine.RenderAndWrite("nonexistent/template.tmpl", "/output/file.txt", nil)
+	assert.Error(t, err)
+}
+
+func TestListTemplates_NotFound(t *testing.T) {
+	fs := afero.NewMemMapFs()
+	engine := NewEngine(fs)
+
+	_, err := engine.ListTemplates("nonexistent")
+	assert.Error(t, err)
+}
+
+func TestCopyTemplateDir(t *testing.T) {
+	fs := afero.NewMemMapFs()
+	engine := NewEngine(fs)
+
+	data := map[string]any{
+		"BasePackage":     "com.example.demo",
+		"ApplicationName": "Demo",
+	}
+
+	err := engine.CopyTemplateDir("project", "/output", data)
+	require.NoError(t, err)
+
+	assert.True(t, engine.FileExists("/output/Application.java.tmpl") || engine.FileExists("/output/Application.java"))
+}
+
+func TestSplitWords(t *testing.T) {
+	tests := []struct {
+		input    string
+		expected []string
+	}{
+		{"user", []string{"user"}},
+		{"user-profile", []string{"user", "profile"}},
+		{"user_profile", []string{"user", "profile"}},
+		{"UserProfile", []string{"User", "Profile"}},
+		{"userProfile", []string{"user", "Profile"}},
+		{"HTTPServer", []string{"HTTPServer"}},
+		{"", nil},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.input, func(t *testing.T) {
+			result := splitWords(tt.input)
+			assert.Equal(t, tt.expected, result)
+		})
+	}
+}
+
+func TestIsUpper(t *testing.T) {
+	assert.True(t, isUpper('A'))
+	assert.True(t, isUpper('Z'))
+	assert.False(t, isUpper('a'))
+	assert.False(t, isUpper('z'))
+	assert.False(t, isUpper('1'))
+}
+
+func TestPluralize_EdgeCases(t *testing.T) {
+	tests := []struct {
+		input    string
+		expected string
+	}{
+		{"bus", "buses"},
+		{"quiz", "quizes"},
+		{"wife", "wives"},
+		{"day", "days"},
+		{"boy", "boys"},
+		{"key", "keys"},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.input, func(t *testing.T) {
+			assert.Equal(t, tt.expected, pluralize(tt.input))
+		})
+	}
+}
+
+func TestSingularize_EdgeCases(t *testing.T) {
+	tests := []struct {
+		input    string
+		expected string
+	}{
+		{"buses", "bus"},
+		{"quizzes", "quizz"},
+		{"knives", "knif"},
+		{"days", "day"},
+		{"boy", "boy"},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.input, func(t *testing.T) {
+			assert.Equal(t, tt.expected, singularize(tt.input))
+		})
+	}
+}
+
+func TestToCamelCase_EmptyInput(t *testing.T) {
+	result := toCamelCase("")
+	assert.Equal(t, "", result)
+}

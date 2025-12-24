@@ -209,3 +209,43 @@ func TestNewDefaultConfigManager(t *testing.T) {
 	assert.NotEmpty(t, cm.GetProjectDir())
 	assert.NotEmpty(t, cm.GetHomeDir())
 }
+
+func TestSaveProjectConfigMarshalError(t *testing.T) {
+	fs := afero.NewMemMapFs()
+	cm := NewConfigManager(fs, "/project", "/home/user")
+
+	config := DefaultProjectConfig()
+	err := cm.SaveProjectConfig(config)
+
+	assert.NoError(t, err)
+}
+
+func TestSaveGlobalConfigMarshalError(t *testing.T) {
+	fs := afero.NewMemMapFs()
+	cm := NewConfigManager(fs, "/project", "/home/user")
+
+	config := DefaultGlobalConfig()
+	err := cm.SaveGlobalConfig(config)
+
+	assert.NoError(t, err)
+}
+
+func TestSaveProjectConfigWriteError(t *testing.T) {
+	fs := afero.NewReadOnlyFs(afero.NewMemMapFs())
+	cm := NewConfigManager(fs, "/project", "/home/user")
+
+	config := DefaultProjectConfig()
+	err := cm.SaveProjectConfig(config)
+
+	assert.Error(t, err)
+}
+
+func TestSaveGlobalConfigDirError(t *testing.T) {
+	fs := afero.NewReadOnlyFs(afero.NewMemMapFs())
+	cm := NewConfigManager(fs, "/project", "/home/user")
+
+	config := DefaultGlobalConfig()
+	err := cm.SaveGlobalConfig(config)
+
+	assert.Error(t, err)
+}

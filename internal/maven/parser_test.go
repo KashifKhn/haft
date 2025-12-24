@@ -213,3 +213,131 @@ func TestParser_FindPomXml_NotFound(t *testing.T) {
 	assert.Error(t, err)
 	assert.Contains(t, err.Error(), "pom.xml not found")
 }
+
+func TestParser_Parse_FileNotFound(t *testing.T) {
+	fs := afero.NewMemMapFs()
+	parser := NewParserWithFs(fs)
+
+	_, err := parser.Parse("/nonexistent/pom.xml")
+
+	assert.Error(t, err)
+	assert.Contains(t, err.Error(), "failed to read pom.xml")
+}
+
+func TestParser_ParseBytes_InvalidXml(t *testing.T) {
+	parser := NewParser()
+
+	_, err := parser.ParseBytes([]byte("not valid xml"))
+
+	assert.Error(t, err)
+	assert.Contains(t, err.Error(), "failed to parse pom.xml")
+}
+
+func TestParser_GetDependency(t *testing.T) {
+	parser := NewParser()
+	project := &Project{
+		Dependencies: &Dependencies{
+			Dependency: []Dependency{
+				{GroupId: "org.springframework.boot", ArtifactId: "spring-boot-starter-web", Version: "3.4.0"},
+				{GroupId: "org.projectlombok", ArtifactId: "lombok", Scope: "provided"},
+			},
+		},
+	}
+
+	dep := parser.GetDependency(project, "org.projectlombok", "lombok")
+	assert.NotNil(t, dep)
+	assert.Equal(t, "provided", dep.Scope)
+
+	dep = parser.GetDependency(project, "org.springframework.boot", "spring-boot-starter-web")
+	assert.NotNil(t, dep)
+	assert.Equal(t, "3.4.0", dep.Version)
+
+	dep = parser.GetDependency(project, "nonexistent", "dep")
+	assert.Nil(t, dep)
+}
+
+func TestParser_GetDependency_NilDependencies(t *testing.T) {
+	parser := NewParser()
+	project := &Project{}
+
+	dep := parser.GetDependency(project, "org.projectlombok", "lombok")
+
+	assert.Nil(t, dep)
+}
+
+func TestParser_HasDependency_NilDependencies(t *testing.T) {
+	parser := NewParser()
+	project := &Project{}
+
+	assert.False(t, parser.HasDependency(project, "org.projectlombok", "lombok"))
+}
+
+func TestParser_RemoveDependency_NilDependencies(t *testing.T) {
+	parser := NewParser()
+	project := &Project{}
+
+	removed := parser.RemoveDependency(project, "org.projectlombok", "lombok")
+
+	assert.False(t, removed)
+}
+
+func TestParser_GetJavaVersion_NilProperties(t *testing.T) {
+	parser := NewParser()
+	project := &Project{}
+
+	version := parser.GetJavaVersion(project)
+
+	assert.Equal(t, "", version)
+}
+
+func TestParser_GetJavaVersion_EmptyVersion(t *testing.T) {
+	parser := NewParser()
+	project := &Project{
+		Properties: &Properties{},
+	}
+
+	version := parser.GetJavaVersion(project)
+
+	assert.Equal(t, "", version)
+}
+
+func TestParser_GetSpringBootVersion_NilParent(t *testing.T) {
+	parser := NewParser()
+	project := &Project{}
+
+	version := parser.GetSpringBootVersion(project)
+
+	assert.Equal(t, "", version)
+}
+
+func TestParser_GetSpringBootVersion_NonSpringBootParent(t *testing.T) {
+	parser := NewParser()
+	project := &Project{
+		Parent: &Parent{
+			GroupId:    "com.example",
+			ArtifactId: "parent-pom",
+			Version:    "1.0.0",
+		},
+	}
+
+	version := parser.GetSpringBootVersion(project)
+
+	assert.Equal(t, "", version)
+}
+
+func TestParser_Marshal(t *testing.T) {
+	parser := NewParser()
+	project := &Project{
+		ModelVersion: "4.0.0",
+		GroupId:      "com.example",
+		ArtifactId:   "test-app",
+		Version:      "1.0.0",
+	}
+
+	data, err := parser.Marshal(project)
+
+	require.NoError(t, err)
+	assert.Contains(t, string(data), "<?xml version")
+	assert.Contains(t, string(data), "http://maven.apache.org/POM/4.0.0")
+	assert.Contains(t, string(data), "com.example")
+}
