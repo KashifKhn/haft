@@ -6,6 +6,7 @@ import (
 	addcmd "github.com/KashifKhn/haft/internal/cli/add"
 	generatecmd "github.com/KashifKhn/haft/internal/cli/generate"
 	initcmd "github.com/KashifKhn/haft/internal/cli/init"
+	removecmd "github.com/KashifKhn/haft/internal/cli/remove"
 	"github.com/KashifKhn/haft/internal/logger"
 	"github.com/spf13/cobra"
 )
@@ -42,7 +43,11 @@ Features:
 
   # Add dependencies
   haft add lombok
-  haft add validation`,
+  haft add validation
+
+  # Remove dependencies
+  haft remove h2
+  haft remove lombok validation`,
 	PersistentPreRun: func(cmd *cobra.Command, args []string) {
 		initLogger()
 	},
@@ -71,6 +76,7 @@ func init() {
 	rootCmd.AddCommand(initcmd.NewCommand())
 	rootCmd.AddCommand(generatecmd.NewCommand())
 	rootCmd.AddCommand(addcmd.NewCommand())
+	rootCmd.AddCommand(removecmd.NewCommand())
 }
 
 var versionCmd = &cobra.Command{
