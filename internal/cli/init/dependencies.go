@@ -7,6 +7,21 @@ type Dependency struct {
 	Scope      string
 }
 
+func (d Dependency) GradleScope() string {
+	switch d.Scope {
+	case "provided":
+		return "compileOnly"
+	case "runtime":
+		return "runtimeOnly"
+	case "test":
+		return "testImplementation"
+	case "annotationProcessor":
+		return "annotationProcessor"
+	default:
+		return "implementation"
+	}
+}
+
 var dependencyMap = map[string]Dependency{
 	"web": {
 		GroupId:    "org.springframework.boot",
