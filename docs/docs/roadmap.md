@@ -16,7 +16,7 @@ This page tracks the development progress of Haft.
   - [x] Interactive TUI wizard
   - [x] Spring Initializr dependency integration
   - [x] Maven project generation
-  - [x] Gradle project generation (basic)
+  - [x] Gradle project generation (Groovy & Kotlin DSL)
   - [x] YAML and Properties config formats
   - [x] Git repository initialization
   - [x] **Offline operation** — No internet required
@@ -34,6 +34,14 @@ This page tracks the development progress of Haft.
   - [x] Dependency detection (Lombok, JPA, Validation)
   - [x] Add/Remove dependencies
 
+- [x] **Gradle Parser**
+  - [x] Read build.gradle (Groovy DSL)
+  - [x] Read build.gradle.kts (Kotlin DSL)
+  - [x] Write build.gradle files
+  - [x] Write build.gradle.kts files
+  - [x] Dependency detection (Lombok, JPA, Validation)
+  - [x] Add/Remove dependencies
+
 - [x] **Resource Generation** (`haft generate resource`)
   - [x] Controller generation with CRUD endpoints
   - [x] Service interface generation
@@ -43,7 +51,7 @@ This page tracks the development progress of Haft.
   - [x] Request/Response DTO generation
   - [x] Mapper generation
   - [x] ResourceNotFoundException generation
-  - [x] Smart dependency detection from pom.xml
+  - [x] Smart dependency detection from pom.xml and build.gradle
   - [x] Interactive TUI wizard
   - [x] File safety (skip existing files)
 
@@ -76,9 +84,9 @@ This page tracks the development progress of Haft.
 
 ### Planned Features
 
-- [ ] **Gradle Improvements**
-  - [ ] Full Gradle support for add/remove
-  - [ ] Gradle Kotlin DSL
+- [ ] **Custom Templates**
+  - [ ] Local template directory
+  - [ ] Project-level templates
 
 ## Future: 0.4.0+
 
@@ -140,6 +148,9 @@ See [Contributing](/docs/contributing) for guidelines.
 - Feature: Zsh completion support
 - Feature: Fish completion support
 - Feature: PowerShell completion support
+- Feature: Full Gradle support (Groovy & Kotlin DSL)
+- Feature: Gradle parser for add/remove/generate commands
+- Feature: Gradle project generation with wrapper
 
 ### v0.2.0
 

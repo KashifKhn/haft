@@ -24,7 +24,7 @@ haft rm                               # Short alias
 
 ## Description
 
-The `remove` command modifies your `pom.xml` to remove dependencies. It supports:
+The `remove` command modifies your build file (`pom.xml` or `build.gradle`) to remove dependencies. It supports:
 
 - **Interactive mode** — Select dependencies to remove from a list
 - **By artifact name** — Remove by artifact ID (e.g., `lombok`)
@@ -134,14 +134,24 @@ INFO ℹ No dependencies found in pom.xml
 
 ## How It Works
 
-1. Parses your `pom.xml` to find all dependencies
+1. Parses your build file (`pom.xml` or `build.gradle`) to find all dependencies
 2. In interactive mode, displays them for selection
 3. In CLI mode, matches input against:
    - Full coordinates (`groupId:artifactId`)
    - Exact artifact ID match
    - Suffix match (for Spring starters)
-4. Removes matched dependencies from `pom.xml`
+4. Removes matched dependencies from the build file
 5. Writes the updated file
+
+## Build Tool Detection
+
+Haft automatically detects your build tool:
+
+| File Found | Build Tool |
+|------------|------------|
+| `pom.xml` | Maven |
+| `build.gradle.kts` | Gradle (Kotlin DSL) |
+| `build.gradle` | Gradle (Groovy DSL) |
 
 ## Tips
 
@@ -169,11 +179,12 @@ haft rm web jpa security
 
 ### Double-Check with Git
 
-Since `haft remove` modifies `pom.xml`, use Git to review changes:
+Since `haft remove` modifies your build file, use Git to review changes:
 
 ```bash
 haft rm lombok
-git diff pom.xml
+git diff pom.xml      # Maven
+git diff build.gradle # Gradle
 ```
 
 ## See Also

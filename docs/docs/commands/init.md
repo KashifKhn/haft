@@ -69,7 +69,7 @@ Uses defaults for unspecified options.
 | `--artifact` | `-a` | Artifact ID | Project name |
 | `--java` | `-j` | Java version (`17`, `21`, `25`) | `21` |
 | `--spring` | `-s` | Spring Boot version | Latest stable |
-| `--build` | `-b` | Build tool (`maven`, `gradle`) | `maven` |
+| `--build` | `-b` | Build tool (`maven`, `gradle`, `gradle-kotlin`) | `maven` |
 | `--deps` | | Dependencies (comma-separated) | None |
 | `--package` | | Base package name | Auto-generated |
 | `--packaging` | | Packaging type (`jar`, `war`) | `jar` |
@@ -98,7 +98,7 @@ The interactive wizard guides you through 12 configuration steps:
 | 5 | Package Name | Base package (auto-generated from group + artifact) |
 | 6 | Java Version | 17 (LTS), 21 (LTS - Recommended), or 25 |
 | 7 | Spring Boot | Select from available versions |
-| 8 | Build Tool | Maven or Gradle |
+| 8 | Build Tool | Maven, Gradle (Groovy), or Gradle (Kotlin DSL) |
 | 9 | Packaging | JAR or WAR |
 | 10 | Config Format | Properties or YAML |
 | 11 | Dependencies | Search and select from all Spring starters |
@@ -129,6 +129,8 @@ The dependency picker provides:
 
 ## Generated Structure
 
+### Maven Project
+
 ```
 my-app/
 ├── src/
@@ -143,9 +145,36 @@ my-app/
 │           └── com/example/myapp/
 │               └── MyAppApplicationTests.java
 ├── .gitignore
+├── .haft.yaml
 ├── mvnw
 ├── mvnw.cmd
 └── pom.xml
+```
+
+### Gradle Project
+
+```
+my-app/
+├── src/
+│   ├── main/
+│   │   ├── java/
+│   │   │   └── com/example/myapp/
+│   │   │       └── MyAppApplication.java
+│   │   └── resources/
+│   │       └── application.yml
+│   └── test/
+│       └── java/
+│           └── com/example/myapp/
+│               └── MyAppApplicationTests.java
+├── gradle/
+│   └── wrapper/
+│       └── gradle-wrapper.properties
+├── .gitignore
+├── .haft.yaml
+├── build.gradle          # or build.gradle.kts for Kotlin DSL
+├── settings.gradle       # or settings.gradle.kts for Kotlin DSL
+├── gradlew
+└── gradlew.bat
 ```
 
 ## Exit Codes
