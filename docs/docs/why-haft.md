@@ -60,7 +60,7 @@ Haft uses the same dependency metadata as Spring Initializr. You get access to a
 
 ### 3. Smart Detection
 
-When generating code, Haft reads your `pom.xml` to detect:
+When generating code, Haft reads your build file (`pom.xml` or `build.gradle`) to detect:
 
 - **Lombok** → Uses `@Data`, `@Builder`, etc.
 - **MapStruct** → Generates mapper interfaces

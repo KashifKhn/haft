@@ -24,7 +24,7 @@ haft g <subcommand> [name] [flags]  # alias
 | `haft generate service` | `haft g s` | Generate service interface + implementation |
 | `haft generate repository` | `haft g repo` | Generate JPA repository interface |
 | `haft generate entity` | `haft g e` | Generate JPA entity class |
-| `haft generate dto` | `haft g dto` | Generate Request and Response DTOs |
+| `haft generate dto` | - | Generate Request and Response DTOs |
 
 ## Smart Detection
 

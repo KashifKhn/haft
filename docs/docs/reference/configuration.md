@@ -59,9 +59,9 @@ haft init
 
 | Setting | Default |
 |---------|---------|
-| Use Lombok | Auto-detect from pom.xml |
-| Use MapStruct | Auto-detect from pom.xml |
-| Use Validation | Auto-detect from pom.xml |
+| Use Lombok | Auto-detect from build file |
+| Use MapStruct | Auto-detect from build file |
+| Use Validation | Auto-detect from build file |
 
 ## Overriding Defaults
 
@@ -90,11 +90,11 @@ haft init my-app \
 
 ## Dependency Detection
 
-When generating code, Haft reads `pom.xml` to detect:
+When generating code, Haft reads your build file (`pom.xml` or `build.gradle`) to detect:
 
 ### Lombok Detection
 
-Looks for:
+**Maven** - Looks for:
 ```xml
 <dependency>
     <groupId>org.projectlombok</groupId>
@@ -102,11 +102,18 @@ Looks for:
 </dependency>
 ```
 
+**Gradle** - Looks for:
+```groovy
+compileOnly 'org.projectlombok:lombok'
+// or
+annotationProcessor 'org.projectlombok:lombok'
+```
+
 **Effect**: Generated entities use `@Data`, `@Builder`, etc.
 
 ### MapStruct Detection
 
-Looks for:
+**Maven** - Looks for:
 ```xml
 <dependency>
     <groupId>org.mapstruct</groupId>
@@ -114,11 +121,16 @@ Looks for:
 </dependency>
 ```
 
+**Gradle** - Looks for:
+```groovy
+implementation 'org.mapstruct:mapstruct'
+```
+
 **Effect**: Generates mapper interfaces with `@Mapper` annotation.
 
 ### Validation Detection
 
-Looks for:
+**Maven** - Looks for:
 ```xml
 <dependency>
     <groupId>org.springframework.boot</groupId>
@@ -126,16 +138,26 @@ Looks for:
 </dependency>
 ```
 
+**Gradle** - Looks for:
+```groovy
+implementation 'org.springframework.boot:spring-boot-starter-validation'
+```
+
 **Effect**: Controllers use `@Valid` on request parameters.
 
 ### Spring Data JPA Detection
 
-Looks for:
+**Maven** - Looks for:
 ```xml
 <dependency>
     <groupId>org.springframework.boot</groupId>
     <artifactId>spring-boot-starter-data-jpa</artifactId>
 </dependency>
+```
+
+**Gradle** - Looks for:
+```groovy
+implementation 'org.springframework.boot:spring-boot-starter-data-jpa'
 ```
 
 **Effect**: Repositories extend `JpaRepository`.

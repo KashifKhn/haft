@@ -183,7 +183,7 @@ my-app/
 │               ├── entity/
 │               │   └── User.java
 │               ├── exception/
-│               │   └── UserNotFoundException.java
+│               │   └── ResourceNotFoundException.java
 │               ├── mapper/
 │               │   └── UserMapper.java
 │               ├── repository/
