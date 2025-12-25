@@ -63,7 +63,7 @@ category (Web, SQL, NoSQL, Security, etc.) with descriptions and search.`,
 	cmd.Flags().String("package", "", "Base package name")
 	cmd.Flags().StringP("java", "j", "", "Java version (17, 21, 25)")
 	cmd.Flags().StringP("spring", "s", "", "Spring Boot version")
-	cmd.Flags().StringP("build", "b", "", "Build tool (maven, gradle)")
+	cmd.Flags().StringP("build", "b", "", "Build tool (maven, gradle, gradle-kotlin)")
 	cmd.Flags().String("packaging", "", "Packaging type (jar, war)")
 	cmd.Flags().String("config", "", "Config format (properties, yaml)")
 	cmd.Flags().StringSlice("deps", nil, "Dependencies (comma-separated IDs)")
