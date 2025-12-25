@@ -75,13 +75,7 @@ func runResource(cmd *cobra.Command, args []string) error {
 		log.Warning("Could not detect project config, using defaults")
 	}
 
-	cfg := ResourceConfig{
-		Name:          compCfg.Name,
-		BasePackage:   compCfg.BasePackage,
-		HasLombok:     compCfg.HasLombok,
-		HasJpa:        compCfg.HasJpa,
-		HasValidation: compCfg.HasValidation,
-	}
+	cfg := ResourceConfig(compCfg)
 
 	if len(args) > 0 {
 		cfg.Name = ToPascalCase(args[0])
@@ -109,26 +103,14 @@ func runResource(cmd *cobra.Command, args []string) error {
 }
 
 func runResourceWizard(cfg ResourceConfig) (ResourceConfig, error) {
-	compCfg := ComponentConfig{
-		Name:          cfg.Name,
-		BasePackage:   cfg.BasePackage,
-		HasLombok:     cfg.HasLombok,
-		HasJpa:        cfg.HasJpa,
-		HasValidation: cfg.HasValidation,
-	}
+	compCfg := ComponentConfig(cfg)
 
 	result, err := RunComponentWizard("Generate Resource", compCfg, "Resource")
 	if err != nil {
 		return cfg, err
 	}
 
-	return ResourceConfig{
-		Name:          result.Name,
-		BasePackage:   result.BasePackage,
-		HasLombok:     result.HasLombok,
-		HasJpa:        result.HasJpa,
-		HasValidation: result.HasValidation,
-	}, nil
+	return ResourceConfig(result), nil
 }
 
 func validateResourceConfig(cfg ResourceConfig) error {
