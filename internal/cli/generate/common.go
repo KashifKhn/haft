@@ -120,8 +120,14 @@ func ValidateComponentConfig(cfg ComponentConfig) error {
 	if cfg.Name == "" {
 		return fmt.Errorf("name is required")
 	}
+	if err := ValidateComponentName(cfg.Name); err != nil {
+		return err
+	}
 	if cfg.BasePackage == "" {
 		return fmt.Errorf("base package is required")
+	}
+	if err := ValidatePackageName(cfg.BasePackage); err != nil {
+		return err
 	}
 	return nil
 }
