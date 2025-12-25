@@ -22,7 +22,7 @@ haft add <groupId:artifactId:version>
 
 The `add` command modifies your `pom.xml` to add new dependencies. It supports:
 
-- **Interactive mode** — Search and select from 200+ shortcuts
+- **Interactive mode** — Search and select from 330+ shortcuts
 - **Browse mode** — Navigate dependencies by category
 - **Shortcuts** — Common dependencies like `lombok`, `jpa`, `web`, `jwt`
 - **Maven coordinates** — Any dependency as `groupId:artifactId`
@@ -114,7 +114,7 @@ haft add --list
 | `--scope` | | Set dependency scope (compile, runtime, test, provided) |
 | `--version` | | Override default version |
 
-## Available Shortcuts (200+)
+## Available Shortcuts (330+)
 
 ### Web
 
@@ -162,6 +162,11 @@ haft add --list
 | `cockroachdb` | CockroachDB distributed SQL |
 | `timescaledb` | TimescaleDB time-series |
 | `voltdb` | VoltDB in-memory SQL |
+| `sqlite` | SQLite embedded database |
+| `hsqldb` | HSQLDB embedded database |
+| `derby` | Apache Derby embedded database |
+| `duckdb` | DuckDB analytical database |
+| `questdb` | QuestDB time-series database |
 
 ### NoSQL
 
@@ -200,6 +205,12 @@ haft add --list
 | `jasypt` | Encryption for properties |
 | `nimbus-jose` | Nimbus JOSE+JWT |
 | `otp` | TOTP/HOTP for 2FA |
+| `supertokens` | SuperTokens open source auth |
+| `kratos` | Ory Kratos identity management |
+| `cas` | CAS authentication client |
+| `saml` | Spring Security SAML |
+| `spring-session` | Distributed session management |
+| `recaptcha` | Google reCAPTCHA integration |
 
 ### Messaging
 
@@ -273,6 +284,14 @@ haft add --list
 | `vertex-ai` | Google Vertex AI Gemini integration |
 | `mistral` | Mistral AI integration |
 | `pgvector` | PostgreSQL vector database for AI |
+| `langchain4j` | LangChain for Java (LLM orchestration) |
+| `pinecone` | Pinecone vector database client |
+| `weaviate` | Weaviate vector database client |
+| `qdrant` | Qdrant vector database client |
+| `chroma` | Chroma vector database client |
+| `djl` | Deep Java Library (Amazon ML toolkit) |
+| `weka` | Weka Machine Learning algorithms |
+| `corenlp` | Stanford CoreNLP (NLP processing) |
 
 ### Cloud
 
@@ -321,6 +340,11 @@ haft add --list
 |----------|-------------|
 | `stripe` | Stripe payment processing |
 | `paypal` | PayPal payment SDK |
+| `braintree` | Braintree payment processing |
+| `square` | Square payment processing |
+| `razorpay` | Razorpay payment gateway |
+| `mollie` | Mollie payment gateway |
+| `adyen` | Adyen payment platform |
 
 ### Search
 
@@ -412,6 +436,190 @@ haft add --list
 | `jmh` | JMH microbenchmark harness |
 | `faker` | DataFaker test data generation |
 | `greenmail` | GreenMail email testing |
+| `selenium` | Selenium browser automation |
+| `selenide` | Selenide concise UI tests |
+| `playwright` | Microsoft Playwright browser automation |
+| `cucumber` | Cucumber BDD testing |
+| `hoverfly` | Hoverfly API simulation |
+| `pact` | Pact consumer-driven contract testing |
+
+### Maps
+
+| Shortcut | Description |
+|----------|-------------|
+| `google-maps` | Google Maps Server SDK |
+| `mapbox` | Mapbox Java SDK |
+| `graphhopper` | GraphHopper routing engine |
+| `h3` | Uber H3 Hexagonal Spatial Index |
+| `jts` | JTS Topology Suite (geometry) |
+| `geotools` | GeoTools geospatial data tools |
+| `ip2location` | IP2Location geo lookup |
+| `maxmind` | MaxMind GeoIP2 database |
+
+### Media
+
+| Shortcut | Description |
+|----------|-------------|
+| `ffmpeg` | FFmpeg video/audio processing |
+| `opencv` | OpenCV computer vision |
+| `pdfbox` | Apache PDFBox PDF handling |
+| `tika` | Apache Tika content detection |
+| `docx4j` | Docx4j Word/PowerPoint files |
+| `openhtmltopdf` | OpenHTMLtoPDF converter |
+| `batik` | Apache Batik SVG tools |
+| `metadata-extractor` | Image metadata extraction |
+| `imgscalr` | ImgScalr image scaling |
+| `jxls` | JXLS Excel templates |
+| `flying-saucer` | Flying Saucer XHTML to PDF |
+| `barcode4j` | Barcode4J barcode generation |
+
+### Fintech
+
+| Shortcut | Description |
+|----------|-------------|
+| `web3j` | Web3j Ethereum integration |
+| `bitcoinj` | BitcoinJ Bitcoin protocol |
+| `plaid` | Plaid bank account linking |
+| `xchange` | XChange crypto exchange library |
+| `stellar` | Stellar network SDK |
+
+### Social
+
+| Shortcut | Description |
+|----------|-------------|
+| `facebook-sdk` | Facebook Graph API |
+| `twitter-api` | Twitter/X API v2 |
+| `linkedin-api` | LinkedIn API |
+| `zoom` | Zoom API integration |
+| `agora` | Agora real-time video/audio |
+| `matrix` | Matrix.org decentralized chat |
+
+### Data
+
+| Shortcut | Description |
+|----------|-------------|
+| `spark` | Apache Spark Java API |
+| `flink` | Apache Flink stream processing |
+| `hadoop` | Hadoop client libraries |
+| `tablesaw` | Tablesaw Java Dataframes |
+| `commons-math` | Apache Commons Math |
+| `nd4j` | ND4J N-Dimensional Arrays |
+| `joda-money` | Joda-Money currency handling |
+| `jgrapht` | JGraphT graph algorithms |
+
+### Feature Flags
+
+| Shortcut | Description |
+|----------|-------------|
+| `unleash` | Unleash feature toggle |
+| `launchdarkly` | LaunchDarkly feature flags |
+| `flagsmith` | Flagsmith feature flags |
+| `togglz` | Togglz feature flags for Spring |
+| `ff4j` | FF4J feature flipping |
+
+### Microservices
+
+| Shortcut | Description |
+|----------|-------------|
+| `spring-cloud-stream` | Spring Cloud Stream (Kafka/RabbitMQ) |
+| `spring-cloud-bus` | Spring Cloud Bus state broadcast |
+| `spring-cloud-function` | Spring Cloud Function serverless |
+| `spring-retry` | Spring Retry logic |
+| `shedlock` | ShedLock distributed scheduling lock |
+| `etcd` | Etcd distributed key-value |
+| `zookeeper` | Apache Zookeeper client |
+| `dapr` | Dapr distributed runtime SDK |
+| `grpc-server` | gRPC server starter |
+
+### Integration
+
+| Shortcut | Description |
+|----------|-------------|
+| `spring-integration` | Spring Integration EIP |
+| `apache-camel` | Apache Camel routing |
+| `spring-cloud-data-flow` | Spring Cloud Data Flow |
+| `spring-cloud-task` | Spring Cloud Task ephemeral tasks |
+
+### IoT
+
+| Shortcut | Description |
+|----------|-------------|
+| `mqtt-paho` | Eclipse Paho MQTT client |
+| `spring-integration-mqtt` | Spring Integration MQTT |
+| `coap` | Californium CoAP protocol |
+| `modbus` | Modbus industrial protocol |
+| `pi4j` | Pi4J Raspberry Pi control |
+
+### DevOps
+
+| Shortcut | Description |
+|----------|-------------|
+| `jib` | Google Jib Docker builds |
+| `docker-java` | Docker Java API |
+| `kubernetes-client` | Kubernetes Java client |
+| `fabric8` | Fabric8 Kubernetes client |
+
+### Quality
+
+| Shortcut | Description |
+|----------|-------------|
+| `jacoco` | JaCoCo code coverage |
+| `checkstyle` | Checkstyle coding standards |
+| `spotless` | Spotless code formatting |
+| `pmd` | PMD source code analyzer |
+| `sonar` | SonarQube integration |
+
+### Caching
+
+| Shortcut | Description |
+|----------|-------------|
+| `caffeine` | Caffeine high-performance cache |
+| `ehcache` | Ehcache enterprise caching |
+| `infinispan` | Infinispan data grid |
+| `hazelcast-jet` | Hazelcast Jet stream processing |
+
+### Content
+
+| Shortcut | Description |
+|----------|-------------|
+| `rome` | Rome RSS/Atom feeds |
+| `htmlunit` | HtmlUnit headless browser |
+| `bliki` | Bliki Wikipedia parser |
+| `emoji-java` | Emoji Java string handling |
+
+### Networking
+
+| Shortcut | Description |
+|----------|-------------|
+| `netty` | Netty async network framework |
+| `pcap4j` | Pcap4J packet capture |
+| `dns-java` | dnsjava DNS protocol |
+
+### API
+
+| Shortcut | Description |
+|----------|-------------|
+| `springdoc` | SpringDoc OpenAPI 3 |
+| `netflix-dgs` | Netflix DGS GraphQL |
+| `asyncapi` | AsyncAPI event-driven docs |
+| `avro-serializer` | Avro Kafka serializer |
+| `json-schema` | JSON Schema validation |
+| `graphql-kickstart` | GraphQL Kickstart starter |
+
+### Scheduling
+
+| Shortcut | Description |
+|----------|-------------|
+| `jobrunr` | JobRunr distributed jobs |
+| `db-scheduler` | DB Scheduler persistent tasks |
+
+### Logging
+
+| Shortcut | Description |
+|----------|-------------|
+| `logback` | Logback logging framework |
+| `log4j2` | Apache Log4j 2 logging |
+| `slf4j` | SLF4J logging facade |
 
 ## What Gets Added
 

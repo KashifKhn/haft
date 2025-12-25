@@ -228,7 +228,7 @@ haft add org.mapstruct:mapstruct
 haft remove lombok
 haft remove   # Interactive picker
 
-# List available shortcuts (50+)
+# List available shortcuts (330+)
 haft add --list
 ```
 
