@@ -4,6 +4,7 @@ import (
 	"os"
 
 	addcmd "github.com/KashifKhn/haft/internal/cli/add"
+	completioncmd "github.com/KashifKhn/haft/internal/cli/completion"
 	generatecmd "github.com/KashifKhn/haft/internal/cli/generate"
 	initcmd "github.com/KashifKhn/haft/internal/cli/init"
 	removecmd "github.com/KashifKhn/haft/internal/cli/remove"
@@ -77,6 +78,7 @@ func init() {
 	rootCmd.AddCommand(generatecmd.NewCommand())
 	rootCmd.AddCommand(addcmd.NewCommand())
 	rootCmd.AddCommand(removecmd.NewCommand())
+	rootCmd.AddCommand(completioncmd.NewCommand())
 }
 
 var versionCmd = &cobra.Command{
