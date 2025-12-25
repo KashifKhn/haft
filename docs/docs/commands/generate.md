@@ -19,7 +19,7 @@ haft g <subcommand> [name] [flags]  # alias
 
 | Command | Alias | Description |
 |---------|-------|-------------|
-| `haft generate resource` | `haft g resource` | Generate complete CRUD resource (9 files) |
+| `haft generate resource` | `haft g r` | Generate complete CRUD resource (9 files) |
 | `haft generate controller` | `haft g co` | Generate REST controller |
 | `haft generate service` | `haft g s` | Generate service interface + implementation |
 | `haft generate repository` | `haft g repo` | Generate JPA repository interface |
@@ -48,7 +48,7 @@ haft generate resource
 
 # With resource name
 haft generate resource User
-haft g resource Product
+haft g r Product
 ```
 
 ### Generated Files
@@ -472,13 +472,13 @@ public class UserResponse {
 
 ## File Safety
 
-Haft never overwrites existing files. If a file already exists, it will be skipped with an error:
+Haft never overwrites existing files. If a file already exists, it will be skipped with a warning:
 
 ```
-Error: file already exists: src/main/java/.../UserController.java
+WARN ⚠ Skipped (already exists) file=src/main/java/.../UserController.java
 ```
 
-This allows you to safely re-run the command without losing custom code.
+This allows you to safely re-run commands without losing custom code or interrupting your workflow.
 
 ## Name Validation
 

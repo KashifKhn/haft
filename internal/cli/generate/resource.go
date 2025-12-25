@@ -22,8 +22,9 @@ type ResourceConfig struct {
 
 func newResourceCommand() *cobra.Command {
 	cmd := &cobra.Command{
-		Use:   "resource [name]",
-		Short: "Generate a complete CRUD resource",
+		Use:     "resource [name]",
+		Aliases: []string{"r"},
+		Short:   "Generate a complete CRUD resource",
 		Long: `Generate a complete CRUD resource with all layers.
 
 Creates the following files:
@@ -46,7 +47,7 @@ automatically disabled.`,
 
   # With resource name
   haft generate resource user
-  haft g resource product
+  haft g r product
 
   # Non-interactive with package override
   haft generate resource user --package com.example.myapp --no-interactive`,

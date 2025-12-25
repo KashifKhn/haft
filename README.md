@@ -172,7 +172,7 @@ haft init my-service \
 
 ```bash
 # Generate a complete CRUD resource (9 files)
-haft generate resource User
+haft generate resource User   # haft g r User
 
 # Or generate individual components
 haft generate controller Product   # haft g co Product

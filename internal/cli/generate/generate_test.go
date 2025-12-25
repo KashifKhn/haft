@@ -679,6 +679,7 @@ func TestCommandAliases(t *testing.T) {
 		cmdFunc       func() *cobra.Command
 		expectedAlias string
 	}{
+		{newResourceCommand, "r"},
 		{newControllerCommand, "co"},
 		{newServiceCommand, "s"},
 		{newRepositoryCommand, "repo"},
