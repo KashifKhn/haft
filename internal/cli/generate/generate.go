@@ -10,17 +10,39 @@ func NewCommand() *cobra.Command {
 		Long: `Generate Spring Boot components like controllers, services, and resources.
 
 The generate command provides sub-commands to scaffold individual components
-or complete CRUD resources with all necessary layers.`,
+or complete CRUD resources with all necessary layers.
+
+All generators auto-detect your project configuration from pom.xml:
+  - Base package
+  - Lombok dependency (for annotations)
+  - Spring Data JPA (for entity/repository)
+  - Validation (for @Valid annotations)`,
 		Example: `  # Generate a complete CRUD resource (recommended)
   haft generate resource user
   haft g resource product
 
-  # Generate individual components (coming soon)
+  # Generate individual components
   haft generate controller order
-  haft generate service payment`,
+  haft g co payment
+
+  haft generate service user
+  haft g s product
+
+  haft generate repository order
+  haft g repo payment
+
+  haft generate entity user
+  haft g e product
+
+  haft generate dto order`,
 	}
 
 	cmd.AddCommand(newResourceCommand())
+	cmd.AddCommand(newControllerCommand())
+	cmd.AddCommand(newServiceCommand())
+	cmd.AddCommand(newRepositoryCommand())
+	cmd.AddCommand(newEntityCommand())
+	cmd.AddCommand(newDtoCommand())
 
 	return cmd
 }

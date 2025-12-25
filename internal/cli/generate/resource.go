@@ -4,15 +4,10 @@ import (
 	"fmt"
 	"os"
 	"path/filepath"
-	"regexp"
 	"strings"
 
 	"github.com/KashifKhn/haft/internal/generator"
 	"github.com/KashifKhn/haft/internal/logger"
-	"github.com/KashifKhn/haft/internal/maven"
-	"github.com/KashifKhn/haft/internal/tui/components"
-	"github.com/KashifKhn/haft/internal/tui/wizard"
-	tea "github.com/charmbracelet/bubbletea"
 	"github.com/spf13/afero"
 	"github.com/spf13/cobra"
 )
@@ -71,7 +66,7 @@ func runResource(cmd *cobra.Command, args []string) error {
 	noInteractive, _ := cmd.Flags().GetBool("no-interactive")
 	log := logger.Default()
 
-	cfg, err := detectProjectConfig()
+	compCfg, err := DetectProjectConfig()
 	if err != nil {
 		if noInteractive {
 			return fmt.Errorf("could not detect project configuration: %w", err)
@@ -79,8 +74,16 @@ func runResource(cmd *cobra.Command, args []string) error {
 		log.Warning("Could not detect project config, using defaults")
 	}
 
+	cfg := ResourceConfig{
+		Name:          compCfg.Name,
+		BasePackage:   compCfg.BasePackage,
+		HasLombok:     compCfg.HasLombok,
+		HasJpa:        compCfg.HasJpa,
+		HasValidation: compCfg.HasValidation,
+	}
+
 	if len(args) > 0 {
-		cfg.Name = toPascalCase(args[0])
+		cfg.Name = ToPascalCase(args[0])
 	}
 
 	if pkg, _ := cmd.Flags().GetString("package"); pkg != "" {
@@ -104,96 +107,27 @@ func runResource(cmd *cobra.Command, args []string) error {
 	return generateResource(cfg, skipEntity, skipRepository)
 }
 
-func detectProjectConfig() (ResourceConfig, error) {
-	var cfg ResourceConfig
-
-	cwd, err := os.Getwd()
-	if err != nil {
-		return cfg, err
-	}
-
-	parser := maven.NewParser()
-	pomPath, err := parser.FindPomXml(cwd)
-	if err != nil {
-		return cfg, err
-	}
-
-	project, err := parser.Parse(pomPath)
-	if err != nil {
-		return cfg, err
-	}
-
-	cfg.BasePackage = parser.GetBasePackage(project)
-	cfg.HasLombok = parser.HasLombok(project)
-	cfg.HasJpa = parser.HasSpringDataJpa(project)
-	cfg.HasValidation = parser.HasValidation(project)
-
-	return cfg, nil
-}
-
 func runResourceWizard(cfg ResourceConfig) (ResourceConfig, error) {
-	steps, stepKeys := buildResourceWizardSteps(cfg)
+	compCfg := ComponentConfig{
+		Name:          cfg.Name,
+		BasePackage:   cfg.BasePackage,
+		HasLombok:     cfg.HasLombok,
+		HasJpa:        cfg.HasJpa,
+		HasValidation: cfg.HasValidation,
+	}
 
-	w := wizard.New(wizard.WizardConfig{
-		Title:    "Generate Resource",
-		Steps:    steps,
-		StepKeys: stepKeys,
-	})
-
-	p := tea.NewProgram(w)
-	finalModel, err := p.Run()
+	result, err := RunComponentWizard("Generate Resource", compCfg, "Resource")
 	if err != nil {
-		return cfg, fmt.Errorf("wizard failed: %w", err)
+		return cfg, err
 	}
 
-	wiz, ok := finalModel.(wizard.WizardModel)
-	if !ok {
-		return cfg, fmt.Errorf("unexpected wizard state")
-	}
-
-	if wiz.Cancelled() {
-		return cfg, fmt.Errorf("wizard cancelled")
-	}
-
-	return extractResourceWizardValues(wiz, cfg), nil
-}
-
-func buildResourceWizardSteps(cfg ResourceConfig) ([]wizard.Step, []string) {
-	var steps []wizard.Step
-	var keys []string
-
-	steps = append(steps, wizard.NewTextInputStep(components.TextInputConfig{
-		Label:       "Resource Name",
-		Placeholder: "User",
-		Default:     cfg.Name,
-		Required:    true,
-		Validator:   validateResourceName,
-		HelpText:    "Name of the resource (e.g., User, Product, Order)",
-	}))
-	keys = append(keys, "name")
-
-	steps = append(steps, wizard.NewTextInputStep(components.TextInputConfig{
-		Label:       "Base Package",
-		Placeholder: "com.example.demo",
-		Default:     cfg.BasePackage,
-		Required:    true,
-		Validator:   validatePackageName,
-		HelpText:    "Base package for generated classes (auto-detected from pom.xml)",
-	}))
-	keys = append(keys, "basePackage")
-
-	return steps, keys
-}
-
-func extractResourceWizardValues(wiz wizard.WizardModel, cfg ResourceConfig) ResourceConfig {
-	if v := wiz.StringValue("name"); v != "" {
-		cfg.Name = toPascalCase(v)
-	}
-	if v := wiz.StringValue("basePackage"); v != "" {
-		cfg.BasePackage = v
-	}
-
-	return cfg
+	return ResourceConfig{
+		Name:          result.Name,
+		BasePackage:   result.BasePackage,
+		HasLombok:     result.HasLombok,
+		HasJpa:        result.HasJpa,
+		HasValidation: result.HasValidation,
+	}, nil
 }
 
 func validateResourceConfig(cfg ResourceConfig) error {
@@ -202,26 +136,6 @@ func validateResourceConfig(cfg ResourceConfig) error {
 	}
 	if cfg.BasePackage == "" {
 		return fmt.Errorf("base package is required")
-	}
-	return nil
-}
-
-func validateResourceName(name string) error {
-	if len(name) < 2 {
-		return fmt.Errorf("name must be at least 2 characters")
-	}
-	if !regexp.MustCompile(`^[a-zA-Z][a-zA-Z0-9]*$`).MatchString(name) {
-		return fmt.Errorf("name must start with a letter and contain only letters and numbers")
-	}
-	return nil
-}
-
-func validatePackageName(pkg string) error {
-	if pkg == "" {
-		return nil
-	}
-	if !regexp.MustCompile(`^[a-z][a-z0-9]*(\.[a-z][a-z0-9]*)*$`).MatchString(pkg) {
-		return fmt.Errorf("invalid package name format (e.g., com.example.demo)")
 	}
 	return nil
 }
@@ -236,14 +150,14 @@ func generateResource(cfg ResourceConfig, skipEntity, skipRepository bool) error
 		return err
 	}
 
-	srcPath := findSourcePath(cwd)
+	srcPath := FindSourcePath(cwd)
 	if srcPath == "" {
 		return fmt.Errorf("could not find src/main/java directory")
 	}
 
 	basePath := filepath.Join(srcPath, strings.ReplaceAll(cfg.BasePackage, ".", string(os.PathSeparator)))
 
-	data := buildTemplateData(cfg)
+	data := buildResourceTemplateData(cfg)
 
 	templates := []struct {
 		template   string
@@ -296,7 +210,7 @@ func generateResource(cfg ResourceConfig, skipEntity, skipRepository bool) error
 		outputPath := filepath.Join(basePath, t.subPackage, t.fileName)
 
 		if engine.FileExists(outputPath) {
-			log.Warning("File exists, skipping", "file", formatRelativePath(cwd, outputPath))
+			log.Warning("File exists, skipping", "file", FormatRelativePath(cwd, outputPath))
 			skippedCount++
 			continue
 		}
@@ -305,7 +219,7 @@ func generateResource(cfg ResourceConfig, skipEntity, skipRepository bool) error
 			return fmt.Errorf("failed to generate %s: %w", t.fileName, err)
 		}
 
-		log.Info("Created", "file", formatRelativePath(cwd, outputPath))
+		log.Info("Created", "file", FormatRelativePath(cwd, outputPath))
 		generatedCount++
 	}
 
@@ -319,103 +233,14 @@ func generateResource(cfg ResourceConfig, skipEntity, skipRepository bool) error
 	return nil
 }
 
-func buildTemplateData(cfg ResourceConfig) map[string]any {
+func buildResourceTemplateData(cfg ResourceConfig) map[string]any {
 	return map[string]any{
 		"Name":          cfg.Name,
 		"NameLower":     strings.ToLower(cfg.Name),
-		"NameCamel":     toCamelCase(cfg.Name),
+		"NameCamel":     ToCamelCase(cfg.Name),
 		"BasePackage":   cfg.BasePackage,
 		"HasLombok":     cfg.HasLombok,
 		"HasJpa":        cfg.HasJpa,
 		"HasValidation": cfg.HasValidation,
 	}
-}
-
-func findSourcePath(startDir string) string {
-	candidates := []string{
-		filepath.Join(startDir, "src", "main", "java"),
-		filepath.Join(startDir, "app", "src", "main", "java"),
-	}
-
-	for _, path := range candidates {
-		if info, err := os.Stat(path); err == nil && info.IsDir() {
-			return path
-		}
-	}
-
-	return ""
-}
-
-func formatRelativePath(base, path string) string {
-	rel, err := filepath.Rel(base, path)
-	if err != nil {
-		return path
-	}
-	return rel
-}
-
-func toPascalCase(s string) string {
-	words := splitWords(s)
-	var result string
-	for _, word := range words {
-		result += capitalize(strings.ToLower(word))
-	}
-	return result
-}
-
-func toCamelCase(s string) string {
-	words := splitWords(s)
-	if len(words) == 0 {
-		return s
-	}
-	result := strings.ToLower(words[0])
-	for _, word := range words[1:] {
-		result += capitalize(strings.ToLower(word))
-	}
-	return result
-}
-
-func capitalize(s string) string {
-	if len(s) == 0 {
-		return s
-	}
-	return strings.ToUpper(s[:1]) + s[1:]
-}
-
-func splitWords(s string) []string {
-	s = strings.ReplaceAll(s, "-", " ")
-	s = strings.ReplaceAll(s, "_", " ")
-
-	var words []string
-	var currentWord strings.Builder
-
-	for i, r := range s {
-		if r == ' ' {
-			if currentWord.Len() > 0 {
-				words = append(words, currentWord.String())
-				currentWord.Reset()
-			}
-			continue
-		}
-
-		if i > 0 && isUpper(r) && currentWord.Len() > 0 {
-			lastChar := []rune(currentWord.String())[currentWord.Len()-1]
-			if !isUpper(lastChar) {
-				words = append(words, currentWord.String())
-				currentWord.Reset()
-			}
-		}
-
-		currentWord.WriteRune(r)
-	}
-
-	if currentWord.Len() > 0 {
-		words = append(words, currentWord.String())
-	}
-
-	return words
-}
-
-func isUpper(r rune) bool {
-	return r >= 'A' && r <= 'Z'
 }

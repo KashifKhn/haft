@@ -36,6 +36,30 @@ func TestResourceCommandExists(t *testing.T) {
 	assert.True(t, found, "resource subcommand should exist")
 }
 
+func TestAllSubcommandsExist(t *testing.T) {
+	cmd := NewCommand()
+	commands := cmd.Commands()
+
+	expectedCommands := map[string]bool{
+		"resource [name]":   false,
+		"controller [name]": false,
+		"service [name]":    false,
+		"repository [name]": false,
+		"entity [name]":     false,
+		"dto [name]":        false,
+	}
+
+	for _, c := range commands {
+		if _, ok := expectedCommands[c.Use]; ok {
+			expectedCommands[c.Use] = true
+		}
+	}
+
+	for name, found := range expectedCommands {
+		assert.True(t, found, "%s subcommand should exist", name)
+	}
+}
+
 func TestResourceCommandFlags(t *testing.T) {
 	cmd := newResourceCommand()
 
@@ -51,7 +75,76 @@ func TestResourceCommandFlags(t *testing.T) {
 	assert.NotNil(t, skipRepositoryFlag)
 }
 
-func TestValidateResourceName(t *testing.T) {
+func TestControllerCommandFlags(t *testing.T) {
+	cmd := newControllerCommand()
+
+	assert.Equal(t, "controller [name]", cmd.Use)
+	assert.Contains(t, cmd.Aliases, "co")
+
+	packageFlag := cmd.Flags().Lookup("package")
+	noInteractiveFlag := cmd.Flags().Lookup("no-interactive")
+
+	assert.NotNil(t, packageFlag)
+	assert.Equal(t, "p", packageFlag.Shorthand)
+	assert.NotNil(t, noInteractiveFlag)
+}
+
+func TestServiceCommandFlags(t *testing.T) {
+	cmd := newServiceCommand()
+
+	assert.Equal(t, "service [name]", cmd.Use)
+	assert.Contains(t, cmd.Aliases, "s")
+
+	packageFlag := cmd.Flags().Lookup("package")
+	noInteractiveFlag := cmd.Flags().Lookup("no-interactive")
+
+	assert.NotNil(t, packageFlag)
+	assert.NotNil(t, noInteractiveFlag)
+}
+
+func TestRepositoryCommandFlags(t *testing.T) {
+	cmd := newRepositoryCommand()
+
+	assert.Equal(t, "repository [name]", cmd.Use)
+	assert.Contains(t, cmd.Aliases, "repo")
+
+	packageFlag := cmd.Flags().Lookup("package")
+	noInteractiveFlag := cmd.Flags().Lookup("no-interactive")
+
+	assert.NotNil(t, packageFlag)
+	assert.NotNil(t, noInteractiveFlag)
+}
+
+func TestEntityCommandFlags(t *testing.T) {
+	cmd := newEntityCommand()
+
+	assert.Equal(t, "entity [name]", cmd.Use)
+	assert.Contains(t, cmd.Aliases, "e")
+
+	packageFlag := cmd.Flags().Lookup("package")
+	noInteractiveFlag := cmd.Flags().Lookup("no-interactive")
+
+	assert.NotNil(t, packageFlag)
+	assert.NotNil(t, noInteractiveFlag)
+}
+
+func TestDtoCommandFlags(t *testing.T) {
+	cmd := newDtoCommand()
+
+	assert.Equal(t, "dto [name]", cmd.Use)
+
+	packageFlag := cmd.Flags().Lookup("package")
+	noInteractiveFlag := cmd.Flags().Lookup("no-interactive")
+	requestOnlyFlag := cmd.Flags().Lookup("request-only")
+	responseOnlyFlag := cmd.Flags().Lookup("response-only")
+
+	assert.NotNil(t, packageFlag)
+	assert.NotNil(t, noInteractiveFlag)
+	assert.NotNil(t, requestOnlyFlag)
+	assert.NotNil(t, responseOnlyFlag)
+}
+
+func TestValidateComponentName(t *testing.T) {
 	tests := []struct {
 		name    string
 		input   string
@@ -68,7 +161,7 @@ func TestValidateResourceName(t *testing.T) {
 
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			err := validateResourceName(tt.input)
+			err := ValidateComponentName(tt.input)
 			if tt.wantErr {
 				assert.Error(t, err)
 			} else {
@@ -93,7 +186,7 @@ func TestToPascalCase(t *testing.T) {
 
 	for _, tt := range tests {
 		t.Run(tt.input, func(t *testing.T) {
-			result := toPascalCase(tt.input)
+			result := ToPascalCase(tt.input)
 			assert.Equal(t, tt.expected, result)
 		})
 	}
@@ -112,14 +205,14 @@ func TestToCamelCase(t *testing.T) {
 
 	for _, tt := range tests {
 		t.Run(tt.input, func(t *testing.T) {
-			result := toCamelCase(tt.input)
+			result := ToCamelCase(tt.input)
 			assert.Equal(t, tt.expected, result)
 		})
 	}
 }
 
 func TestBuildTemplateData(t *testing.T) {
-	cfg := ResourceConfig{
+	cfg := ComponentConfig{
 		Name:          "User",
 		BasePackage:   "com.example.demo",
 		HasLombok:     true,
@@ -127,7 +220,7 @@ func TestBuildTemplateData(t *testing.T) {
 		HasValidation: false,
 	}
 
-	data := buildTemplateData(cfg)
+	data := BuildTemplateData(cfg)
 
 	assert.Equal(t, "User", data["Name"])
 	assert.Equal(t, "user", data["NameLower"])
@@ -177,6 +270,45 @@ func TestValidateResourceConfig(t *testing.T) {
 	}
 }
 
+func TestValidateComponentConfig(t *testing.T) {
+	tests := []struct {
+		name    string
+		cfg     ComponentConfig
+		wantErr bool
+		errMsg  string
+	}{
+		{
+			name:    "valid config",
+			cfg:     ComponentConfig{Name: "User", BasePackage: "com.example"},
+			wantErr: false,
+		},
+		{
+			name:    "missing name",
+			cfg:     ComponentConfig{BasePackage: "com.example"},
+			wantErr: true,
+			errMsg:  "name is required",
+		},
+		{
+			name:    "missing package",
+			cfg:     ComponentConfig{Name: "User"},
+			wantErr: true,
+			errMsg:  "base package is required",
+		},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			err := ValidateComponentConfig(tt.cfg)
+			if tt.wantErr {
+				assert.Error(t, err)
+				assert.Contains(t, err.Error(), tt.errMsg)
+			} else {
+				assert.NoError(t, err)
+			}
+		})
+	}
+}
+
 func TestFindSourcePath(t *testing.T) {
 	fs := afero.NewMemMapFs()
 
@@ -184,7 +316,7 @@ func TestFindSourcePath(t *testing.T) {
 	srcPath := filepath.Join(tempDir, "src", "main", "java")
 	require.NoError(t, fs.MkdirAll(srcPath, 0755))
 
-	result := findSourcePath(tempDir)
+	result := FindSourcePath(tempDir)
 
 	assert.Empty(t, result)
 }
@@ -197,7 +329,7 @@ func TestFindSourcePathRealFS(t *testing.T) {
 	srcPath := filepath.Join(tempDir, "src", "main", "java")
 	require.NoError(t, os.MkdirAll(srcPath, 0755))
 
-	result := findSourcePath(tempDir)
+	result := FindSourcePath(tempDir)
 
 	assert.Equal(t, srcPath, result)
 }
@@ -207,7 +339,7 @@ func TestFindSourcePathNotFound(t *testing.T) {
 	require.NoError(t, err)
 	defer os.RemoveAll(tempDir)
 
-	result := findSourcePath(tempDir)
+	result := FindSourcePath(tempDir)
 
 	assert.Empty(t, result)
 }
@@ -216,7 +348,7 @@ func TestFormatRelativePath(t *testing.T) {
 	base := "/home/user/project"
 	path := "/home/user/project/src/main/java/User.java"
 
-	result := formatRelativePath(base, path)
+	result := FormatRelativePath(base, path)
 
 	assert.Equal(t, "src/main/java/User.java", result)
 }
@@ -239,7 +371,7 @@ func TestValidatePackageName(t *testing.T) {
 
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			err := validatePackageName(tt.input)
+			err := ValidatePackageName(tt.input)
 			if tt.wantErr {
 				assert.Error(t, err)
 			} else {
@@ -262,7 +394,7 @@ func TestCapitalize(t *testing.T) {
 
 	for _, tt := range tests {
 		t.Run(tt.input, func(t *testing.T) {
-			assert.Equal(t, tt.expected, capitalize(tt.input))
+			assert.Equal(t, tt.expected, Capitalize(tt.input))
 		})
 	}
 }
@@ -280,26 +412,26 @@ func TestSplitWords(t *testing.T) {
 
 	for _, tt := range tests {
 		t.Run(tt.input, func(t *testing.T) {
-			result := splitWords(tt.input)
+			result := SplitWords(tt.input)
 			assert.Equal(t, tt.expected, result)
 		})
 	}
 }
 
 func TestIsUpper(t *testing.T) {
-	assert.True(t, isUpper('A'))
-	assert.True(t, isUpper('Z'))
-	assert.False(t, isUpper('a'))
-	assert.False(t, isUpper('1'))
+	assert.True(t, IsUpper('A'))
+	assert.True(t, IsUpper('Z'))
+	assert.False(t, IsUpper('a'))
+	assert.False(t, IsUpper('1'))
 }
 
-func TestBuildResourceWizardSteps(t *testing.T) {
-	cfg := ResourceConfig{
+func TestBuildComponentWizardSteps(t *testing.T) {
+	cfg := ComponentConfig{
 		Name:        "User",
 		BasePackage: "com.example.demo",
 	}
 
-	steps, keys := buildResourceWizardSteps(cfg)
+	steps, keys := buildComponentWizardSteps(cfg, "Controller")
 
 	assert.Len(t, steps, 2)
 	assert.Len(t, keys, 2)
@@ -307,17 +439,17 @@ func TestBuildResourceWizardSteps(t *testing.T) {
 	assert.Equal(t, "basePackage", keys[1])
 }
 
-func TestBuildResourceWizardStepsWithEmptyConfig(t *testing.T) {
-	cfg := ResourceConfig{}
+func TestBuildComponentWizardStepsWithEmptyConfig(t *testing.T) {
+	cfg := ComponentConfig{}
 
-	steps, keys := buildResourceWizardSteps(cfg)
+	steps, keys := buildComponentWizardSteps(cfg, "Service")
 
 	assert.Len(t, steps, 2)
 	assert.Equal(t, []string{"name", "basePackage"}, keys)
 }
 
-func TestExtractResourceWizardValuesPreservesDetectedFeatures(t *testing.T) {
-	cfg := ResourceConfig{
+func TestComponentConfigPreservesDetectedFeatures(t *testing.T) {
+	cfg := ComponentConfig{
 		Name:          "",
 		BasePackage:   "",
 		HasLombok:     true,
@@ -335,7 +467,7 @@ func TestExtractResourceWizardValuesPreservesDetectedFeatures(t *testing.T) {
 	assert.True(t, cfg.HasValidation)
 }
 
-func TestResourceConfigAutoDetection(t *testing.T) {
+func TestComponentConfigAutoDetection(t *testing.T) {
 	tests := []struct {
 		name          string
 		hasLombok     bool
@@ -351,7 +483,7 @@ func TestResourceConfigAutoDetection(t *testing.T) {
 
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			cfg := ResourceConfig{
+			cfg := ComponentConfig{
 				Name:          "User",
 				BasePackage:   "com.example",
 				HasLombok:     tt.hasLombok,
@@ -359,7 +491,7 @@ func TestResourceConfigAutoDetection(t *testing.T) {
 				HasValidation: tt.hasValidation,
 			}
 
-			data := buildTemplateData(cfg)
+			data := BuildTemplateData(cfg)
 
 			assert.Equal(t, tt.hasLombok, data["HasLombok"])
 			assert.Equal(t, tt.hasJpa, data["HasJpa"])
@@ -371,11 +503,11 @@ func TestResourceConfigAutoDetection(t *testing.T) {
 func TestBuildTemplateDataAllCombinations(t *testing.T) {
 	tests := []struct {
 		name string
-		cfg  ResourceConfig
+		cfg  ComponentConfig
 	}{
 		{
 			name: "with lombok only",
-			cfg: ResourceConfig{
+			cfg: ComponentConfig{
 				Name:          "Product",
 				BasePackage:   "com.shop",
 				HasLombok:     true,
@@ -385,7 +517,7 @@ func TestBuildTemplateDataAllCombinations(t *testing.T) {
 		},
 		{
 			name: "with jpa only",
-			cfg: ResourceConfig{
+			cfg: ComponentConfig{
 				Name:          "Order",
 				BasePackage:   "com.shop",
 				HasLombok:     false,
@@ -395,7 +527,7 @@ func TestBuildTemplateDataAllCombinations(t *testing.T) {
 		},
 		{
 			name: "with validation only",
-			cfg: ResourceConfig{
+			cfg: ComponentConfig{
 				Name:          "Customer",
 				BasePackage:   "com.shop",
 				HasLombok:     false,
@@ -405,7 +537,7 @@ func TestBuildTemplateDataAllCombinations(t *testing.T) {
 		},
 		{
 			name: "with all features",
-			cfg: ResourceConfig{
+			cfg: ComponentConfig{
 				Name:          "Invoice",
 				BasePackage:   "com.billing",
 				HasLombok:     true,
@@ -415,7 +547,7 @@ func TestBuildTemplateDataAllCombinations(t *testing.T) {
 		},
 		{
 			name: "with no features",
-			cfg: ResourceConfig{
+			cfg: ComponentConfig{
 				Name:          "Report",
 				BasePackage:   "com.reports",
 				HasLombok:     false,
@@ -427,7 +559,7 @@ func TestBuildTemplateDataAllCombinations(t *testing.T) {
 
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			data := buildTemplateData(tt.cfg)
+			data := BuildTemplateData(tt.cfg)
 
 			assert.Equal(t, tt.cfg.Name, data["Name"])
 			assert.Equal(t, strings.ToLower(tt.cfg.Name), data["NameLower"])
@@ -447,29 +579,29 @@ func TestFindSourcePathWithAppDir(t *testing.T) {
 	srcPath := filepath.Join(tempDir, "app", "src", "main", "java")
 	require.NoError(t, os.MkdirAll(srcPath, 0755))
 
-	result := findSourcePath(tempDir)
+	result := FindSourcePath(tempDir)
 
 	assert.Equal(t, srcPath, result)
 }
 
 func TestFormatRelativePathError(t *testing.T) {
-	result := formatRelativePath("/different/base", "/some/other/path/file.java")
+	result := FormatRelativePath("/different/base", "/some/other/path/file.java")
 
 	assert.NotEmpty(t, result)
 }
 
 func TestToCamelCaseEmpty(t *testing.T) {
-	result := toCamelCase("")
+	result := ToCamelCase("")
 	assert.Equal(t, "", result)
 }
 
 func TestSplitWordsEmpty(t *testing.T) {
-	result := splitWords("")
+	result := SplitWords("")
 	assert.Nil(t, result)
 }
 
 func TestSplitWordsWithSpaces(t *testing.T) {
-	result := splitWords("hello world test")
+	result := SplitWords("hello world test")
 	assert.Equal(t, []string{"hello", "world", "test"}, result)
 }
 
@@ -483,6 +615,22 @@ func TestResourceConfigStruct(t *testing.T) {
 	}
 
 	assert.Equal(t, "TestResource", cfg.Name)
+	assert.Equal(t, "com.test.pkg", cfg.BasePackage)
+	assert.True(t, cfg.HasLombok)
+	assert.True(t, cfg.HasJpa)
+	assert.True(t, cfg.HasValidation)
+}
+
+func TestComponentConfigStruct(t *testing.T) {
+	cfg := ComponentConfig{
+		Name:          "TestComponent",
+		BasePackage:   "com.test.pkg",
+		HasLombok:     true,
+		HasJpa:        true,
+		HasValidation: true,
+	}
+
+	assert.Equal(t, "TestComponent", cfg.Name)
 	assert.Equal(t, "com.test.pkg", cfg.BasePackage)
 	assert.True(t, cfg.HasLombok)
 	assert.True(t, cfg.HasJpa)
