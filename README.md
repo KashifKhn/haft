@@ -138,6 +138,27 @@ sudo mv bin/haft /usr/local/bin/
 
 </details>
 
+<details>
+<summary><strong>Shell Completions</strong></summary>
+
+Enable tab completions for your shell:
+
+```bash
+# Bash
+haft completion bash > /etc/bash_completion.d/haft
+
+# Zsh
+haft completion zsh > "${fpath[1]}/_haft"
+
+# Fish
+haft completion fish > ~/.config/fish/completions/haft.fish
+
+# PowerShell
+haft completion powershell > haft.ps1
+```
+
+</details>
+
 ## Quick Start
 
 ### Create a New Project
@@ -244,7 +265,7 @@ haft add --list
 - [x] `haft generate controller|service|entity|repository|dto` — Individual generators
 - [x] `haft add` — Dependency management with TUI picker
 - [x] `haft remove` — Remove dependencies with TUI picker
-- [ ] Shell completions (bash, zsh, fish)
+- [x] Shell completions (bash, zsh, fish, powershell)
 - [ ] Gradle improvements
 - [ ] Neovim integration
 - [ ] VS Code extension

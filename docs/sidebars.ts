@@ -14,6 +14,7 @@ const sidebars: SidebarsConfig = {
         'commands/generate',
         'commands/add',
         'commands/remove',
+        'commands/completion',
       ],
     },
     {

@@ -118,6 +118,7 @@ That's it! You have a fully configured Spring Boot project with CRUD endpoints.
 - [haft generate](/docs/commands/generate) — Resource generation reference
 - [haft add](/docs/commands/add) — Add dependencies
 - [haft remove](/docs/commands/remove) — Remove dependencies
+- [haft completion](/docs/commands/completion) — Shell completions setup
 - [Wizard Navigation](/docs/guides/wizard-navigation) — Master the TUI wizard
 
 ## Example: Non-Interactive Mode
@@ -156,7 +157,28 @@ haft generate resource --help
 haft generate controller --help
 haft add --help
 haft remove --help
+haft completion --help
 ```
+
+## Enable Shell Completions
+
+Set up tab completions for a better experience:
+
+```bash
+# Bash
+source <(haft completion bash)
+
+# Zsh
+source <(haft completion zsh)
+
+# Fish
+haft completion fish | source
+
+# PowerShell
+haft completion powershell | Out-String | Invoke-Expression
+```
+
+See [haft completion](/docs/commands/completion) for permanent installation instructions.
 
 Join the community:
 - [GitHub Issues](https://github.com/KashifKhn/haft/issues) — Report bugs

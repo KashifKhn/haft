@@ -8,7 +8,7 @@ description: Haft development roadmap and future plans
 
 This page tracks the development progress of Haft.
 
-## Current Version: 0.2.x
+## Current Version: 0.3.x
 
 ### Completed
 
@@ -66,13 +66,15 @@ This page tracks the development progress of Haft.
 
 ## Upcoming: 0.3.0
 
-### Planned Features
+### Completed
 
-- [ ] **Shell Completions**
-  - [ ] Bash completion
-  - [ ] Zsh completion
-  - [ ] Fish completion
-  - [ ] PowerShell completion
+- [x] **Shell Completions**
+  - [x] Bash completion
+  - [x] Zsh completion
+  - [x] Fish completion
+  - [x] PowerShell completion
+
+### Planned Features
 
 - [ ] **Gradle Improvements**
   - [ ] Full Gradle support for add/remove
@@ -131,7 +133,15 @@ See [Contributing](/docs/contributing) for guidelines.
 
 ## Changelog
 
-### v0.2.0 (Current)
+### v0.3.0 (Current)
+
+- Feature: `haft completion` command for shell completions
+- Feature: Bash completion support
+- Feature: Zsh completion support
+- Feature: Fish completion support
+- Feature: PowerShell completion support
+
+### v0.2.0
 
 - Feature: `haft add` interactive TUI search picker
 - Feature: `haft add --browse` category browser
