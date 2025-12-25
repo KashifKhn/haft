@@ -82,13 +82,13 @@ func runDto(cmd *cobra.Command, args []string) error {
 	generateBoth := !requestOnly && !responseOnly
 
 	if generateBoth || requestOnly {
-		if err := GenerateComponent(cfg, "resource/Request.java.tmpl", "dto", "{Name}Request.java"); err != nil {
+		if _, err := GenerateComponent(cfg, "resource/Request.java.tmpl", "dto", "{Name}Request.java"); err != nil {
 			return err
 		}
 	}
 
 	if generateBoth || responseOnly {
-		if err := GenerateComponent(cfg, "resource/Response.java.tmpl", "dto", "{Name}Response.java"); err != nil {
+		if _, err := GenerateComponent(cfg, "resource/Response.java.tmpl", "dto", "{Name}Response.java"); err != nil {
 			return err
 		}
 	}

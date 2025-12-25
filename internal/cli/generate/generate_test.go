@@ -679,6 +679,7 @@ func TestCommandAliases(t *testing.T) {
 		cmdFunc       func() *cobra.Command
 		expectedAlias string
 	}{
+		{newResourceCommand, "r"},
 		{newControllerCommand, "co"},
 		{newServiceCommand, "s"},
 		{newRepositoryCommand, "repo"},
@@ -893,13 +894,7 @@ func TestResourceConfigToComponentConfig(t *testing.T) {
 		HasValidation: true,
 	}
 
-	compCfg := ComponentConfig{
-		Name:          resCfg.Name,
-		BasePackage:   resCfg.BasePackage,
-		HasLombok:     resCfg.HasLombok,
-		HasJpa:        resCfg.HasJpa,
-		HasValidation: resCfg.HasValidation,
-	}
+	compCfg := ComponentConfig(resCfg)
 
 	assert.Equal(t, resCfg.Name, compCfg.Name)
 	assert.Equal(t, resCfg.BasePackage, compCfg.BasePackage)

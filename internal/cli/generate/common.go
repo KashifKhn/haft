@@ -152,19 +152,19 @@ func ValidatePackageName(pkg string) error {
 	return nil
 }
 
-func GenerateComponent(cfg ComponentConfig, templateName, subPackage, fileNamePattern string) error {
+func GenerateComponent(cfg ComponentConfig, templateName, subPackage, fileNamePattern string) (bool, error) {
 	log := logger.Default()
 	fs := afero.NewOsFs()
 	engine := generator.NewEngine(fs)
 
 	cwd, err := os.Getwd()
 	if err != nil {
-		return err
+		return false, err
 	}
 
 	srcPath := FindSourcePath(cwd)
 	if srcPath == "" {
-		return fmt.Errorf("could not find src/main/java directory")
+		return false, fmt.Errorf("could not find src/main/java directory")
 	}
 
 	basePath := filepath.Join(srcPath, strings.ReplaceAll(cfg.BasePackage, ".", string(os.PathSeparator)))
@@ -174,15 +174,16 @@ func GenerateComponent(cfg ComponentConfig, templateName, subPackage, fileNamePa
 	outputPath := filepath.Join(basePath, subPackage, fileName)
 
 	if engine.FileExists(outputPath) {
-		return fmt.Errorf("file already exists: %s", FormatRelativePath(cwd, outputPath))
+		log.Warning("Skipped (already exists)", "file", FormatRelativePath(cwd, outputPath))
+		return false, nil
 	}
 
 	if err := engine.RenderAndWrite(templateName, outputPath, data); err != nil {
-		return fmt.Errorf("failed to generate %s: %w", fileName, err)
+		return false, fmt.Errorf("failed to generate %s: %w", fileName, err)
 	}
 
 	log.Success("Created", "file", FormatRelativePath(cwd, outputPath))
-	return nil
+	return true, nil
 }
 
 func BuildTemplateData(cfg ComponentConfig) map[string]any {

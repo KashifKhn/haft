@@ -69,7 +69,40 @@ haft generate entity Customer      # haft g e
 haft generate dto Invoice          # haft g dto
 ```
 
-### 4. Run Your Project
+### 4. Add Dependencies
+
+```bash
+# Interactive search picker
+haft add
+
+# Browse by category
+haft add --browse
+
+# Add using shortcuts
+haft add lombok validation jwt
+
+# Add database driver
+haft add postgresql
+
+# List available shortcuts
+haft add --list
+```
+
+### 5. Remove Dependencies
+
+```bash
+# Interactive picker
+haft remove
+
+# Remove by name
+haft remove lombok
+haft rm h2 validation
+
+# Remove using suffix matching
+haft rm jpa   # Removes spring-boot-starter-data-jpa
+```
+
+### 6. Run Your Project
 
 ```bash
 ./mvnw spring-boot:run
@@ -83,6 +116,9 @@ That's it! You have a fully configured Spring Boot project with CRUD endpoints.
 - [Why Haft?](/docs/why-haft) — Learn what makes Haft different
 - [haft init](/docs/commands/init) — Project initialization reference
 - [haft generate](/docs/commands/generate) — Resource generation reference
+- [haft add](/docs/commands/add) — Add dependencies
+- [haft remove](/docs/commands/remove) — Remove dependencies
+- [haft completion](/docs/commands/completion) — Shell completions setup
 - [Wizard Navigation](/docs/guides/wizard-navigation) — Master the TUI wizard
 
 ## Example: Non-Interactive Mode
@@ -119,7 +155,30 @@ haft init --help
 haft generate --help
 haft generate resource --help
 haft generate controller --help
+haft add --help
+haft remove --help
+haft completion --help
 ```
+
+## Enable Shell Completions
+
+Set up tab completions for a better experience:
+
+```bash
+# Bash
+source <(haft completion bash)
+
+# Zsh
+source <(haft completion zsh)
+
+# Fish
+haft completion fish | source
+
+# PowerShell
+haft completion powershell | Out-String | Invoke-Expression
+```
+
+See [haft completion](/docs/commands/completion) for permanent installation instructions.
 
 Join the community:
 - [GitHub Issues](https://github.com/KashifKhn/haft/issues) — Report bugs

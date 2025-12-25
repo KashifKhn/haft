@@ -74,5 +74,6 @@ func runController(cmd *cobra.Command, args []string) error {
 	}
 
 	log.Info("Generating controller", "name", cfg.Name)
-	return GenerateComponent(cfg, "resource/Controller.java.tmpl", "controller", "{Name}Controller.java")
+	_, err = GenerateComponent(cfg, "resource/Controller.java.tmpl", "controller", "{Name}Controller.java")
+	return err
 }

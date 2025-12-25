@@ -162,7 +162,46 @@ Input/output and integrations.
 
 ## Using Dependencies
 
-### In Interactive Mode
+### With `haft add`
+
+The easiest way to add dependencies to an existing project:
+
+```bash
+# Interactive search picker
+haft add
+
+# Browse by category
+haft add --browse
+
+# Add by shortcut
+haft add lombok jpa validation
+
+# Add by Maven coordinates (auto-verified)
+haft add org.mapstruct:mapstruct
+
+# List all shortcuts
+haft add --list
+```
+
+### With `haft remove`
+
+Remove dependencies from your project:
+
+```bash
+# Interactive picker
+haft remove
+
+# Remove by artifact name
+haft remove lombok
+
+# Remove by suffix (jpa matches spring-boot-starter-data-jpa)
+haft rm jpa web
+
+# Remove by coordinates
+haft rm org.projectlombok:lombok
+```
+
+### In Interactive Mode (`haft init`)
 
 1. Navigate to the Dependencies step
 2. Use `/` to search

@@ -110,32 +110,92 @@ haft version v0.1.1
 
 ## Shell Completions
 
-Haft supports shell completions for bash, zsh, fish, and PowerShell.
+Haft supports shell completions for bash, zsh, fish, and PowerShell. Tab completions help you discover commands and flags without memorizing them.
 
 ### Bash
 
+**Load for current session:**
+
 ```bash
-# Add to ~/.bashrc
 source <(haft completion bash)
+```
+
+**Load permanently (Linux):**
+
+```bash
+# System-wide
+haft completion bash > /etc/bash_completion.d/haft
+
+# User-only
+haft completion bash > ~/.local/share/bash-completion/completions/haft
+```
+
+**Load permanently (macOS with Homebrew):**
+
+```bash
+haft completion bash > $(brew --prefix)/etc/bash_completion.d/haft
 ```
 
 ### Zsh
 
+**Load for current session:**
+
 ```bash
-# Add to ~/.zshrc
 source <(haft completion zsh)
 ```
 
+**Load permanently (Linux):**
+
+```bash
+# Ensure completion is enabled in ~/.zshrc:
+# autoload -U compinit; compinit
+
+haft completion zsh > "${fpath[1]}/_haft"
+```
+
+**Load permanently (macOS with Homebrew):**
+
+```bash
+haft completion zsh > $(brew --prefix)/share/zsh/site-functions/_haft
+```
+
+Start a new shell session for changes to take effect.
+
 ### Fish
+
+**Load for current session:**
 
 ```bash
 haft completion fish | source
 ```
 
+**Load permanently:**
+
+```bash
+haft completion fish > ~/.config/fish/completions/haft.fish
+```
+
 ### PowerShell
+
+**Load for current session:**
 
 ```powershell
 haft completion powershell | Out-String | Invoke-Expression
+```
+
+**Load permanently:**
+
+Add to your PowerShell profile (`$PROFILE`):
+
+```powershell
+haft completion powershell | Out-String | Invoke-Expression
+```
+
+Or save to a file and source it:
+
+```powershell
+haft completion powershell > haft.ps1
+# Add `. /path/to/haft.ps1` to your profile
 ```
 
 ## Updating

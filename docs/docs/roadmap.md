@@ -8,7 +8,7 @@ description: Haft development roadmap and future plans
 
 This page tracks the development progress of Haft.
 
-## Current Version: 0.1.x
+## Current Version: 0.3.x
 
 ### Completed
 
@@ -32,6 +32,7 @@ This page tracks the development progress of Haft.
   - [x] Read pom.xml files
   - [x] Write pom.xml files
   - [x] Dependency detection (Lombok, JPA, Validation)
+  - [x] Add/Remove dependencies
 
 - [x] **Resource Generation** (`haft generate resource`)
   - [x] Controller generation with CRUD endpoints
@@ -46,28 +47,40 @@ This page tracks the development progress of Haft.
   - [x] Interactive TUI wizard
   - [x] File safety (skip existing files)
 
-## Upcoming: 0.2.0
+- [x] **Individual Generators**
+  - [x] `haft generate controller` (alias: `co`)
+  - [x] `haft generate service` (alias: `s`)
+  - [x] `haft generate entity` (alias: `e`)
+  - [x] `haft generate repository` (alias: `repo`)
+  - [x] `haft generate dto`
+
+- [x] **Dependency Manager**
+  - [x] `haft add <dependency>` — Add dependencies
+  - [x] `haft add` — Interactive TUI search picker
+  - [x] `haft add --browse` — Category browser
+  - [x] Maven Central verification for coordinates
+  - [x] Auto-fetch latest versions
+  - [x] `haft remove <dependency>` — Remove dependencies
+  - [x] `haft remove` — Interactive removal picker
+  - [x] 50+ dependency shortcuts (jwt, guava, feign, etc.)
+
+## Upcoming: 0.3.0
+
+### Completed
+
+- [x] **Shell Completions**
+  - [x] Bash completion
+  - [x] Zsh completion
+  - [x] Fish completion
+  - [x] PowerShell completion
 
 ### Planned Features
 
-- [ ] **Individual Generators**
-  - [ ] `haft generate controller`
-  - [ ] `haft generate service`
-  - [ ] `haft generate entity`
-  - [ ] `haft generate repository`
+- [ ] **Gradle Improvements**
+  - [ ] Full Gradle support for add/remove
+  - [ ] Gradle Kotlin DSL
 
-- [ ] **Dependency Manager**
-  - [ ] `haft add <dependency>`
-  - [ ] `haft remove <dependency>`
-  - [ ] Interactive dependency search
-
-- [ ] **Shell Completions**
-  - [ ] Bash completion
-  - [ ] Zsh completion
-  - [ ] Fish completion
-  - [ ] PowerShell completion
-
-## Future: 0.3.0+
+## Future: 0.4.0+
 
 ### Editor Integration
 
@@ -108,10 +121,6 @@ We believe developers should stay in their editor. The first integration will be
   - [ ] Test class generation
   - [ ] Security configuration
 
-- [ ] **Gradle Improvements**
-  - [ ] Full Gradle support
-  - [ ] Gradle Kotlin DSL
-
 ## Contributing
 
 Want to help? Check the [GitHub Issues](https://github.com/KashifKhn/haft/issues) for tasks labeled:
@@ -124,7 +133,32 @@ See [Contributing](/docs/contributing) for guidelines.
 
 ## Changelog
 
-### v0.1.2 (Upcoming)
+### v0.3.0 (Current)
+
+- Feature: `haft completion` command for shell completions
+- Feature: Bash completion support
+- Feature: Zsh completion support
+- Feature: Fish completion support
+- Feature: PowerShell completion support
+
+### v0.2.0
+
+- Feature: `haft add` interactive TUI search picker
+- Feature: `haft add --browse` category browser
+- Feature: Maven Central API verification for coordinates
+- Feature: Auto-fetch latest version for Maven coordinates
+- Feature: `haft remove` command with interactive picker
+- Feature: 50+ dependency shortcuts (jwt, guava, feign, resilience4j, etc.)
+- Feature: Suffix matching for remove command
+
+### v0.1.3
+
+- Feature: `haft generate controller|service|entity|repository|dto` commands
+- Feature: Individual component generation
+- Feature: `haft add` basic command with shortcuts
+- Feature: Dependency catalog with 30+ shortcuts
+
+### v0.1.2
 
 - Feature: `haft generate resource` command
 - Feature: Interactive wizard for resource generation

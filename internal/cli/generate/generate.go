@@ -19,7 +19,7 @@ All generators auto-detect your project configuration from pom.xml:
   - Validation (for @Valid annotations)`,
 		Example: `  # Generate a complete CRUD resource (recommended)
   haft generate resource user
-  haft g resource product
+  haft g r product
 
   # Generate individual components
   haft generate controller order
