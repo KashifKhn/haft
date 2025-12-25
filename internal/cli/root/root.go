@@ -3,6 +3,7 @@ package root
 import (
 	"os"
 
+	addcmd "github.com/KashifKhn/haft/internal/cli/add"
 	generatecmd "github.com/KashifKhn/haft/internal/cli/generate"
 	initcmd "github.com/KashifKhn/haft/internal/cli/init"
 	"github.com/KashifKhn/haft/internal/logger"
@@ -69,6 +70,7 @@ func init() {
 	rootCmd.AddCommand(versionCmd)
 	rootCmd.AddCommand(initcmd.NewCommand())
 	rootCmd.AddCommand(generatecmd.NewCommand())
+	rootCmd.AddCommand(addcmd.NewCommand())
 }
 
 var versionCmd = &cobra.Command{

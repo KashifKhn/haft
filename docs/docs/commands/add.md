@@ -8,78 +8,144 @@ description: Add dependencies to your project
 
 Add dependencies to an existing Spring Boot project.
 
-:::caution Coming Soon
-The `add` command is currently under development and will be available in a future release.
-:::
-
 ## Usage
 
 ```bash
-haft add <dependency> [flags]
+haft add <dependency> [dependencies...]
+haft add <groupId:artifactId>
+haft add <groupId:artifactId:version>
 ```
 
 ## Description
 
-The `add` command modifies your `pom.xml` (or `build.gradle`) to add new dependencies. It automatically:
+The `add` command modifies your `pom.xml` to add new dependencies. It supports:
 
-- Detects the correct dependency coordinates
-- Adds required version properties
-- Includes related dependencies when needed
+- **Shortcuts** - Common dependencies like `lombok`, `jpa`, `web`
+- **Maven coordinates** - Any dependency as `groupId:artifactId`
+- **With version** - Specify version as `groupId:artifactId:version`
 
 ## Examples
 
-### Add a Single Dependency
+### Add Using Shortcuts
 
 ```bash
+# Add Lombok
 haft add lombok
+
+# Add multiple dependencies
+haft add jpa validation lombok
+
+# Add database driver
+haft add postgresql
 ```
 
-### Add Multiple Dependencies
+### Add Using Maven Coordinates
 
 ```bash
-haft add lombok validation mapstruct
+# Without version (uses managed version)
+haft add org.mapstruct:mapstruct
+
+# With specific version
+haft add io.jsonwebtoken:jjwt-api:0.12.3
 ```
 
-### Add with Search
+### Override Scope
 
 ```bash
-# Don't know the exact name? Search!
-haft add --search security
+# Add as test dependency
+haft add h2 --scope test
+
+# Add as provided
+haft add org.example:my-processor --scope provided
 ```
 
-## Common Dependencies
+### List Available Shortcuts
 
-| Alias | Dependency |
-|-------|------------|
-| `web` | spring-boot-starter-web |
-| `jpa` | spring-boot-starter-data-jpa |
-| `security` | spring-boot-starter-security |
-| `validation` | spring-boot-starter-validation |
-| `lombok` | lombok |
-| `mapstruct` | mapstruct + mapstruct-processor |
-| `actuator` | spring-boot-starter-actuator |
-| `devtools` | spring-boot-devtools |
+```bash
+haft add --list
+```
 
 ## Flags
 
 | Flag | Description |
 |------|-------------|
-| `--search` | Search for dependencies by name |
-| `--scope` | Set dependency scope (compile, test, provided) |
+| `--list` | List available dependency shortcuts |
+| `--scope` | Set dependency scope (compile, runtime, test, provided) |
 | `--version` | Override default version |
 
-## Database Drivers
+## Available Shortcuts
 
-```bash
-# PostgreSQL
-haft add postgresql
+### Web
 
-# MySQL
-haft add mysql
+| Shortcut | Description |
+|----------|-------------|
+| `web` | Spring Boot Web (Spring MVC) |
+| `webflux` | Spring WebFlux (reactive) |
+| `graphql` | Spring GraphQL |
+| `websocket` | WebSocket support |
 
-# H2 (test database)
-haft add h2
-```
+### SQL
+
+| Shortcut | Description |
+|----------|-------------|
+| `jpa` | Spring Data JPA |
+| `jdbc` | Spring JDBC |
+| `postgresql` | PostgreSQL driver |
+| `mysql` | MySQL driver |
+| `mariadb` | MariaDB driver |
+| `h2` | H2 in-memory database |
+| `flyway` | Flyway migrations |
+| `liquibase` | Liquibase migrations |
+
+### NoSQL
+
+| Shortcut | Description |
+|----------|-------------|
+| `mongodb` | Spring Data MongoDB |
+| `redis` | Spring Data Redis |
+| `elasticsearch` | Spring Data Elasticsearch |
+
+### Security
+
+| Shortcut | Description |
+|----------|-------------|
+| `security` | Spring Security |
+| `oauth2-client` | OAuth2 client |
+| `oauth2-resource-server` | OAuth2 resource server |
+
+### Messaging
+
+| Shortcut | Description |
+|----------|-------------|
+| `amqp` | RabbitMQ (Spring AMQP) |
+| `kafka` | Apache Kafka |
+
+### Developer Tools
+
+| Shortcut | Description |
+|----------|-------------|
+| `lombok` | Lombok annotations |
+| `devtools` | Spring Boot DevTools |
+| `mapstruct` | MapStruct bean mapping |
+| `openapi` | SpringDoc OpenAPI (Swagger UI) |
+
+### Ops & I/O
+
+| Shortcut | Description |
+|----------|-------------|
+| `actuator` | Spring Boot Actuator |
+| `validation` | Bean Validation |
+| `mail` | Java Mail |
+| `cache` | Spring Cache |
+| `batch` | Spring Batch |
+| `quartz` | Quartz Scheduler |
+
+### Testing
+
+| Shortcut | Description |
+|----------|-------------|
+| `test` | Spring Boot Test |
+| `testcontainers` | Testcontainers |
 
 ## What Gets Added
 
@@ -95,17 +161,43 @@ haft add h2
 
 ### Example: `haft add mapstruct`
 
+Adds both the main library and annotation processor:
+
 ```xml
 <dependency>
     <groupId>org.mapstruct</groupId>
     <artifactId>mapstruct</artifactId>
-    <version>${mapstruct.version}</version>
+    <version>1.5.5.Final</version>
 </dependency>
+<dependency>
+    <groupId>org.mapstruct</groupId>
+    <artifactId>mapstruct-processor</artifactId>
+    <version>1.5.5.Final</version>
+    <scope>provided</scope>
+</dependency>
+```
 
-<!-- Plus annotation processor configuration -->
+### Example: `haft add postgresql`
+
+```xml
+<dependency>
+    <groupId>org.postgresql</groupId>
+    <artifactId>postgresql</artifactId>
+    <scope>runtime</scope>
+</dependency>
+```
+
+## Duplicate Detection
+
+Haft automatically detects existing dependencies and skips them:
+
+```
+$ haft add lombok
+WARN ⚠ Skipped (already exists) dependency=org.projectlombok:lombok
+INFO ℹ No new dependencies added (all already exist)
 ```
 
 ## See Also
 
-- [Dependencies](/docs/guides/dependencies) — Full dependency list
 - [haft init](/docs/commands/init) — Add dependencies at project creation
+- [Dependencies Guide](/docs/guides/dependencies) — Full dependency reference

@@ -69,7 +69,20 @@ haft generate entity Customer      # haft g e
 haft generate dto Invoice          # haft g dto
 ```
 
-### 4. Run Your Project
+### 4. Add Dependencies
+
+```bash
+# Add using shortcuts
+haft add lombok validation
+
+# Add database driver
+haft add postgresql
+
+# List available shortcuts
+haft add --list
+```
+
+### 5. Run Your Project
 
 ```bash
 ./mvnw spring-boot:run
@@ -83,6 +96,7 @@ That's it! You have a fully configured Spring Boot project with CRUD endpoints.
 - [Why Haft?](/docs/why-haft) — Learn what makes Haft different
 - [haft init](/docs/commands/init) — Project initialization reference
 - [haft generate](/docs/commands/generate) — Resource generation reference
+- [haft add](/docs/commands/add) — Dependency management reference
 - [Wizard Navigation](/docs/guides/wizard-navigation) — Master the TUI wizard
 
 ## Example: Non-Interactive Mode

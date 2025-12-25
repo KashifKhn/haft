@@ -218,7 +218,7 @@ All generators auto-detect your project configuration from `pom.xml`:
 - [x] Offline operation
 - [x] `haft generate resource` — Full CRUD generation
 - [x] `haft generate controller|service|entity|repository|dto` — Individual generators
-- [ ] `haft add` — Dependency management
+- [x] `haft add` — Dependency management
 - [ ] Gradle improvements
 - [ ] Neovim integration
 - [ ] VS Code extension
