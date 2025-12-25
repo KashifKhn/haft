@@ -2,7 +2,7 @@ package maven
 
 import "encoding/xml"
 
-type Project struct {
+type MavenProject struct {
 	XMLName              xml.Name              `xml:"project"`
 	Xmlns                string                `xml:"xmlns,attr"`
 	XmlnsXsi             string                `xml:"xsi,attr"`
@@ -106,3 +106,5 @@ type Execution struct {
 type Goals struct {
 	Goal []string `xml:"goal"`
 }
+
+type Project = MavenProject
