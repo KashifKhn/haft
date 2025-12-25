@@ -9,6 +9,7 @@ import (
 
 	"github.com/KashifKhn/haft/internal/buildtool"
 	"github.com/KashifKhn/haft/internal/generator"
+	_ "github.com/KashifKhn/haft/internal/gradle"
 	"github.com/KashifKhn/haft/internal/logger"
 	_ "github.com/KashifKhn/haft/internal/maven"
 	"github.com/KashifKhn/haft/internal/tui/components"

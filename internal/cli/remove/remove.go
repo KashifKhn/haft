@@ -6,6 +6,7 @@ import (
 	"strings"
 
 	"github.com/KashifKhn/haft/internal/buildtool"
+	_ "github.com/KashifKhn/haft/internal/gradle"
 	"github.com/KashifKhn/haft/internal/logger"
 	_ "github.com/KashifKhn/haft/internal/maven"
 	"github.com/spf13/afero"
