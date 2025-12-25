@@ -3,6 +3,7 @@ package maven
 import (
 	"testing"
 
+	"github.com/KashifKhn/haft/internal/buildtool"
 	"github.com/spf13/afero"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
@@ -46,18 +47,16 @@ func TestParser_ParseBytes(t *testing.T) {
 	assert.Equal(t, "my-app", project.ArtifactId)
 	assert.Equal(t, "0.0.1-SNAPSHOT", project.Version)
 	assert.Equal(t, "My App", project.Name)
-	assert.Equal(t, "21", project.Properties.JavaVersion)
-	assert.Len(t, project.Dependencies.Dependency, 2)
+	assert.Equal(t, "21", project.JavaVersion)
+	assert.Len(t, project.Dependencies, 2)
 }
 
 func TestParser_HasDependency(t *testing.T) {
 	parser := NewParser()
-	project := &Project{
-		Dependencies: &Dependencies{
-			Dependency: []Dependency{
-				{GroupId: "org.springframework.boot", ArtifactId: "spring-boot-starter-web"},
-				{GroupId: "org.projectlombok", ArtifactId: "lombok"},
-			},
+	project := &buildtool.Project{
+		Dependencies: []buildtool.Dependency{
+			{GroupId: "org.springframework.boot", ArtifactId: "spring-boot-starter-web"},
+			{GroupId: "org.projectlombok", ArtifactId: "lombok"},
 		},
 	}
 
@@ -68,45 +67,42 @@ func TestParser_HasDependency(t *testing.T) {
 
 func TestParser_AddDependency(t *testing.T) {
 	parser := NewParser()
-	project := &Project{}
+	project := &buildtool.Project{}
 
-	parser.AddDependency(project, Dependency{
+	parser.AddDependency(project, buildtool.Dependency{
 		GroupId:    "org.springframework.boot",
 		ArtifactId: "spring-boot-starter-web",
 	})
 
-	assert.NotNil(t, project.Dependencies)
-	assert.Len(t, project.Dependencies.Dependency, 1)
+	assert.Len(t, project.Dependencies, 1)
 
-	parser.AddDependency(project, Dependency{
+	parser.AddDependency(project, buildtool.Dependency{
 		GroupId:    "org.springframework.boot",
 		ArtifactId: "spring-boot-starter-web",
 	})
-	assert.Len(t, project.Dependencies.Dependency, 1)
+	assert.Len(t, project.Dependencies, 1)
 
-	parser.AddDependency(project, Dependency{
+	parser.AddDependency(project, buildtool.Dependency{
 		GroupId:    "org.projectlombok",
 		ArtifactId: "lombok",
 		Scope:      "provided",
 	})
-	assert.Len(t, project.Dependencies.Dependency, 2)
+	assert.Len(t, project.Dependencies, 2)
 }
 
 func TestParser_RemoveDependency(t *testing.T) {
 	parser := NewParser()
-	project := &Project{
-		Dependencies: &Dependencies{
-			Dependency: []Dependency{
-				{GroupId: "org.springframework.boot", ArtifactId: "spring-boot-starter-web"},
-				{GroupId: "org.projectlombok", ArtifactId: "lombok"},
-			},
+	project := &buildtool.Project{
+		Dependencies: []buildtool.Dependency{
+			{GroupId: "org.springframework.boot", ArtifactId: "spring-boot-starter-web"},
+			{GroupId: "org.projectlombok", ArtifactId: "lombok"},
 		},
 	}
 
 	removed := parser.RemoveDependency(project, "org.projectlombok", "lombok")
 
 	assert.True(t, removed)
-	assert.Len(t, project.Dependencies.Dependency, 1)
+	assert.Len(t, project.Dependencies, 1)
 	assert.False(t, parser.HasDependency(project, "org.projectlombok", "lombok"))
 
 	removed = parser.RemoveDependency(project, "org.mapstruct", "mapstruct")
@@ -115,25 +111,17 @@ func TestParser_RemoveDependency(t *testing.T) {
 
 func TestParser_HelperMethods(t *testing.T) {
 	parser := NewParser()
-	project := &Project{
-		Parent: &Parent{
-			GroupId:    "org.springframework.boot",
-			ArtifactId: "spring-boot-starter-parent",
-			Version:    "3.4.1",
-		},
-		GroupId:    "com.example",
-		ArtifactId: "my-app",
-		Properties: &Properties{
-			JavaVersion: "21",
-		},
-		Dependencies: &Dependencies{
-			Dependency: []Dependency{
-				{GroupId: "org.projectlombok", ArtifactId: "lombok"},
-				{GroupId: "org.mapstruct", ArtifactId: "mapstruct"},
-				{GroupId: "org.springframework.boot", ArtifactId: "spring-boot-starter-data-jpa"},
-				{GroupId: "org.springframework.boot", ArtifactId: "spring-boot-starter-web"},
-				{GroupId: "org.springframework.boot", ArtifactId: "spring-boot-starter-validation"},
-			},
+	project := &buildtool.Project{
+		GroupId:           "com.example",
+		ArtifactId:        "my-app",
+		JavaVersion:       "21",
+		SpringBootVersion: "3.4.1",
+		Dependencies: []buildtool.Dependency{
+			{GroupId: "org.projectlombok", ArtifactId: "lombok"},
+			{GroupId: "org.mapstruct", ArtifactId: "mapstruct"},
+			{GroupId: "org.springframework.boot", ArtifactId: "spring-boot-starter-data-jpa"},
+			{GroupId: "org.springframework.boot", ArtifactId: "spring-boot-starter-web"},
+			{GroupId: "org.springframework.boot", ArtifactId: "spring-boot-starter-validation"},
 		},
 	}
 
@@ -172,11 +160,17 @@ func TestParser_Write(t *testing.T) {
 	fs := afero.NewMemMapFs()
 	parser := NewParserWithFs(fs)
 
-	project := &Project{
-		ModelVersion: "4.0.0",
-		GroupId:      "com.example",
-		ArtifactId:   "my-app",
-		Version:      "0.0.1-SNAPSHOT",
+	project := &buildtool.Project{
+		GroupId:    "com.example",
+		ArtifactId: "my-app",
+		Version:    "0.0.1-SNAPSHOT",
+		BuildTool:  buildtool.Maven,
+		Raw: &MavenProject{
+			ModelVersion: "4.0.0",
+			GroupId:      "com.example",
+			ArtifactId:   "my-app",
+			Version:      "0.0.1-SNAPSHOT",
+		},
 	}
 
 	err := parser.Write("/project/pom.xml", project)
@@ -235,12 +229,10 @@ func TestParser_ParseBytes_InvalidXml(t *testing.T) {
 
 func TestParser_GetDependency(t *testing.T) {
 	parser := NewParser()
-	project := &Project{
-		Dependencies: &Dependencies{
-			Dependency: []Dependency{
-				{GroupId: "org.springframework.boot", ArtifactId: "spring-boot-starter-web", Version: "3.4.0"},
-				{GroupId: "org.projectlombok", ArtifactId: "lombok", Scope: "provided"},
-			},
+	project := &buildtool.Project{
+		Dependencies: []buildtool.Dependency{
+			{GroupId: "org.springframework.boot", ArtifactId: "spring-boot-starter-web", Version: "3.4.0"},
+			{GroupId: "org.projectlombok", ArtifactId: "lombok", Scope: "provided"},
 		},
 	}
 
@@ -258,7 +250,7 @@ func TestParser_GetDependency(t *testing.T) {
 
 func TestParser_GetDependency_NilDependencies(t *testing.T) {
 	parser := NewParser()
-	project := &Project{}
+	project := &buildtool.Project{}
 
 	dep := parser.GetDependency(project, "org.projectlombok", "lombok")
 
@@ -267,58 +259,32 @@ func TestParser_GetDependency_NilDependencies(t *testing.T) {
 
 func TestParser_HasDependency_NilDependencies(t *testing.T) {
 	parser := NewParser()
-	project := &Project{}
+	project := &buildtool.Project{}
 
 	assert.False(t, parser.HasDependency(project, "org.projectlombok", "lombok"))
 }
 
 func TestParser_RemoveDependency_NilDependencies(t *testing.T) {
 	parser := NewParser()
-	project := &Project{}
+	project := &buildtool.Project{}
 
 	removed := parser.RemoveDependency(project, "org.projectlombok", "lombok")
 
 	assert.False(t, removed)
 }
 
-func TestParser_GetJavaVersion_NilProperties(t *testing.T) {
+func TestParser_GetJavaVersion_Empty(t *testing.T) {
 	parser := NewParser()
-	project := &Project{}
+	project := &buildtool.Project{}
 
 	version := parser.GetJavaVersion(project)
 
 	assert.Equal(t, "", version)
 }
 
-func TestParser_GetJavaVersion_EmptyVersion(t *testing.T) {
+func TestParser_GetSpringBootVersion_Empty(t *testing.T) {
 	parser := NewParser()
-	project := &Project{
-		Properties: &Properties{},
-	}
-
-	version := parser.GetJavaVersion(project)
-
-	assert.Equal(t, "", version)
-}
-
-func TestParser_GetSpringBootVersion_NilParent(t *testing.T) {
-	parser := NewParser()
-	project := &Project{}
-
-	version := parser.GetSpringBootVersion(project)
-
-	assert.Equal(t, "", version)
-}
-
-func TestParser_GetSpringBootVersion_NonSpringBootParent(t *testing.T) {
-	parser := NewParser()
-	project := &Project{
-		Parent: &Parent{
-			GroupId:    "com.example",
-			ArtifactId: "parent-pom",
-			Version:    "1.0.0",
-		},
-	}
+	project := &buildtool.Project{}
 
 	version := parser.GetSpringBootVersion(project)
 
@@ -327,17 +293,55 @@ func TestParser_GetSpringBootVersion_NonSpringBootParent(t *testing.T) {
 
 func TestParser_Marshal(t *testing.T) {
 	parser := NewParser()
-	project := &Project{
+	mavenProject := &MavenProject{
 		ModelVersion: "4.0.0",
 		GroupId:      "com.example",
 		ArtifactId:   "test-app",
 		Version:      "1.0.0",
 	}
 
-	data, err := parser.Marshal(project)
+	data, err := parser.Marshal(mavenProject)
 
 	require.NoError(t, err)
 	assert.Contains(t, string(data), "<?xml version")
 	assert.Contains(t, string(data), "http://maven.apache.org/POM/4.0.0")
 	assert.Contains(t, string(data), "com.example")
+}
+
+func TestParser_Type(t *testing.T) {
+	parser := NewParser()
+	assert.Equal(t, buildtool.Maven, parser.Type())
+}
+
+func TestParser_LegacyMethods(t *testing.T) {
+	parser := NewParser()
+	mavenProject := &MavenProject{
+		GroupId:    "com.example",
+		ArtifactId: "my-app",
+		Parent: &Parent{
+			GroupId:    "org.springframework.boot",
+			ArtifactId: "spring-boot-starter-parent",
+			Version:    "3.4.1",
+		},
+		Properties: &Properties{
+			JavaVersion: "21",
+		},
+		Dependencies: &Dependencies{
+			Dependency: []Dependency{
+				{GroupId: "org.projectlombok", ArtifactId: "lombok"},
+			},
+		},
+	}
+
+	assert.True(t, parser.HasDependencyLegacy(mavenProject, "org.projectlombok", "lombok"))
+	assert.True(t, parser.HasLombokLegacy(mavenProject))
+	assert.Equal(t, "21", parser.GetJavaVersionLegacy(mavenProject))
+	assert.Equal(t, "3.4.1", parser.GetSpringBootVersionLegacy(mavenProject))
+	assert.Equal(t, "com.example.myapp", parser.GetBasePackageLegacy(mavenProject))
+
+	parser.AddDependencyLegacy(mavenProject, Dependency{GroupId: "org.mapstruct", ArtifactId: "mapstruct"})
+	assert.True(t, parser.HasMapStructLegacy(mavenProject))
+
+	parser.RemoveDependencyLegacy(mavenProject, "org.mapstruct", "mapstruct")
+	assert.False(t, parser.HasMapStructLegacy(mavenProject))
 }

@@ -105,7 +105,11 @@ haft rm jpa   # Removes spring-boot-starter-data-jpa
 ### 6. Run Your Project
 
 ```bash
+# Maven
 ./mvnw spring-boot:run
+
+# Gradle
+./gradlew bootRun
 ```
 
 That's it! You have a fully configured Spring Boot project with CRUD endpoints.

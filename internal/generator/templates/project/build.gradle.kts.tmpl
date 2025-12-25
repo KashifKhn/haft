@@ -1,0 +1,30 @@
+plugins {
+    java
+    id("org.springframework.boot") version "{{.SpringBootVersion}}"
+    id("io.spring.dependency-management") version "1.1.7"
+}
+
+group = "{{.GroupId}}"
+version = "{{.Version}}"
+
+java {
+    toolchain {
+        languageVersion.set(JavaLanguageVersion.of({{.JavaVersion}}))
+    }
+}
+
+repositories {
+    mavenCentral()
+}
+
+dependencies {
+    implementation("org.springframework.boot:spring-boot-starter")
+{{range .Dependencies}}    {{.GradleScope}}("{{.GroupId}}:{{.ArtifactId}}{{if .Version}}:{{.Version}}{{end}}")
+{{end}}{{if .HasLombok}}    annotationProcessor("org.projectlombok:lombok")
+{{end}}    testImplementation("org.springframework.boot:spring-boot-starter-test")
+    testRuntimeOnly("org.junit.platform:junit-platform-launcher")
+}
+
+tasks.withType<Test> {
+    useJUnitPlatform()
+}

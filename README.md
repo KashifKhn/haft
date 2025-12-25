@@ -203,7 +203,7 @@ haft generate entity Customer      # haft g e Customer
 haft generate dto Invoice          # Request + Response DTOs
 ```
 
-All generators auto-detect your project configuration from `pom.xml`:
+All generators auto-detect your project configuration from `pom.xml` or `build.gradle`:
 - **Base package** - No need to specify, detected automatically
 - **Lombok** - Adds `@Getter`, `@Setter`, `@Builder` if present
 - **JPA** - Generates Entity/Repository with proper annotations
@@ -266,7 +266,7 @@ haft add --list
 - [x] `haft add` — Dependency management with TUI picker
 - [x] `haft remove` — Remove dependencies with TUI picker
 - [x] Shell completions (bash, zsh, fish, powershell)
-- [ ] Gradle improvements
+- [x] Gradle support (Groovy & Kotlin DSL)
 - [ ] Neovim integration
 - [ ] VS Code extension
 - [ ] IntelliJ plugin

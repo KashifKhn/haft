@@ -10,7 +10,9 @@ Haft generates Spring Boot projects following standard Maven/Gradle conventions 
 
 ## Generated Structure
 
-When you run `haft init my-app`, you get:
+### Maven Project
+
+When you run `haft init my-app` with Maven:
 
 ```
 my-app/
@@ -26,9 +28,38 @@ my-app/
 │           └── com/example/myapp/
 │               └── MyAppApplicationTests.java
 ├── .gitignore
+├── .haft.yaml
 ├── mvnw
 ├── mvnw.cmd
 └── pom.xml
+```
+
+### Gradle Project
+
+When you run `haft init my-app --build gradle` or `--build gradle-kotlin`:
+
+```
+my-app/
+├── src/
+│   ├── main/
+│   │   ├── java/
+│   │   │   └── com/example/myapp/
+│   │   │       └── MyAppApplication.java
+│   │   └── resources/
+│   │       └── application.yml
+│   └── test/
+│       └── java/
+│           └── com/example/myapp/
+│               └── MyAppApplicationTests.java
+├── gradle/
+│   └── wrapper/
+│       └── gradle-wrapper.properties
+├── .gitignore
+├── .haft.yaml
+├── build.gradle          # or build.gradle.kts for Kotlin DSL
+├── settings.gradle       # or settings.gradle.kts for Kotlin DSL
+├── gradlew
+└── gradlew.bat
 ```
 
 ## File Details
@@ -81,7 +112,7 @@ class MyAppApplicationTests {
 }
 ```
 
-### pom.xml
+### pom.xml (Maven)
 
 Maven project configuration with:
 
@@ -89,6 +120,15 @@ Maven project configuration with:
 - Selected dependencies
 - Java version property
 - Spring Boot Maven plugin
+
+### build.gradle / build.gradle.kts (Gradle)
+
+Gradle build configuration with:
+
+- Spring Boot plugin
+- Selected dependencies
+- Java toolchain configuration
+- Spring Boot Gradle plugin
 
 ### .gitignore
 
@@ -110,6 +150,18 @@ Pre-configured ignore patterns for:
 
 # Windows
 mvnw.cmd spring-boot:run
+```
+
+### Gradle Wrapper
+
+`gradlew` and `gradlew.bat` allow building without installing Gradle:
+
+```bash
+# Unix/macOS
+./gradlew bootRun
+
+# Windows
+gradlew.bat bootRun
 ```
 
 ## With Resources Generated

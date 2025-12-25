@@ -5,10 +5,13 @@ import (
 	"os"
 	"strings"
 
+	"github.com/KashifKhn/haft/internal/buildtool"
+	_ "github.com/KashifKhn/haft/internal/gradle"
 	"github.com/KashifKhn/haft/internal/logger"
-	"github.com/KashifKhn/haft/internal/maven"
+	_ "github.com/KashifKhn/haft/internal/maven"
 	"github.com/KashifKhn/haft/internal/tui/components"
 	tea "github.com/charmbracelet/bubbletea"
+	"github.com/spf13/afero"
 	"github.com/spf13/cobra"
 )
 
@@ -18,7 +21,7 @@ func NewCommand() *cobra.Command {
 		Short: "Add dependencies to your project",
 		Long: `Add dependencies to an existing Spring Boot project.
 
-The add command modifies your pom.xml to add new dependencies. It supports:
+The add command modifies your build file (pom.xml or build.gradle) to add new dependencies. It supports:
   - Interactive mode: haft add (opens search picker)
   - Browse mode: haft add --browse (category browser)
   - Shortcuts: haft add lombok, haft add jpa
@@ -80,15 +83,15 @@ func runAdd(cmd *cobra.Command, args []string) error {
 		return err
 	}
 
-	parser := maven.NewParser()
-	pomPath, err := parser.FindPomXml(cwd)
+	fs := afero.NewOsFs()
+	result, err := buildtool.Detect(cwd, fs)
 	if err != nil {
-		return fmt.Errorf("could not find pom.xml: %w", err)
+		return fmt.Errorf("could not find build file: %w", err)
 	}
 
-	project, err := parser.Parse(pomPath)
+	project, err := result.Parser.Parse(result.FilePath)
 	if err != nil {
-		return fmt.Errorf("could not parse pom.xml: %w", err)
+		return fmt.Errorf("could not parse %s: %w", result.FilePath, err)
 	}
 
 	scopeOverride, _ := cmd.Flags().GetString("scope")
@@ -112,13 +115,13 @@ func runAdd(cmd *cobra.Command, args []string) error {
 				dep.Version = versionOverride
 			}
 
-			if parser.HasDependency(project, dep.GroupId, dep.ArtifactId) {
+			if result.Parser.HasDependency(project, dep.GroupId, dep.ArtifactId) {
 				log.Warning("Skipped (already exists)", "dependency", formatDependency(dep))
 				skippedCount++
 				continue
 			}
 
-			parser.AddDependency(project, dep)
+			result.Parser.AddDependency(project, dep)
 			if entryName != "" {
 				log.Success("Added", "dependency", entryName, "artifact", dep.ArtifactId)
 			} else {
@@ -135,11 +138,11 @@ func runAdd(cmd *cobra.Command, args []string) error {
 		return nil
 	}
 
-	if err := parser.Write(pomPath, project); err != nil {
-		return fmt.Errorf("could not write pom.xml: %w", err)
+	if err := result.Parser.Write(result.FilePath, project); err != nil {
+		return fmt.Errorf("could not write %s: %w", result.FilePath, err)
 	}
 
-	log.Success(fmt.Sprintf("Added %d dependencies to pom.xml", addedCount))
+	log.Success(fmt.Sprintf("Added %d dependencies to %s", addedCount, buildtool.GetBuildFileName(result.BuildTool)))
 	return nil
 }
 
@@ -251,7 +254,7 @@ func buildBrowserCategories() []components.DepCategory {
 	return categories
 }
 
-func resolveDependency(input string) ([]maven.Dependency, string, error) {
+func resolveDependency(input string) ([]buildtool.Dependency, string, error) {
 	if entry, ok := GetCatalogEntry(input); ok {
 		return entry.Dependencies, entry.Name, nil
 	}
@@ -267,14 +270,14 @@ func resolveDependency(input string) ([]maven.Dependency, string, error) {
 	}
 }
 
-func verifyAndResolve(groupId, artifactId, version string) ([]maven.Dependency, string, error) {
+func verifyAndResolve(groupId, artifactId, version string) ([]buildtool.Dependency, string, error) {
 	client := NewMavenClient()
 	artifact, err := client.VerifyDependency(groupId, artifactId)
 
 	if err != nil {
 		log := logger.Default()
 		log.Warning("Could not verify dependency on Maven Central", "error", err.Error())
-		return []maven.Dependency{{GroupId: groupId, ArtifactId: artifactId, Version: version}}, "", nil
+		return []buildtool.Dependency{{GroupId: groupId, ArtifactId: artifactId, Version: version}}, "", nil
 	}
 
 	if artifact == nil {
@@ -285,10 +288,10 @@ func verifyAndResolve(groupId, artifactId, version string) ([]maven.Dependency, 
 		version = artifact.LatestVersion
 	}
 
-	return []maven.Dependency{{GroupId: groupId, ArtifactId: artifactId, Version: version}}, "", nil
+	return []buildtool.Dependency{{GroupId: groupId, ArtifactId: artifactId, Version: version}}, "", nil
 }
 
-func formatDependency(dep maven.Dependency) string {
+func formatDependency(dep buildtool.Dependency) string {
 	if dep.Version != "" {
 		return fmt.Sprintf("%s:%s:%s", dep.GroupId, dep.ArtifactId, dep.Version)
 	}

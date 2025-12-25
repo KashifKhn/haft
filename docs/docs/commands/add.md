@@ -20,7 +20,7 @@ haft add <groupId:artifactId:version>
 
 ## Description
 
-The `add` command modifies your `pom.xml` to add new dependencies. It supports:
+The `add` command modifies your build file (`pom.xml` or `build.gradle`) to add new dependencies. It supports:
 
 - **Interactive mode** — Search and select from 330+ shortcuts
 - **Browse mode** — Navigate dependencies by category
@@ -623,7 +623,7 @@ haft add --list
 
 ## What Gets Added
 
-### Example: `haft add lombok`
+### Maven Example: `haft add lombok`
 
 ```xml
 <dependency>
@@ -633,7 +633,21 @@ haft add --list
 </dependency>
 ```
 
-### Example: `haft add jwt`
+### Gradle Example: `haft add lombok`
+
+```groovy
+// build.gradle (Groovy)
+compileOnly 'org.projectlombok:lombok'
+annotationProcessor 'org.projectlombok:lombok'
+```
+
+```kotlin
+// build.gradle.kts (Kotlin)
+compileOnly("org.projectlombok:lombok")
+annotationProcessor("org.projectlombok:lombok")
+```
+
+### Maven Example: `haft add jwt`
 
 Adds all three JJWT artifacts:
 
@@ -657,7 +671,7 @@ Adds all three JJWT artifacts:
 </dependency>
 ```
 
-### Example: `haft add org.mapstruct:mapstruct`
+### Maven Example: `haft add org.mapstruct:mapstruct`
 
 Auto-fetches latest version from Maven Central:
 
@@ -668,6 +682,28 @@ Auto-fetches latest version from Maven Central:
     <version>1.5.5.Final</version>
 </dependency>
 ```
+
+### Gradle Example: `haft add org.mapstruct:mapstruct`
+
+```groovy
+// build.gradle (Groovy)
+implementation 'org.mapstruct:mapstruct:1.5.5.Final'
+```
+
+```kotlin
+// build.gradle.kts (Kotlin)
+implementation("org.mapstruct:mapstruct:1.5.5.Final")
+```
+
+## Build Tool Detection
+
+Haft automatically detects your build tool:
+
+| File Found | Build Tool |
+|------------|------------|
+| `pom.xml` | Maven |
+| `build.gradle.kts` | Gradle (Kotlin DSL) |
+| `build.gradle` | Gradle (Groovy DSL) |
 
 ## Duplicate Detection
 

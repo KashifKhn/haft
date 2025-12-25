@@ -4,13 +4,13 @@ import (
 	"fmt"
 	"strings"
 
-	"github.com/KashifKhn/haft/internal/maven"
+	"github.com/KashifKhn/haft/internal/buildtool"
 	"github.com/KashifKhn/haft/internal/tui/styles"
 	tea "github.com/charmbracelet/bubbletea"
 )
 
 type removePickerModel struct {
-	deps          []maven.Dependency
+	deps          []buildtool.Dependency
 	cursor        int
 	selected      map[int]bool
 	submitted     bool
@@ -21,7 +21,7 @@ type removePickerModel struct {
 	filtered      []int
 }
 
-func newRemovePickerModel(deps []maven.Dependency) removePickerModel {
+func newRemovePickerModel(deps []buildtool.Dependency) removePickerModel {
 	m := removePickerModel{
 		deps:         deps,
 		selected:     make(map[int]bool),
@@ -224,8 +224,8 @@ func (m removePickerModel) View() string {
 	return b.String()
 }
 
-func (m removePickerModel) selectedDeps() []maven.Dependency {
-	var result []maven.Dependency
+func (m removePickerModel) selectedDeps() []buildtool.Dependency {
+	var result []buildtool.Dependency
 	for idx, sel := range m.selected {
 		if sel && idx < len(m.deps) {
 			result = append(result, m.deps[idx])
@@ -234,7 +234,7 @@ func (m removePickerModel) selectedDeps() []maven.Dependency {
 	return result
 }
 
-func RunRemovePicker(deps []maven.Dependency) ([]maven.Dependency, error) {
+func RunRemovePicker(deps []buildtool.Dependency) ([]buildtool.Dependency, error) {
 	if len(deps) == 0 {
 		return nil, nil
 	}

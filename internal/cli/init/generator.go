@@ -41,6 +41,11 @@ func generateProject(cfg ProjectConfig, projectDir string) error {
 		if err := copyMavenWrapper(engine, projectDir); err != nil {
 			return fmt.Errorf("failed to copy Maven wrapper: %w", err)
 		}
+	} else if cfg.BuildTool == "gradle" || cfg.BuildTool == "gradle-kotlin" {
+		fmt.Printf("  %s Adding Gradle wrapper\n", styles.CheckMark)
+		if err := copyGradleWrapper(engine, projectDir); err != nil {
+			return fmt.Errorf("failed to copy Gradle wrapper: %w", err)
+		}
 	}
 
 	fmt.Printf("  %s Writing configuration\n", styles.CheckMark)
@@ -126,6 +131,36 @@ func generateProjectFiles(engine *generator.Engine, projectDir string, cfg Proje
 		if err := engine.RenderAndWrite(
 			"project/pom.xml.tmpl",
 			filepath.Join(projectDir, "pom.xml"),
+			data,
+		); err != nil {
+			return err
+		}
+	} else if cfg.BuildTool == "gradle" {
+		if err := engine.RenderAndWrite(
+			"project/build.gradle.tmpl",
+			filepath.Join(projectDir, "build.gradle"),
+			data,
+		); err != nil {
+			return err
+		}
+		if err := engine.RenderAndWrite(
+			"project/settings.gradle.tmpl",
+			filepath.Join(projectDir, "settings.gradle"),
+			data,
+		); err != nil {
+			return err
+		}
+	} else if cfg.BuildTool == "gradle-kotlin" {
+		if err := engine.RenderAndWrite(
+			"project/build.gradle.kts.tmpl",
+			filepath.Join(projectDir, "build.gradle.kts"),
+			data,
+		); err != nil {
+			return err
+		}
+		if err := engine.RenderAndWrite(
+			"project/settings.gradle.kts.tmpl",
+			filepath.Join(projectDir, "settings.gradle.kts"),
 			data,
 		); err != nil {
 			return err
@@ -245,6 +280,42 @@ func copyMavenWrapper(engine *generator.Engine, projectDir string) error {
 	mvnwCmdPath := filepath.Join(projectDir, "mvnw.cmd")
 	if err := engine.WriteFileWithPerm(mvnwCmdPath, mvnwCmdContent, 0644); err != nil {
 		return fmt.Errorf("failed to write mvnw.cmd: %w", err)
+	}
+
+	return nil
+}
+
+func copyGradleWrapper(engine *generator.Engine, projectDir string) error {
+	wrapperDir := filepath.Join(projectDir, "gradle", "wrapper")
+	if err := engine.GetFS().MkdirAll(wrapperDir, 0755); err != nil {
+		return fmt.Errorf("failed to create gradle/wrapper directory: %w", err)
+	}
+
+	propsContent, err := engine.ReadTemplateFile("wrapper/gradle-wrapper.properties")
+	if err != nil {
+		return fmt.Errorf("failed to read gradle-wrapper.properties: %w", err)
+	}
+	propsPath := filepath.Join(wrapperDir, "gradle-wrapper.properties")
+	if err := engine.WriteFileWithPerm(propsPath, propsContent, 0644); err != nil {
+		return fmt.Errorf("failed to write gradle-wrapper.properties: %w", err)
+	}
+
+	gradlewContent, err := engine.ReadTemplateFile("wrapper/gradlew")
+	if err != nil {
+		return fmt.Errorf("failed to read gradlew: %w", err)
+	}
+	gradlewPath := filepath.Join(projectDir, "gradlew")
+	if err := engine.WriteFileWithPerm(gradlewPath, gradlewContent, 0755); err != nil {
+		return fmt.Errorf("failed to write gradlew: %w", err)
+	}
+
+	gradlewBatContent, err := engine.ReadTemplateFile("wrapper/gradlew.bat")
+	if err != nil {
+		return fmt.Errorf("failed to read gradlew.bat: %w", err)
+	}
+	gradlewBatPath := filepath.Join(projectDir, "gradlew.bat")
+	if err := engine.WriteFileWithPerm(gradlewBatPath, gradlewBatContent, 0644); err != nil {
+		return fmt.Errorf("failed to write gradlew.bat: %w", err)
 	}
 
 	return nil

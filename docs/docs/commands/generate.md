@@ -28,7 +28,7 @@ haft g <subcommand> [name] [flags]  # alias
 
 ## Smart Detection
 
-Haft reads your `pom.xml` to automatically detect and customize generated code:
+Haft reads your build file (`pom.xml` or `build.gradle`) to automatically detect and customize generated code:
 
 | Dependency | Detection | Effect |
 |------------|-----------|--------|
@@ -69,7 +69,7 @@ haft g r Product
 
 | Flag | Short | Description |
 |------|-------|-------------|
-| `--package` | `-p` | Override base package (auto-detected from pom.xml) |
+| `--package` | `-p` | Override base package (auto-detected from build file) |
 | `--no-interactive` | | Skip interactive wizard |
 | `--skip-entity` | | Skip entity generation |
 | `--skip-repository` | | Skip repository generation |

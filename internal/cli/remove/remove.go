@@ -5,8 +5,11 @@ import (
 	"os"
 	"strings"
 
+	"github.com/KashifKhn/haft/internal/buildtool"
+	_ "github.com/KashifKhn/haft/internal/gradle"
 	"github.com/KashifKhn/haft/internal/logger"
-	"github.com/KashifKhn/haft/internal/maven"
+	_ "github.com/KashifKhn/haft/internal/maven"
+	"github.com/spf13/afero"
 	"github.com/spf13/cobra"
 )
 
@@ -16,7 +19,7 @@ func NewCommand() *cobra.Command {
 		Short: "Remove dependencies from your project",
 		Long: `Remove dependencies from an existing Spring Boot project.
 
-The remove command modifies your pom.xml to remove dependencies. It supports:
+The remove command modifies your build file (pom.xml or build.gradle) to remove dependencies. It supports:
   - Interactive mode: haft remove (opens picker with current dependencies)
   - By artifact: haft remove lombok
   - By coordinates: haft remove org.projectlombok:lombok
@@ -49,24 +52,24 @@ func runRemove(cmd *cobra.Command, args []string) error {
 		return err
 	}
 
-	parser := maven.NewParser()
-	pomPath, err := parser.FindPomXml(cwd)
+	fs := afero.NewOsFs()
+	result, err := buildtool.Detect(cwd, fs)
 	if err != nil {
-		return fmt.Errorf("could not find pom.xml: %w", err)
+		return fmt.Errorf("could not find build file: %w", err)
 	}
 
-	project, err := parser.Parse(pomPath)
+	project, err := result.Parser.Parse(result.FilePath)
 	if err != nil {
-		return fmt.Errorf("could not parse pom.xml: %w", err)
+		return fmt.Errorf("could not parse %s: %w", result.FilePath, err)
 	}
 
-	if project.Dependencies == nil || len(project.Dependencies.Dependency) == 0 {
-		log.Info("No dependencies found in pom.xml")
+	if len(project.Dependencies) == 0 {
+		log.Info("No dependencies found in " + buildtool.GetBuildFileName(result.BuildTool))
 		return nil
 	}
 
 	if len(args) == 0 {
-		return runInteractivePicker(cmd, parser, pomPath, project)
+		return runInteractivePicker(result.Parser, result.FilePath, project)
 	}
 
 	removedCount := 0
@@ -81,7 +84,7 @@ func runRemove(cmd *cobra.Command, args []string) error {
 			continue
 		}
 
-		if parser.RemoveDependency(project, groupId, artifactId) {
+		if result.Parser.RemoveDependency(project, groupId, artifactId) {
 			log.Success("Removed", "dependency", fmt.Sprintf("%s:%s", groupId, artifactId))
 			removedCount++
 		} else {
@@ -97,15 +100,15 @@ func runRemove(cmd *cobra.Command, args []string) error {
 		return nil
 	}
 
-	if err := parser.Write(pomPath, project); err != nil {
-		return fmt.Errorf("could not write pom.xml: %w", err)
+	if err := result.Parser.Write(result.FilePath, project); err != nil {
+		return fmt.Errorf("could not write %s: %w", result.FilePath, err)
 	}
 
-	log.Success(fmt.Sprintf("Removed %d dependencies from pom.xml", removedCount))
+	log.Success(fmt.Sprintf("Removed %d dependencies from %s", removedCount, buildtool.GetBuildFileName(result.BuildTool)))
 	return nil
 }
 
-func resolveInput(input string, project *maven.Project) (string, string) {
+func resolveInput(input string, project *buildtool.Project) (string, string) {
 	if strings.Contains(input, ":") {
 		parts := strings.Split(input, ":")
 		if len(parts) >= 2 {
@@ -114,7 +117,7 @@ func resolveInput(input string, project *maven.Project) (string, string) {
 		return "", ""
 	}
 
-	for _, dep := range project.Dependencies.Dependency {
+	for _, dep := range project.Dependencies {
 		if dep.ArtifactId == input {
 			return dep.GroupId, dep.ArtifactId
 		}
@@ -126,8 +129,8 @@ func resolveInput(input string, project *maven.Project) (string, string) {
 	return "", ""
 }
 
-func runInteractivePicker(cmd *cobra.Command, parser *maven.Parser, pomPath string, project *maven.Project) error {
-	selected, err := RunRemovePicker(project.Dependencies.Dependency)
+func runInteractivePicker(parser buildtool.Parser, filePath string, project *buildtool.Project) error {
+	selected, err := RunRemovePicker(project.Dependencies)
 	if err != nil {
 		return err
 	}
@@ -150,10 +153,10 @@ func runInteractivePicker(cmd *cobra.Command, parser *maven.Parser, pomPath stri
 		return nil
 	}
 
-	if err := parser.Write(pomPath, project); err != nil {
-		return fmt.Errorf("could not write pom.xml: %w", err)
+	if err := parser.Write(filePath, project); err != nil {
+		return fmt.Errorf("could not write build file: %w", err)
 	}
 
-	log.Success(fmt.Sprintf("Removed %d dependencies from pom.xml", removedCount))
+	log.Success(fmt.Sprintf("Removed %d dependencies", removedCount))
 	return nil
 }

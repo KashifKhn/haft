@@ -3,7 +3,7 @@ package add
 import (
 	"testing"
 
-	"github.com/KashifKhn/haft/internal/maven"
+	"github.com/KashifKhn/haft/internal/buildtool"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 )
@@ -122,15 +122,15 @@ func TestResolveDependency(t *testing.T) {
 
 func TestFormatDependency(t *testing.T) {
 	tests := []struct {
-		dep      maven.Dependency
+		dep      buildtool.Dependency
 		expected string
 	}{
 		{
-			dep:      maven.Dependency{GroupId: "org.example", ArtifactId: "my-lib"},
+			dep:      buildtool.Dependency{GroupId: "org.example", ArtifactId: "my-lib"},
 			expected: "org.example:my-lib",
 		},
 		{
-			dep:      maven.Dependency{GroupId: "org.example", ArtifactId: "my-lib", Version: "1.0.0"},
+			dep:      buildtool.Dependency{GroupId: "org.example", ArtifactId: "my-lib", Version: "1.0.0"},
 			expected: "org.example:my-lib:1.0.0",
 		},
 	}
@@ -171,7 +171,7 @@ func TestDevtoolsHasRuntimeScope(t *testing.T) {
 	require.True(t, ok)
 	require.Len(t, entry.Dependencies, 1)
 	assert.Equal(t, "runtime", entry.Dependencies[0].Scope)
-	assert.Equal(t, "true", entry.Dependencies[0].Optional)
+	assert.Equal(t, true, entry.Dependencies[0].Optional)
 }
 
 func TestDatabaseDriversHaveRuntimeScope(t *testing.T) {
