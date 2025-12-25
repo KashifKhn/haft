@@ -66,7 +66,7 @@ haft generate controller Product   # haft g co
 haft generate service Order        # haft g s
 haft generate repository Payment   # haft g repo
 haft generate entity Customer      # haft g e
-haft generate dto Invoice          # haft g dto
+haft generate dto Invoice
 ```
 
 ### 4. Add Dependencies

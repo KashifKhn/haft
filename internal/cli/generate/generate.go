@@ -12,7 +12,7 @@ func NewCommand() *cobra.Command {
 The generate command provides sub-commands to scaffold individual components
 or complete CRUD resources with all necessary layers.
 
-All generators auto-detect your project configuration from pom.xml:
+All generators auto-detect your project configuration from your build file (pom.xml or build.gradle):
   - Base package
   - Lombok dependency (for annotations)
   - Spring Data JPA (for entity/repository)

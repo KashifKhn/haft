@@ -17,7 +17,7 @@ func newRepositoryCommand() *cobra.Command {
 Creates a repository interface extending JpaRepository with
 standard CRUD operations. Requires Spring Data JPA dependency.
 
-The command auto-detects your project's base package from pom.xml.`,
+The command auto-detects your project's base package from your build file.`,
 		Example: `  # Interactive mode
   haft generate repository
 
@@ -31,7 +31,7 @@ The command auto-detects your project's base package from pom.xml.`,
 		RunE: runRepository,
 	}
 
-	cmd.Flags().StringP("package", "p", "", "Base package (auto-detected from pom.xml)")
+	cmd.Flags().StringP("package", "p", "", "Base package (auto-detected from build file)")
 	cmd.Flags().Bool("no-interactive", false, "Skip interactive wizard")
 
 	return cmd

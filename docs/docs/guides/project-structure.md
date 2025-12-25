@@ -221,7 +221,7 @@ Haft follows a **package-by-layer** structure:
 | Request DTO | Entity + Request | `UserRequest` |
 | Response DTO | Entity + Response | `UserResponse` |
 | Mapper | Entity + Mapper | `UserMapper` |
-| Exception | Entity + NotFoundException | `UserNotFoundException` |
+| Exception | ResourceNotFoundException | `ResourceNotFoundException` (shared) |
 
 ## REST Endpoints
 

@@ -18,7 +18,7 @@ Creates two files:
   - {Name}Service.java - Service interface with CRUD method signatures
   - {Name}ServiceImpl.java - Service implementation
 
-The command auto-detects your project's base package from pom.xml
+The command auto-detects your project's base package from your build file
 and checks for JPA dependency to include repository injection.`,
 		Example: `  # Interactive mode
   haft generate service
@@ -33,7 +33,7 @@ and checks for JPA dependency to include repository injection.`,
 		RunE: runService,
 	}
 
-	cmd.Flags().StringP("package", "p", "", "Base package (auto-detected from pom.xml)")
+	cmd.Flags().StringP("package", "p", "", "Base package (auto-detected from build file)")
 	cmd.Flags().Bool("no-interactive", false, "Skip interactive wizard")
 
 	return cmd

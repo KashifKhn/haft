@@ -21,7 +21,7 @@ Creates a controller class with:
   - PUT /api/{resource}s/{id} - Update
   - DELETE /api/{resource}s/{id} - Delete
 
-The command auto-detects your project's base package from pom.xml
+The command auto-detects your project's base package from your build file
 and checks for Validation dependency to add @Valid annotations.`,
 		Example: `  # Interactive mode
   haft generate controller
@@ -36,7 +36,7 @@ and checks for Validation dependency to add @Valid annotations.`,
 		RunE: runController,
 	}
 
-	cmd.Flags().StringP("package", "p", "", "Base package (auto-detected from pom.xml)")
+	cmd.Flags().StringP("package", "p", "", "Base package (auto-detected from build file)")
 	cmd.Flags().Bool("no-interactive", false, "Skip interactive wizard")
 
 	return cmd

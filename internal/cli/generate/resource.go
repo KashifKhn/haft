@@ -38,7 +38,7 @@ Creates the following files:
   - Mapper (entity <-> DTO conversion)
   - ResourceNotFoundException (if JPA and not exists)
 
-The command auto-detects your project's base package from pom.xml and
+The command auto-detects your project's base package from your build file and
 checks for Lombok, JPA, and Validation dependencies to customize the
 generated code accordingly. Dependencies not in your project are 
 automatically disabled.`,
@@ -55,7 +55,7 @@ automatically disabled.`,
 		RunE: runResource,
 	}
 
-	cmd.Flags().StringP("package", "p", "", "Base package (auto-detected from pom.xml)")
+	cmd.Flags().StringP("package", "p", "", "Base package (auto-detected from build file)")
 	cmd.Flags().Bool("no-interactive", false, "Skip interactive wizard")
 	cmd.Flags().Bool("skip-entity", false, "Skip entity generation")
 	cmd.Flags().Bool("skip-repository", false, "Skip repository generation")

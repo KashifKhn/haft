@@ -408,7 +408,7 @@ haft generate dto
 
 # With DTO name
 haft generate dto User
-haft g dto Product
+haft generate dto Product
 
 # Generate only Request DTO
 haft generate dto User --request-only

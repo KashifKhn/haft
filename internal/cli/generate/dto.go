@@ -17,7 +17,7 @@ Creates two DTO classes:
   - {Name}Request.java - For incoming request data
   - {Name}Response.java - For outgoing response data
 
-The command auto-detects your project's base package from pom.xml
+The command auto-detects your project's base package from your build file
 and checks for Lombok and Validation dependencies to add annotations.`,
 		Example: `  # Interactive mode
   haft generate dto
@@ -36,7 +36,7 @@ and checks for Lombok and Validation dependencies to add annotations.`,
 		RunE: runDto,
 	}
 
-	cmd.Flags().StringP("package", "p", "", "Base package (auto-detected from pom.xml)")
+	cmd.Flags().StringP("package", "p", "", "Base package (auto-detected from build file)")
 	cmd.Flags().Bool("no-interactive", false, "Skip interactive wizard")
 	cmd.Flags().Bool("request-only", false, "Generate only Request DTO")
 	cmd.Flags().Bool("response-only", false, "Generate only Response DTO")
