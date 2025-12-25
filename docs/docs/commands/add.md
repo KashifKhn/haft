@@ -11,6 +11,8 @@ Add dependencies to an existing Spring Boot project.
 ## Usage
 
 ```bash
+haft add                              # Interactive search picker
+haft add --browse                     # Browse by category
 haft add <dependency> [dependencies...]
 haft add <groupId:artifactId>
 haft add <groupId:artifactId:version>
@@ -20,9 +22,38 @@ haft add <groupId:artifactId:version>
 
 The `add` command modifies your `pom.xml` to add new dependencies. It supports:
 
-- **Shortcuts** - Common dependencies like `lombok`, `jpa`, `web`
-- **Maven coordinates** - Any dependency as `groupId:artifactId`
-- **With version** - Specify version as `groupId:artifactId:version`
+- **Interactive mode** — Search and select from 50+ shortcuts
+- **Browse mode** — Navigate dependencies by category
+- **Shortcuts** — Common dependencies like `lombok`, `jpa`, `web`, `jwt`
+- **Maven coordinates** — Any dependency as `groupId:artifactId`
+- **Maven Central verification** — Auto-verify and fetch latest versions
+
+## Interactive Modes
+
+### Search Picker (Default)
+
+```bash
+haft add
+```
+
+Opens an interactive TUI where you can:
+- Type to search/filter dependencies
+- Select multiple with `Space`
+- Navigate with `↑`/`↓`, `PgUp`/`PgDown`
+- Select all visible with `a`, none with `n`
+- Confirm with `Enter`, cancel with `Esc`
+
+### Category Browser
+
+```bash
+haft add --browse
+haft add -b
+```
+
+Opens a category-based browser similar to the init wizard:
+- Jump to categories with `0-9` keys
+- Cycle categories with `Tab`/`Shift+Tab`
+- Search within category with `/`
 
 ## Examples
 
@@ -35,6 +66,9 @@ haft add lombok
 # Add multiple dependencies
 haft add jpa validation lombok
 
+# Add JWT (adds all 3 JJWT artifacts)
+haft add jwt
+
 # Add database driver
 haft add postgresql
 ```
@@ -42,11 +76,17 @@ haft add postgresql
 ### Add Using Maven Coordinates
 
 ```bash
-# Without version (uses managed version)
+# Without version (fetches latest from Maven Central)
 haft add org.mapstruct:mapstruct
 
 # With specific version
-haft add io.jsonwebtoken:jjwt-api:0.12.3
+haft add io.jsonwebtoken:jjwt-api:0.12.5
+```
+
+Dependencies are automatically verified against Maven Central. If a dependency doesn't exist, you'll get an error:
+
+```
+ERROR ✗ dependency 'com.fake:nonexistent' not found on Maven Central
 ```
 
 ### Override Scope
@@ -67,13 +107,14 @@ haft add --list
 
 ## Flags
 
-| Flag | Description |
-|------|-------------|
-| `--list` | List available dependency shortcuts |
-| `--scope` | Set dependency scope (compile, runtime, test, provided) |
-| `--version` | Override default version |
+| Flag | Short | Description |
+|------|-------|-------------|
+| `--browse` | `-b` | Browse dependencies by category |
+| `--list` | | List available dependency shortcuts |
+| `--scope` | | Set dependency scope (compile, runtime, test, provided) |
+| `--version` | | Override default version |
 
-## Available Shortcuts
+## Available Shortcuts (50+)
 
 ### Web
 
@@ -83,6 +124,10 @@ haft add --list
 | `webflux` | Spring WebFlux (reactive) |
 | `graphql` | Spring GraphQL |
 | `websocket` | WebSocket support |
+| `hateoas` | Hypermedia-driven REST APIs |
+| `data-rest` | Expose repositories as REST endpoints |
+| `feign` | Declarative REST client (OpenFeign) |
+| `resilience4j` | Fault tolerance (circuit breaker) |
 
 ### SQL
 
@@ -104,6 +149,8 @@ haft add --list
 | `mongodb` | Spring Data MongoDB |
 | `redis` | Spring Data Redis |
 | `elasticsearch` | Spring Data Elasticsearch |
+| `cassandra` | Spring Data Cassandra |
+| `neo4j` | Spring Data Neo4j |
 
 ### Security
 
@@ -112,6 +159,7 @@ haft add --list
 | `security` | Spring Security |
 | `oauth2-client` | OAuth2 client |
 | `oauth2-resource-server` | OAuth2 resource server |
+| `jwt` | JJWT library (api + impl + jackson) |
 
 ### Messaging
 
@@ -128,17 +176,36 @@ haft add --list
 | `devtools` | Spring Boot DevTools |
 | `mapstruct` | MapStruct bean mapping |
 | `openapi` | SpringDoc OpenAPI (Swagger UI) |
+| `commons-lang` | Apache Commons Lang |
+| `guava` | Google Guava |
+| `modelmapper` | ModelMapper |
 
-### Ops & I/O
+### I/O
 
 | Shortcut | Description |
 |----------|-------------|
-| `actuator` | Spring Boot Actuator |
 | `validation` | Bean Validation |
 | `mail` | Java Mail |
 | `cache` | Spring Cache |
 | `batch` | Spring Batch |
 | `quartz` | Quartz Scheduler |
+| `commons-io` | Apache Commons IO |
+| `jackson-datatype` | Jackson Java 8 datatypes |
+
+### Ops
+
+| Shortcut | Description |
+|----------|-------------|
+| `actuator` | Spring Boot Actuator |
+| `micrometer` | Prometheus metrics |
+
+### Template Engines
+
+| Shortcut | Description |
+|----------|-------------|
+| `thymeleaf` | Thymeleaf templates |
+| `freemarker` | FreeMarker templates |
+| `mustache` | Mustache templates |
 
 ### Testing
 
@@ -146,6 +213,9 @@ haft add --list
 |----------|-------------|
 | `test` | Spring Boot Test |
 | `testcontainers` | Testcontainers |
+| `security-test` | Spring Security Test |
+| `mockito` | Mockito mocking |
+| `restdocs` | Spring REST Docs |
 
 ## What Gets Added
 
@@ -159,31 +229,39 @@ haft add --list
 </dependency>
 ```
 
-### Example: `haft add mapstruct`
+### Example: `haft add jwt`
 
-Adds both the main library and annotation processor:
+Adds all three JJWT artifacts:
+
+```xml
+<dependency>
+    <groupId>io.jsonwebtoken</groupId>
+    <artifactId>jjwt-api</artifactId>
+    <version>0.12.5</version>
+</dependency>
+<dependency>
+    <groupId>io.jsonwebtoken</groupId>
+    <artifactId>jjwt-impl</artifactId>
+    <version>0.12.5</version>
+    <scope>runtime</scope>
+</dependency>
+<dependency>
+    <groupId>io.jsonwebtoken</groupId>
+    <artifactId>jjwt-jackson</artifactId>
+    <version>0.12.5</version>
+    <scope>runtime</scope>
+</dependency>
+```
+
+### Example: `haft add org.mapstruct:mapstruct`
+
+Auto-fetches latest version from Maven Central:
 
 ```xml
 <dependency>
     <groupId>org.mapstruct</groupId>
     <artifactId>mapstruct</artifactId>
     <version>1.5.5.Final</version>
-</dependency>
-<dependency>
-    <groupId>org.mapstruct</groupId>
-    <artifactId>mapstruct-processor</artifactId>
-    <version>1.5.5.Final</version>
-    <scope>provided</scope>
-</dependency>
-```
-
-### Example: `haft add postgresql`
-
-```xml
-<dependency>
-    <groupId>org.postgresql</groupId>
-    <artifactId>postgresql</artifactId>
-    <scope>runtime</scope>
 </dependency>
 ```
 
@@ -199,5 +277,6 @@ INFO ℹ No new dependencies added (all already exist)
 
 ## See Also
 
+- [haft remove](/docs/commands/remove) — Remove dependencies
 - [haft init](/docs/commands/init) — Add dependencies at project creation
 - [Dependencies Guide](/docs/guides/dependencies) — Full dependency reference

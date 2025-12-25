@@ -72,8 +72,14 @@ haft generate dto Invoice          # haft g dto
 ### 4. Add Dependencies
 
 ```bash
+# Interactive search picker
+haft add
+
+# Browse by category
+haft add --browse
+
 # Add using shortcuts
-haft add lombok validation
+haft add lombok validation jwt
 
 # Add database driver
 haft add postgresql
@@ -82,7 +88,21 @@ haft add postgresql
 haft add --list
 ```
 
-### 5. Run Your Project
+### 5. Remove Dependencies
+
+```bash
+# Interactive picker
+haft remove
+
+# Remove by name
+haft remove lombok
+haft rm h2 validation
+
+# Remove using suffix matching
+haft rm jpa   # Removes spring-boot-starter-data-jpa
+```
+
+### 6. Run Your Project
 
 ```bash
 ./mvnw spring-boot:run
@@ -96,7 +116,8 @@ That's it! You have a fully configured Spring Boot project with CRUD endpoints.
 - [Why Haft?](/docs/why-haft) — Learn what makes Haft different
 - [haft init](/docs/commands/init) — Project initialization reference
 - [haft generate](/docs/commands/generate) — Resource generation reference
-- [haft add](/docs/commands/add) — Dependency management reference
+- [haft add](/docs/commands/add) — Add dependencies
+- [haft remove](/docs/commands/remove) — Remove dependencies
 - [Wizard Navigation](/docs/guides/wizard-navigation) — Master the TUI wizard
 
 ## Example: Non-Interactive Mode
@@ -133,6 +154,8 @@ haft init --help
 haft generate --help
 haft generate resource --help
 haft generate controller --help
+haft add --help
+haft remove --help
 ```
 
 Join the community:

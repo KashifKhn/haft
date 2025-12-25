@@ -188,6 +188,29 @@ All generators auto-detect your project configuration from `pom.xml`:
 - **JPA** - Generates Entity/Repository with proper annotations
 - **Validation** - Adds `@Valid` to controller methods
 
+### Manage Dependencies
+
+```bash
+# Interactive search picker
+haft add
+
+# Browse by category
+haft add --browse
+
+# Add using shortcuts
+haft add lombok validation jwt
+
+# Add using Maven coordinates (auto-verified on Maven Central)
+haft add org.mapstruct:mapstruct
+
+# Remove dependencies
+haft remove lombok
+haft remove   # Interactive picker
+
+# List available shortcuts (50+)
+haft add --list
+```
+
 ## Features
 
 - **Interactive TUI** — Beautiful terminal interface with keyboard navigation
@@ -196,6 +219,7 @@ All generators auto-detect your project configuration from `pom.xml`:
 - **Smart Defaults** — Sensible defaults that match industry standards
 - **Back Navigation** — Made a mistake? Press `Esc` to go back
 - **Dependency Search** — Find any dependency with `/`
+- **Maven Central Verification** — Auto-verify and fetch latest versions
 - **Git Integration** — Initialize repository on project creation
 
 ## Keyboard Shortcuts
@@ -218,7 +242,9 @@ All generators auto-detect your project configuration from `pom.xml`:
 - [x] Offline operation
 - [x] `haft generate resource` — Full CRUD generation
 - [x] `haft generate controller|service|entity|repository|dto` — Individual generators
-- [x] `haft add` — Dependency management
+- [x] `haft add` — Dependency management with TUI picker
+- [x] `haft remove` — Remove dependencies with TUI picker
+- [ ] Shell completions (bash, zsh, fish)
 - [ ] Gradle improvements
 - [ ] Neovim integration
 - [ ] VS Code extension

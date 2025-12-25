@@ -13,6 +13,7 @@ const sidebars: SidebarsConfig = {
         'commands/init',
         'commands/generate',
         'commands/add',
+        'commands/remove',
       ],
     },
     {
