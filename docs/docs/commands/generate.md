@@ -17,7 +17,28 @@ haft g <subcommand> [name] [flags]  # alias
 
 ## Subcommands
 
-### haft generate resource
+| Command | Alias | Description |
+|---------|-------|-------------|
+| `haft generate resource` | `haft g resource` | Generate complete CRUD resource (9 files) |
+| `haft generate controller` | `haft g co` | Generate REST controller |
+| `haft generate service` | `haft g s` | Generate service interface + implementation |
+| `haft generate repository` | `haft g repo` | Generate JPA repository interface |
+| `haft generate entity` | `haft g e` | Generate JPA entity class |
+| `haft generate dto` | `haft g dto` | Generate Request and Response DTOs |
+
+## Smart Detection
+
+Haft reads your `pom.xml` to automatically detect and customize generated code:
+
+| Dependency | Detection | Effect |
+|------------|-----------|--------|
+| **Lombok** | `org.projectlombok:lombok` | Generates `@Getter`, `@Setter`, `@Builder`, etc. |
+| **Spring Data JPA** | `spring-boot-starter-data-jpa` | Generates Entity and Repository with `@Transactional` |
+| **Validation** | `spring-boot-starter-validation` | Adds `@Valid` to controller parameters |
+
+---
+
+## haft generate resource
 
 Generate a complete CRUD resource with all layers.
 
@@ -30,7 +51,7 @@ haft generate resource User
 haft g resource Product
 ```
 
-This generates:
+### Generated Files
 
 | File | Description |
 |------|-------------|
@@ -69,19 +90,35 @@ haft generate resource Product --package com.mycompany.store
 haft generate resource Payment --skip-entity --skip-repository
 ```
 
-## Smart Detection
+---
 
-Haft reads your `pom.xml` to automatically detect and customize generated code:
+## haft generate controller
 
-| Dependency | Detection | Effect |
-|------------|-----------|--------|
-| **Lombok** | `org.projectlombok:lombok` | Generates `@Getter`, `@Setter`, `@Builder`, etc. |
-| **Spring Data JPA** | `spring-boot-starter-data-jpa` | Generates Entity and Repository with `@Transactional` |
-| **Validation** | `spring-boot-starter-validation` | Adds `@Valid` to controller parameters |
+Generate a REST controller with CRUD endpoints.
 
-## Generated Code Examples
+```bash
+# Interactive mode
+haft generate controller
 
-### Controller
+# With controller name
+haft generate controller User
+haft g co Product
+```
+
+### Generated File
+
+```
+controller/UserController.java
+```
+
+### Flags
+
+| Flag | Short | Description |
+|------|-------|-------------|
+| `--package` | `-p` | Override base package |
+| `--no-interactive` | | Skip interactive wizard |
+
+### Example Output
 
 ```java
 package com.example.demo.controller;
@@ -133,7 +170,181 @@ public class UserController {
 }
 ```
 
-### Entity (with Lombok)
+---
+
+## haft generate service
+
+Generate a service interface and implementation.
+
+```bash
+# Interactive mode
+haft generate service
+
+# With service name
+haft generate service User
+haft g s Product
+```
+
+### Generated Files
+
+```
+service/UserService.java
+service/impl/UserServiceImpl.java
+```
+
+### Flags
+
+| Flag | Short | Description |
+|------|-------|-------------|
+| `--package` | `-p` | Override base package |
+| `--no-interactive` | | Skip interactive wizard |
+
+### Example Output (Interface)
+
+```java
+package com.example.demo.service;
+
+import com.example.demo.dto.UserRequest;
+import com.example.demo.dto.UserResponse;
+
+import java.util.List;
+
+public interface UserService {
+
+    List<UserResponse> findAll();
+
+    UserResponse findById(Long id);
+
+    UserResponse create(UserRequest request);
+
+    UserResponse update(Long id, UserRequest request);
+
+    void delete(Long id);
+}
+```
+
+### Example Output (Implementation)
+
+```java
+package com.example.demo.service.impl;
+
+import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
+import com.example.demo.service.UserService;
+import com.example.demo.dto.UserRequest;
+import com.example.demo.dto.UserResponse;
+
+import java.util.List;
+
+@Service
+@Transactional
+public class UserServiceImpl implements UserService {
+
+    @Override
+    @Transactional(readOnly = true)
+    public List<UserResponse> findAll() {
+        throw new UnsupportedOperationException("Not implemented yet");
+    }
+
+    @Override
+    @Transactional(readOnly = true)
+    public UserResponse findById(Long id) {
+        throw new UnsupportedOperationException("Not implemented yet");
+    }
+
+    @Override
+    public UserResponse create(UserRequest request) {
+        throw new UnsupportedOperationException("Not implemented yet");
+    }
+
+    @Override
+    public UserResponse update(Long id, UserRequest request) {
+        throw new UnsupportedOperationException("Not implemented yet");
+    }
+
+    @Override
+    public void delete(Long id) {
+        throw new UnsupportedOperationException("Not implemented yet");
+    }
+}
+```
+
+---
+
+## haft generate repository
+
+Generate a Spring Data JPA repository interface.
+
+```bash
+# Interactive mode
+haft generate repository
+
+# With repository name
+haft generate repository User
+haft g repo Product
+```
+
+### Generated File
+
+```
+repository/UserRepository.java
+```
+
+### Flags
+
+| Flag | Short | Description |
+|------|-------|-------------|
+| `--package` | `-p` | Override base package |
+| `--no-interactive` | | Skip interactive wizard |
+
+### Example Output
+
+```java
+package com.example.demo.repository;
+
+import org.springframework.data.jpa.repository.JpaRepository;
+import org.springframework.stereotype.Repository;
+
+import com.example.demo.entity.User;
+
+@Repository
+public interface UserRepository extends JpaRepository<User, Long> {
+}
+```
+
+:::note
+Repository generation requires Spring Data JPA dependency in your project.
+:::
+
+---
+
+## haft generate entity
+
+Generate a JPA entity class.
+
+```bash
+# Interactive mode
+haft generate entity
+
+# With entity name
+haft generate entity User
+haft g e Product
+```
+
+### Generated File
+
+```
+entity/User.java
+```
+
+### Flags
+
+| Flag | Short | Description |
+|------|-------|-------------|
+| `--package` | `-p` | Override base package |
+| `--no-interactive` | | Skip interactive wizard |
+
+### Example Output (with Lombok)
 
 ```java
 package com.example.demo.entity;
@@ -156,7 +367,7 @@ public class User {
 }
 ```
 
-### Entity (without Lombok)
+### Example Output (without Lombok)
 
 ```java
 package com.example.demo.entity;
@@ -181,100 +392,108 @@ public class User {
 }
 ```
 
-### Service Implementation
+:::note
+Entity generation requires Spring Data JPA dependency in your project.
+:::
+
+---
+
+## haft generate dto
+
+Generate Request and Response DTO classes.
+
+```bash
+# Interactive mode
+haft generate dto
+
+# With DTO name
+haft generate dto User
+haft g dto Product
+
+# Generate only Request DTO
+haft generate dto User --request-only
+
+# Generate only Response DTO
+haft generate dto User --response-only
+```
+
+### Generated Files
+
+```
+dto/UserRequest.java
+dto/UserResponse.java
+```
+
+### Flags
+
+| Flag | Short | Description |
+|------|-------|-------------|
+| `--package` | `-p` | Override base package |
+| `--no-interactive` | | Skip interactive wizard |
+| `--request-only` | | Generate only Request DTO |
+| `--response-only` | | Generate only Response DTO |
+
+### Example Output (Request DTO with Lombok + Validation)
 
 ```java
-package com.example.demo.service.impl;
+package com.example.demo.dto;
 
-import org.springframework.stereotype.Service;
-import org.springframework.transaction.annotation.Transactional;
-import com.example.demo.service.UserService;
-import com.example.demo.dto.UserRequest;
-import com.example.demo.dto.UserResponse;
-import com.example.demo.mapper.UserMapper;
-import com.example.demo.repository.UserRepository;
-import com.example.demo.entity.User;
-import com.example.demo.exception.ResourceNotFoundException;
+import lombok.*;
+import jakarta.validation.constraints.*;
 
-import java.util.List;
+@Getter
+@Setter
+@NoArgsConstructor
+@AllArgsConstructor
+@Builder
+public class UserRequest {
 
-@Service
-@Transactional
-public class UserServiceImpl implements UserService {
-
-    private final UserRepository userRepository;
-    private final UserMapper userMapper;
-
-    public UserServiceImpl(UserRepository userRepository, UserMapper userMapper) {
-        this.userRepository = userRepository;
-        this.userMapper = userMapper;
-    }
-
-    @Override
-    @Transactional(readOnly = true)
-    public List<UserResponse> findAll() {
-        return userRepository.findAll().stream()
-                .map(userMapper::toResponse)
-                .toList();
-    }
-
-    @Override
-    @Transactional(readOnly = true)
-    public UserResponse findById(Long id) {
-        return userRepository.findById(id)
-                .map(userMapper::toResponse)
-                .orElseThrow(() -> new ResourceNotFoundException("User not found with id: " + id));
-    }
-
-    @Override
-    public UserResponse create(UserRequest request) {
-        User user = userMapper.toEntity(request);
-        User saved = userRepository.save(user);
-        return userMapper.toResponse(saved);
-    }
-
-    @Override
-    public UserResponse update(Long id, UserRequest request) {
-        User user = userRepository.findById(id)
-                .orElseThrow(() -> new ResourceNotFoundException("User not found with id: " + id));
-        userMapper.updateEntity(user, request);
-        User updated = userRepository.save(user);
-        return userMapper.toResponse(updated);
-    }
-
-    @Override
-    public void delete(Long id) {
-        if (!userRepository.existsById(id)) {
-            throw new ResourceNotFoundException("User not found with id: " + id);
-        }
-        userRepository.deleteById(id);
-    }
 }
 ```
 
+### Example Output (Response DTO with Lombok)
+
+```java
+package com.example.demo.dto;
+
+import lombok.*;
+
+@Getter
+@Setter
+@NoArgsConstructor
+@AllArgsConstructor
+@Builder
+public class UserResponse {
+
+}
+```
+
+---
+
 ## File Safety
 
-Haft never overwrites existing files. If a file already exists, it will be skipped with a warning:
+Haft never overwrites existing files. If a file already exists, it will be skipped with an error:
 
 ```
-WARN File already exists, skipping path=src/main/java/.../UserController.java
+Error: file already exists: src/main/java/.../UserController.java
 ```
 
 This allows you to safely re-run the command without losing custom code.
 
-## Coming Soon
+## Name Validation
 
-Individual component generators are planned for future releases:
+Component names must:
+- Start with a letter (a-z, A-Z)
+- Contain only letters and numbers
+- Be at least 2 characters long
 
-```bash
-# Generate only specific components (planned)
-haft generate controller Product
-haft generate service Order
-haft generate entity Customer
-haft generate repository Invoice
-```
+Names are automatically converted to PascalCase:
+- `user` → `User`
+- `user-profile` → `UserProfile`
+- `user_account` → `UserAccount`
 
 ## See Also
 
 - [haft init](/docs/commands/init) - Initialize a new project
+- [haft add](/docs/commands/add) - Add dependencies
 - [Project Structure](/docs/guides/project-structure) - Where files are generated

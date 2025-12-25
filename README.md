@@ -168,13 +168,25 @@ haft init my-service \
   --no-interactive
 ```
 
-### Generate Resources (Coming Soon)
+### Generate Resources
 
 ```bash
-haft generate resource Product
+# Generate a complete CRUD resource (9 files)
+haft generate resource User
+
+# Or generate individual components
+haft generate controller Product   # haft g co Product
+haft generate service Order        # haft g s Order
+haft generate repository Payment   # haft g repo Payment
+haft generate entity Customer      # haft g e Customer
+haft generate dto Invoice          # Request + Response DTOs
 ```
 
-Creates a complete CRUD stack with Entity, Repository, Service, Controller, and DTOs.
+All generators auto-detect your project configuration from `pom.xml`:
+- **Base package** - No need to specify, detected automatically
+- **Lombok** - Adds `@Getter`, `@Setter`, `@Builder` if present
+- **JPA** - Generates Entity/Repository with proper annotations
+- **Validation** - Adds `@Valid` to controller methods
 
 ## Features
 
@@ -204,8 +216,8 @@ Creates a complete CRUD stack with Entity, Repository, Service, Controller, and 
 - [x] All Spring Initializr dependencies  
 - [x] Maven support
 - [x] Offline operation
-- [ ] `haft generate resource` — Full CRUD generation
-- [ ] `haft generate controller|service|entity` — Individual generators
+- [x] `haft generate resource` — Full CRUD generation
+- [x] `haft generate controller|service|entity|repository|dto` — Individual generators
 - [ ] `haft add` — Dependency management
 - [ ] Gradle improvements
 - [ ] Neovim integration

@@ -59,6 +59,16 @@ This creates a complete CRUD structure:
 - `UserRequest.java` / `UserResponse.java` — DTOs
 - `UserMapper.java` — Entity-DTO mapping
 
+Or generate individual components:
+
+```bash
+haft generate controller Product   # haft g co
+haft generate service Order        # haft g s
+haft generate repository Payment   # haft g repo
+haft generate entity Customer      # haft g e
+haft generate dto Invoice          # haft g dto
+```
+
 ### 4. Run Your Project
 
 ```bash
@@ -92,6 +102,10 @@ haft init my-service \
 cd my-service
 haft generate resource User --no-interactive
 haft generate resource Product --no-interactive
+
+# Or generate individual components
+haft generate controller Order --no-interactive
+haft generate entity Customer --no-interactive
 ```
 
 ## Getting Help
@@ -104,6 +118,7 @@ haft --help
 haft init --help
 haft generate --help
 haft generate resource --help
+haft generate controller --help
 ```
 
 Join the community:
