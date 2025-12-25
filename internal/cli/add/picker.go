@@ -44,7 +44,13 @@ func buildPickerItems() []pickerItem {
 	categories := GetCatalogByCategory()
 	categoryOrder := []string{
 		"Web", "SQL", "NoSQL", "Security", "Messaging",
-		"I/O", "Template Engines", "Ops", "Developer Tools", "Testing",
+		"I/O", "Template Engines", "Ops", "Observability",
+		"AI", "Cloud", "Notifications", "Payments", "Search",
+		"Utilities", "Workflow", "Developer Tools", "Testing",
+		"Maps", "Media", "Fintech", "Social", "Data",
+		"Feature Flags", "Microservices", "Integration", "IoT",
+		"DevOps", "Quality", "Caching", "Content", "Networking",
+		"API", "Scheduling", "Logging",
 	}
 
 	for _, category := range categoryOrder {
