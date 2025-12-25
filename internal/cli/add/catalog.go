@@ -1,12 +1,12 @@
 package add
 
-import "github.com/KashifKhn/haft/internal/maven"
+import "github.com/KashifKhn/haft/internal/buildtool"
 
 type CatalogEntry struct {
 	Name         string
 	Description  string
 	Category     string
-	Dependencies []maven.Dependency
+	Dependencies []buildtool.Dependency
 }
 
 var dependencyCatalog = map[string]CatalogEntry{
@@ -14,7 +14,7 @@ var dependencyCatalog = map[string]CatalogEntry{
 		Name:        "Spring Web",
 		Description: "Build web applications with Spring MVC",
 		Category:    "Web",
-		Dependencies: []maven.Dependency{
+		Dependencies: []buildtool.Dependency{
 			{GroupId: "org.springframework.boot", ArtifactId: "spring-boot-starter-web"},
 		},
 	},
@@ -22,7 +22,7 @@ var dependencyCatalog = map[string]CatalogEntry{
 		Name:        "Spring WebFlux",
 		Description: "Build reactive web applications",
 		Category:    "Web",
-		Dependencies: []maven.Dependency{
+		Dependencies: []buildtool.Dependency{
 			{GroupId: "org.springframework.boot", ArtifactId: "spring-boot-starter-webflux"},
 		},
 	},
@@ -30,7 +30,7 @@ var dependencyCatalog = map[string]CatalogEntry{
 		Name:        "Spring Data JPA",
 		Description: "Persist data with JPA and Hibernate",
 		Category:    "SQL",
-		Dependencies: []maven.Dependency{
+		Dependencies: []buildtool.Dependency{
 			{GroupId: "org.springframework.boot", ArtifactId: "spring-boot-starter-data-jpa"},
 		},
 	},
@@ -38,7 +38,7 @@ var dependencyCatalog = map[string]CatalogEntry{
 		Name:        "Spring JDBC",
 		Description: "Database access with JDBC",
 		Category:    "SQL",
-		Dependencies: []maven.Dependency{
+		Dependencies: []buildtool.Dependency{
 			{GroupId: "org.springframework.boot", ArtifactId: "spring-boot-starter-jdbc"},
 		},
 	},
@@ -46,7 +46,7 @@ var dependencyCatalog = map[string]CatalogEntry{
 		Name:        "Spring Security",
 		Description: "Authentication and authorization",
 		Category:    "Security",
-		Dependencies: []maven.Dependency{
+		Dependencies: []buildtool.Dependency{
 			{GroupId: "org.springframework.boot", ArtifactId: "spring-boot-starter-security"},
 		},
 	},
@@ -54,7 +54,7 @@ var dependencyCatalog = map[string]CatalogEntry{
 		Name:        "OAuth2 Client",
 		Description: "OAuth2/OpenID Connect client",
 		Category:    "Security",
-		Dependencies: []maven.Dependency{
+		Dependencies: []buildtool.Dependency{
 			{GroupId: "org.springframework.boot", ArtifactId: "spring-boot-starter-oauth2-client"},
 		},
 	},
@@ -62,7 +62,7 @@ var dependencyCatalog = map[string]CatalogEntry{
 		Name:        "OAuth2 Resource Server",
 		Description: "OAuth2 resource server support",
 		Category:    "Security",
-		Dependencies: []maven.Dependency{
+		Dependencies: []buildtool.Dependency{
 			{GroupId: "org.springframework.boot", ArtifactId: "spring-boot-starter-oauth2-resource-server"},
 		},
 	},
@@ -70,7 +70,7 @@ var dependencyCatalog = map[string]CatalogEntry{
 		Name:        "Validation",
 		Description: "Bean validation with Hibernate Validator",
 		Category:    "I/O",
-		Dependencies: []maven.Dependency{
+		Dependencies: []buildtool.Dependency{
 			{GroupId: "org.springframework.boot", ArtifactId: "spring-boot-starter-validation"},
 		},
 	},
@@ -78,7 +78,7 @@ var dependencyCatalog = map[string]CatalogEntry{
 		Name:        "Spring Boot Actuator",
 		Description: "Production-ready monitoring and management",
 		Category:    "Ops",
-		Dependencies: []maven.Dependency{
+		Dependencies: []buildtool.Dependency{
 			{GroupId: "org.springframework.boot", ArtifactId: "spring-boot-starter-actuator"},
 		},
 	},
@@ -86,15 +86,15 @@ var dependencyCatalog = map[string]CatalogEntry{
 		Name:        "Spring Boot DevTools",
 		Description: "Fast application restarts and LiveReload",
 		Category:    "Developer Tools",
-		Dependencies: []maven.Dependency{
-			{GroupId: "org.springframework.boot", ArtifactId: "spring-boot-devtools", Scope: "runtime", Optional: "true"},
+		Dependencies: []buildtool.Dependency{
+			{GroupId: "org.springframework.boot", ArtifactId: "spring-boot-devtools", Scope: "runtime", Optional: true},
 		},
 	},
 	"lombok": {
 		Name:        "Lombok",
 		Description: "Reduce boilerplate with annotations",
 		Category:    "Developer Tools",
-		Dependencies: []maven.Dependency{
+		Dependencies: []buildtool.Dependency{
 			{GroupId: "org.projectlombok", ArtifactId: "lombok", Scope: "provided"},
 		},
 	},
@@ -102,7 +102,7 @@ var dependencyCatalog = map[string]CatalogEntry{
 		Name:        "MapStruct",
 		Description: "Type-safe bean mapping",
 		Category:    "Developer Tools",
-		Dependencies: []maven.Dependency{
+		Dependencies: []buildtool.Dependency{
 			{GroupId: "org.mapstruct", ArtifactId: "mapstruct", Version: "1.5.5.Final"},
 			{GroupId: "org.mapstruct", ArtifactId: "mapstruct-processor", Version: "1.5.5.Final", Scope: "provided"},
 		},
@@ -111,7 +111,7 @@ var dependencyCatalog = map[string]CatalogEntry{
 		Name:        "PostgreSQL Driver",
 		Description: "PostgreSQL JDBC driver",
 		Category:    "SQL",
-		Dependencies: []maven.Dependency{
+		Dependencies: []buildtool.Dependency{
 			{GroupId: "org.postgresql", ArtifactId: "postgresql", Scope: "runtime"},
 		},
 	},
@@ -119,7 +119,7 @@ var dependencyCatalog = map[string]CatalogEntry{
 		Name:        "MySQL Driver",
 		Description: "MySQL JDBC driver",
 		Category:    "SQL",
-		Dependencies: []maven.Dependency{
+		Dependencies: []buildtool.Dependency{
 			{GroupId: "com.mysql", ArtifactId: "mysql-connector-j", Scope: "runtime"},
 		},
 	},
@@ -127,7 +127,7 @@ var dependencyCatalog = map[string]CatalogEntry{
 		Name:        "MariaDB Driver",
 		Description: "MariaDB JDBC driver",
 		Category:    "SQL",
-		Dependencies: []maven.Dependency{
+		Dependencies: []buildtool.Dependency{
 			{GroupId: "org.mariadb.jdbc", ArtifactId: "mariadb-java-client", Scope: "runtime"},
 		},
 	},
@@ -135,7 +135,7 @@ var dependencyCatalog = map[string]CatalogEntry{
 		Name:        "H2 Database",
 		Description: "In-memory database for development/testing",
 		Category:    "SQL",
-		Dependencies: []maven.Dependency{
+		Dependencies: []buildtool.Dependency{
 			{GroupId: "com.h2database", ArtifactId: "h2", Scope: "runtime"},
 		},
 	},
@@ -143,7 +143,7 @@ var dependencyCatalog = map[string]CatalogEntry{
 		Name:        "Flyway Migration",
 		Description: "Database schema migrations",
 		Category:    "SQL",
-		Dependencies: []maven.Dependency{
+		Dependencies: []buildtool.Dependency{
 			{GroupId: "org.flywaydb", ArtifactId: "flyway-core"},
 		},
 	},
@@ -151,7 +151,7 @@ var dependencyCatalog = map[string]CatalogEntry{
 		Name:        "Liquibase Migration",
 		Description: "Database schema migrations",
 		Category:    "SQL",
-		Dependencies: []maven.Dependency{
+		Dependencies: []buildtool.Dependency{
 			{GroupId: "org.liquibase", ArtifactId: "liquibase-core"},
 		},
 	},
@@ -159,7 +159,7 @@ var dependencyCatalog = map[string]CatalogEntry{
 		Name:        "Spring Data MongoDB",
 		Description: "MongoDB NoSQL database",
 		Category:    "NoSQL",
-		Dependencies: []maven.Dependency{
+		Dependencies: []buildtool.Dependency{
 			{GroupId: "org.springframework.boot", ArtifactId: "spring-boot-starter-data-mongodb"},
 		},
 	},
@@ -167,7 +167,7 @@ var dependencyCatalog = map[string]CatalogEntry{
 		Name:        "Spring Data Redis",
 		Description: "Redis key-value store",
 		Category:    "NoSQL",
-		Dependencies: []maven.Dependency{
+		Dependencies: []buildtool.Dependency{
 			{GroupId: "org.springframework.boot", ArtifactId: "spring-boot-starter-data-redis"},
 		},
 	},
@@ -175,7 +175,7 @@ var dependencyCatalog = map[string]CatalogEntry{
 		Name:        "Spring Data Elasticsearch",
 		Description: "Elasticsearch search engine",
 		Category:    "NoSQL",
-		Dependencies: []maven.Dependency{
+		Dependencies: []buildtool.Dependency{
 			{GroupId: "org.springframework.boot", ArtifactId: "spring-boot-starter-data-elasticsearch"},
 		},
 	},
@@ -183,7 +183,7 @@ var dependencyCatalog = map[string]CatalogEntry{
 		Name:        "Spring AMQP",
 		Description: "RabbitMQ messaging",
 		Category:    "Messaging",
-		Dependencies: []maven.Dependency{
+		Dependencies: []buildtool.Dependency{
 			{GroupId: "org.springframework.boot", ArtifactId: "spring-boot-starter-amqp"},
 		},
 	},
@@ -191,7 +191,7 @@ var dependencyCatalog = map[string]CatalogEntry{
 		Name:        "Spring Kafka",
 		Description: "Apache Kafka messaging",
 		Category:    "Messaging",
-		Dependencies: []maven.Dependency{
+		Dependencies: []buildtool.Dependency{
 			{GroupId: "org.springframework.kafka", ArtifactId: "spring-kafka"},
 		},
 	},
@@ -199,7 +199,7 @@ var dependencyCatalog = map[string]CatalogEntry{
 		Name:        "Java Mail",
 		Description: "Send emails with Spring",
 		Category:    "I/O",
-		Dependencies: []maven.Dependency{
+		Dependencies: []buildtool.Dependency{
 			{GroupId: "org.springframework.boot", ArtifactId: "spring-boot-starter-mail"},
 		},
 	},
@@ -207,7 +207,7 @@ var dependencyCatalog = map[string]CatalogEntry{
 		Name:        "Spring Cache",
 		Description: "Caching abstraction",
 		Category:    "I/O",
-		Dependencies: []maven.Dependency{
+		Dependencies: []buildtool.Dependency{
 			{GroupId: "org.springframework.boot", ArtifactId: "spring-boot-starter-cache"},
 		},
 	},
@@ -215,7 +215,7 @@ var dependencyCatalog = map[string]CatalogEntry{
 		Name:        "Thymeleaf",
 		Description: "Server-side HTML templating",
 		Category:    "Template Engines",
-		Dependencies: []maven.Dependency{
+		Dependencies: []buildtool.Dependency{
 			{GroupId: "org.springframework.boot", ArtifactId: "spring-boot-starter-thymeleaf"},
 		},
 	},
@@ -223,7 +223,7 @@ var dependencyCatalog = map[string]CatalogEntry{
 		Name:        "SpringDoc OpenAPI",
 		Description: "OpenAPI 3 documentation (Swagger UI)",
 		Category:    "Developer Tools",
-		Dependencies: []maven.Dependency{
+		Dependencies: []buildtool.Dependency{
 			{GroupId: "org.springdoc", ArtifactId: "springdoc-openapi-starter-webmvc-ui", Version: "2.3.0"},
 		},
 	},
@@ -231,7 +231,7 @@ var dependencyCatalog = map[string]CatalogEntry{
 		Name:        "Spring Boot Test",
 		Description: "Testing utilities for Spring Boot",
 		Category:    "Testing",
-		Dependencies: []maven.Dependency{
+		Dependencies: []buildtool.Dependency{
 			{GroupId: "org.springframework.boot", ArtifactId: "spring-boot-starter-test", Scope: "test"},
 		},
 	},
@@ -239,7 +239,7 @@ var dependencyCatalog = map[string]CatalogEntry{
 		Name:        "Testcontainers",
 		Description: "Integration testing with containers",
 		Category:    "Testing",
-		Dependencies: []maven.Dependency{
+		Dependencies: []buildtool.Dependency{
 			{GroupId: "org.springframework.boot", ArtifactId: "spring-boot-testcontainers", Scope: "test"},
 			{GroupId: "org.testcontainers", ArtifactId: "junit-jupiter", Scope: "test"},
 		},
@@ -248,7 +248,7 @@ var dependencyCatalog = map[string]CatalogEntry{
 		Name:        "Spring GraphQL",
 		Description: "GraphQL API support",
 		Category:    "Web",
-		Dependencies: []maven.Dependency{
+		Dependencies: []buildtool.Dependency{
 			{GroupId: "org.springframework.boot", ArtifactId: "spring-boot-starter-graphql"},
 		},
 	},
@@ -256,7 +256,7 @@ var dependencyCatalog = map[string]CatalogEntry{
 		Name:        "WebSocket",
 		Description: "WebSocket support",
 		Category:    "Web",
-		Dependencies: []maven.Dependency{
+		Dependencies: []buildtool.Dependency{
 			{GroupId: "org.springframework.boot", ArtifactId: "spring-boot-starter-websocket"},
 		},
 	},
@@ -264,7 +264,7 @@ var dependencyCatalog = map[string]CatalogEntry{
 		Name:        "Spring Batch",
 		Description: "Batch processing framework",
 		Category:    "I/O",
-		Dependencies: []maven.Dependency{
+		Dependencies: []buildtool.Dependency{
 			{GroupId: "org.springframework.boot", ArtifactId: "spring-boot-starter-batch"},
 		},
 	},
@@ -272,7 +272,7 @@ var dependencyCatalog = map[string]CatalogEntry{
 		Name:        "Quartz Scheduler",
 		Description: "Job scheduling",
 		Category:    "I/O",
-		Dependencies: []maven.Dependency{
+		Dependencies: []buildtool.Dependency{
 			{GroupId: "org.springframework.boot", ArtifactId: "spring-boot-starter-quartz"},
 		},
 	},
@@ -280,7 +280,7 @@ var dependencyCatalog = map[string]CatalogEntry{
 		Name:        "JJWT (JSON Web Token)",
 		Description: "JWT creation and verification",
 		Category:    "Security",
-		Dependencies: []maven.Dependency{
+		Dependencies: []buildtool.Dependency{
 			{GroupId: "io.jsonwebtoken", ArtifactId: "jjwt-api", Version: "0.12.5"},
 			{GroupId: "io.jsonwebtoken", ArtifactId: "jjwt-impl", Version: "0.12.5", Scope: "runtime"},
 			{GroupId: "io.jsonwebtoken", ArtifactId: "jjwt-jackson", Version: "0.12.5", Scope: "runtime"},
@@ -290,7 +290,7 @@ var dependencyCatalog = map[string]CatalogEntry{
 		Name:        "Apache Commons Lang",
 		Description: "String manipulation and utilities",
 		Category:    "Developer Tools",
-		Dependencies: []maven.Dependency{
+		Dependencies: []buildtool.Dependency{
 			{GroupId: "org.apache.commons", ArtifactId: "commons-lang3", Version: "3.14.0"},
 		},
 	},
@@ -298,7 +298,7 @@ var dependencyCatalog = map[string]CatalogEntry{
 		Name:        "Apache Commons IO",
 		Description: "IO utilities and file operations",
 		Category:    "I/O",
-		Dependencies: []maven.Dependency{
+		Dependencies: []buildtool.Dependency{
 			{GroupId: "commons-io", ArtifactId: "commons-io", Version: "2.15.1"},
 		},
 	},
@@ -306,7 +306,7 @@ var dependencyCatalog = map[string]CatalogEntry{
 		Name:        "Google Guava",
 		Description: "Core libraries for collections and utilities",
 		Category:    "Developer Tools",
-		Dependencies: []maven.Dependency{
+		Dependencies: []buildtool.Dependency{
 			{GroupId: "com.google.guava", ArtifactId: "guava", Version: "33.0.0-jre"},
 		},
 	},
@@ -314,7 +314,7 @@ var dependencyCatalog = map[string]CatalogEntry{
 		Name:        "ModelMapper",
 		Description: "Object mapping made simple",
 		Category:    "Developer Tools",
-		Dependencies: []maven.Dependency{
+		Dependencies: []buildtool.Dependency{
 			{GroupId: "org.modelmapper", ArtifactId: "modelmapper", Version: "3.2.0"},
 		},
 	},
@@ -322,7 +322,7 @@ var dependencyCatalog = map[string]CatalogEntry{
 		Name:        "Jackson Java 8 Datatypes",
 		Description: "Java 8 date/time support for Jackson",
 		Category:    "I/O",
-		Dependencies: []maven.Dependency{
+		Dependencies: []buildtool.Dependency{
 			{GroupId: "com.fasterxml.jackson.datatype", ArtifactId: "jackson-datatype-jsr310"},
 		},
 	},
@@ -330,7 +330,7 @@ var dependencyCatalog = map[string]CatalogEntry{
 		Name:        "Spring Cloud OpenFeign",
 		Description: "Declarative REST client",
 		Category:    "Web",
-		Dependencies: []maven.Dependency{
+		Dependencies: []buildtool.Dependency{
 			{GroupId: "org.springframework.cloud", ArtifactId: "spring-cloud-starter-openfeign"},
 		},
 	},
@@ -338,7 +338,7 @@ var dependencyCatalog = map[string]CatalogEntry{
 		Name:        "Resilience4j",
 		Description: "Fault tolerance library (circuit breaker)",
 		Category:    "Web",
-		Dependencies: []maven.Dependency{
+		Dependencies: []buildtool.Dependency{
 			{GroupId: "io.github.resilience4j", ArtifactId: "resilience4j-spring-boot3", Version: "2.2.0"},
 		},
 	},
@@ -346,7 +346,7 @@ var dependencyCatalog = map[string]CatalogEntry{
 		Name:        "Micrometer Prometheus",
 		Description: "Prometheus metrics exporter",
 		Category:    "Ops",
-		Dependencies: []maven.Dependency{
+		Dependencies: []buildtool.Dependency{
 			{GroupId: "io.micrometer", ArtifactId: "micrometer-registry-prometheus"},
 		},
 	},
@@ -354,7 +354,7 @@ var dependencyCatalog = map[string]CatalogEntry{
 		Name:        "Spring Data Cassandra",
 		Description: "Apache Cassandra database",
 		Category:    "NoSQL",
-		Dependencies: []maven.Dependency{
+		Dependencies: []buildtool.Dependency{
 			{GroupId: "org.springframework.boot", ArtifactId: "spring-boot-starter-data-cassandra"},
 		},
 	},
@@ -362,7 +362,7 @@ var dependencyCatalog = map[string]CatalogEntry{
 		Name:        "Spring Data Neo4j",
 		Description: "Neo4j graph database",
 		Category:    "NoSQL",
-		Dependencies: []maven.Dependency{
+		Dependencies: []buildtool.Dependency{
 			{GroupId: "org.springframework.boot", ArtifactId: "spring-boot-starter-data-neo4j"},
 		},
 	},
@@ -370,7 +370,7 @@ var dependencyCatalog = map[string]CatalogEntry{
 		Name:        "FreeMarker",
 		Description: "FreeMarker template engine",
 		Category:    "Template Engines",
-		Dependencies: []maven.Dependency{
+		Dependencies: []buildtool.Dependency{
 			{GroupId: "org.springframework.boot", ArtifactId: "spring-boot-starter-freemarker"},
 		},
 	},
@@ -378,7 +378,7 @@ var dependencyCatalog = map[string]CatalogEntry{
 		Name:        "Mustache",
 		Description: "Mustache template engine",
 		Category:    "Template Engines",
-		Dependencies: []maven.Dependency{
+		Dependencies: []buildtool.Dependency{
 			{GroupId: "org.springframework.boot", ArtifactId: "spring-boot-starter-mustache"},
 		},
 	},
@@ -386,7 +386,7 @@ var dependencyCatalog = map[string]CatalogEntry{
 		Name:        "Spring Security Test",
 		Description: "Testing utilities for Spring Security",
 		Category:    "Testing",
-		Dependencies: []maven.Dependency{
+		Dependencies: []buildtool.Dependency{
 			{GroupId: "org.springframework.security", ArtifactId: "spring-security-test", Scope: "test"},
 		},
 	},
@@ -394,7 +394,7 @@ var dependencyCatalog = map[string]CatalogEntry{
 		Name:        "Mockito",
 		Description: "Mocking framework for unit tests",
 		Category:    "Testing",
-		Dependencies: []maven.Dependency{
+		Dependencies: []buildtool.Dependency{
 			{GroupId: "org.mockito", ArtifactId: "mockito-core", Scope: "test"},
 		},
 	},
@@ -402,7 +402,7 @@ var dependencyCatalog = map[string]CatalogEntry{
 		Name:        "Spring REST Docs",
 		Description: "Generate API documentation from tests",
 		Category:    "Testing",
-		Dependencies: []maven.Dependency{
+		Dependencies: []buildtool.Dependency{
 			{GroupId: "org.springframework.restdocs", ArtifactId: "spring-restdocs-mockmvc", Scope: "test"},
 		},
 	},
@@ -410,7 +410,7 @@ var dependencyCatalog = map[string]CatalogEntry{
 		Name:        "Spring HATEOAS",
 		Description: "Hypermedia-driven REST APIs",
 		Category:    "Web",
-		Dependencies: []maven.Dependency{
+		Dependencies: []buildtool.Dependency{
 			{GroupId: "org.springframework.boot", ArtifactId: "spring-boot-starter-hateoas"},
 		},
 	},
@@ -418,7 +418,7 @@ var dependencyCatalog = map[string]CatalogEntry{
 		Name:        "Spring Data REST",
 		Description: "Expose repositories as REST endpoints",
 		Category:    "Web",
-		Dependencies: []maven.Dependency{
+		Dependencies: []buildtool.Dependency{
 			{GroupId: "org.springframework.boot", ArtifactId: "spring-boot-starter-data-rest"},
 		},
 	},
@@ -428,7 +428,7 @@ var dependencyCatalog = map[string]CatalogEntry{
 		Name:        "Spring AI OpenAI",
 		Description: "OpenAI (ChatGPT, GPT-4) integration",
 		Category:    "AI",
-		Dependencies: []maven.Dependency{
+		Dependencies: []buildtool.Dependency{
 			{GroupId: "org.springframework.ai", ArtifactId: "spring-ai-openai-spring-boot-starter"},
 		},
 	},
@@ -436,7 +436,7 @@ var dependencyCatalog = map[string]CatalogEntry{
 		Name:        "Spring AI Anthropic",
 		Description: "Anthropic Claude integration",
 		Category:    "AI",
-		Dependencies: []maven.Dependency{
+		Dependencies: []buildtool.Dependency{
 			{GroupId: "org.springframework.ai", ArtifactId: "spring-ai-anthropic-spring-boot-starter"},
 		},
 	},
@@ -444,7 +444,7 @@ var dependencyCatalog = map[string]CatalogEntry{
 		Name:        "Spring AI Ollama",
 		Description: "Ollama local LLM integration",
 		Category:    "AI",
-		Dependencies: []maven.Dependency{
+		Dependencies: []buildtool.Dependency{
 			{GroupId: "org.springframework.ai", ArtifactId: "spring-ai-ollama-spring-boot-starter"},
 		},
 	},
@@ -452,7 +452,7 @@ var dependencyCatalog = map[string]CatalogEntry{
 		Name:        "Spring AI Azure OpenAI",
 		Description: "Azure OpenAI integration",
 		Category:    "AI",
-		Dependencies: []maven.Dependency{
+		Dependencies: []buildtool.Dependency{
 			{GroupId: "org.springframework.ai", ArtifactId: "spring-ai-azure-openai-spring-boot-starter"},
 		},
 	},
@@ -460,7 +460,7 @@ var dependencyCatalog = map[string]CatalogEntry{
 		Name:        "Spring AI Amazon Bedrock",
 		Description: "Amazon Bedrock AI integration",
 		Category:    "AI",
-		Dependencies: []maven.Dependency{
+		Dependencies: []buildtool.Dependency{
 			{GroupId: "org.springframework.ai", ArtifactId: "spring-ai-bedrock-ai-spring-boot-starter"},
 		},
 	},
@@ -468,7 +468,7 @@ var dependencyCatalog = map[string]CatalogEntry{
 		Name:        "Spring AI Vertex AI",
 		Description: "Google Vertex AI Gemini integration",
 		Category:    "AI",
-		Dependencies: []maven.Dependency{
+		Dependencies: []buildtool.Dependency{
 			{GroupId: "org.springframework.ai", ArtifactId: "spring-ai-vertex-ai-gemini-spring-boot-starter"},
 		},
 	},
@@ -476,7 +476,7 @@ var dependencyCatalog = map[string]CatalogEntry{
 		Name:        "Spring AI Mistral",
 		Description: "Mistral AI integration",
 		Category:    "AI",
-		Dependencies: []maven.Dependency{
+		Dependencies: []buildtool.Dependency{
 			{GroupId: "org.springframework.ai", ArtifactId: "spring-ai-mistral-ai-spring-boot-starter"},
 		},
 	},
@@ -484,7 +484,7 @@ var dependencyCatalog = map[string]CatalogEntry{
 		Name:        "PGVector",
 		Description: "PostgreSQL vector database for AI",
 		Category:    "AI",
-		Dependencies: []maven.Dependency{
+		Dependencies: []buildtool.Dependency{
 			{GroupId: "org.springframework.ai", ArtifactId: "spring-ai-pgvector-store-spring-boot-starter"},
 		},
 	},
@@ -494,7 +494,7 @@ var dependencyCatalog = map[string]CatalogEntry{
 		Name:        "OAuth2 Authorization Server",
 		Description: "Build your own OAuth2 authorization server",
 		Category:    "Security",
-		Dependencies: []maven.Dependency{
+		Dependencies: []buildtool.Dependency{
 			{GroupId: "org.springframework.boot", ArtifactId: "spring-boot-starter-oauth2-authorization-server"},
 		},
 	},
@@ -502,7 +502,7 @@ var dependencyCatalog = map[string]CatalogEntry{
 		Name:        "Spring LDAP",
 		Description: "LDAP authentication and operations",
 		Category:    "Security",
-		Dependencies: []maven.Dependency{
+		Dependencies: []buildtool.Dependency{
 			{GroupId: "org.springframework.boot", ArtifactId: "spring-boot-starter-data-ldap"},
 		},
 	},
@@ -512,7 +512,7 @@ var dependencyCatalog = map[string]CatalogEntry{
 		Name:        "Stripe",
 		Description: "Stripe payment processing",
 		Category:    "Payments",
-		Dependencies: []maven.Dependency{
+		Dependencies: []buildtool.Dependency{
 			{GroupId: "com.stripe", ArtifactId: "stripe-java", Version: "26.0.0"},
 		},
 	},
@@ -520,7 +520,7 @@ var dependencyCatalog = map[string]CatalogEntry{
 		Name:        "PayPal",
 		Description: "PayPal payment SDK",
 		Category:    "Payments",
-		Dependencies: []maven.Dependency{
+		Dependencies: []buildtool.Dependency{
 			{GroupId: "com.paypal.sdk", ArtifactId: "checkout-sdk", Version: "2.0.0"},
 		},
 	},
@@ -530,7 +530,7 @@ var dependencyCatalog = map[string]CatalogEntry{
 		Name:        "AWS S3",
 		Description: "Amazon S3 file storage",
 		Category:    "Cloud",
-		Dependencies: []maven.Dependency{
+		Dependencies: []buildtool.Dependency{
 			{GroupId: "software.amazon.awssdk", ArtifactId: "s3", Version: "2.25.0"},
 		},
 	},
@@ -538,7 +538,7 @@ var dependencyCatalog = map[string]CatalogEntry{
 		Name:        "AWS SQS",
 		Description: "Amazon Simple Queue Service",
 		Category:    "Cloud",
-		Dependencies: []maven.Dependency{
+		Dependencies: []buildtool.Dependency{
 			{GroupId: "software.amazon.awssdk", ArtifactId: "sqs", Version: "2.25.0"},
 		},
 	},
@@ -546,7 +546,7 @@ var dependencyCatalog = map[string]CatalogEntry{
 		Name:        "AWS SES",
 		Description: "Amazon Simple Email Service",
 		Category:    "Cloud",
-		Dependencies: []maven.Dependency{
+		Dependencies: []buildtool.Dependency{
 			{GroupId: "software.amazon.awssdk", ArtifactId: "ses", Version: "2.25.0"},
 		},
 	},
@@ -554,7 +554,7 @@ var dependencyCatalog = map[string]CatalogEntry{
 		Name:        "AWS DynamoDB",
 		Description: "Amazon DynamoDB NoSQL database",
 		Category:    "Cloud",
-		Dependencies: []maven.Dependency{
+		Dependencies: []buildtool.Dependency{
 			{GroupId: "software.amazon.awssdk", ArtifactId: "dynamodb-enhanced", Version: "2.25.0"},
 		},
 	},
@@ -564,7 +564,7 @@ var dependencyCatalog = map[string]CatalogEntry{
 		Name:        "Prometheus",
 		Description: "Prometheus metrics registry",
 		Category:    "Observability",
-		Dependencies: []maven.Dependency{
+		Dependencies: []buildtool.Dependency{
 			{GroupId: "io.micrometer", ArtifactId: "micrometer-registry-prometheus"},
 		},
 	},
@@ -572,7 +572,7 @@ var dependencyCatalog = map[string]CatalogEntry{
 		Name:        "Zipkin",
 		Description: "Distributed tracing with Zipkin",
 		Category:    "Observability",
-		Dependencies: []maven.Dependency{
+		Dependencies: []buildtool.Dependency{
 			{GroupId: "io.zipkin.reporter2", ArtifactId: "zipkin-reporter-brave"},
 		},
 	},
@@ -580,7 +580,7 @@ var dependencyCatalog = map[string]CatalogEntry{
 		Name:        "OpenTelemetry",
 		Description: "OpenTelemetry distributed tracing",
 		Category:    "Observability",
-		Dependencies: []maven.Dependency{
+		Dependencies: []buildtool.Dependency{
 			{GroupId: "io.micrometer", ArtifactId: "micrometer-tracing-bridge-otel"},
 			{GroupId: "io.opentelemetry", ArtifactId: "opentelemetry-exporter-otlp"},
 		},
@@ -591,7 +591,7 @@ var dependencyCatalog = map[string]CatalogEntry{
 		Name:        "Spring Data R2DBC",
 		Description: "Reactive database access",
 		Category:    "SQL",
-		Dependencies: []maven.Dependency{
+		Dependencies: []buildtool.Dependency{
 			{GroupId: "org.springframework.boot", ArtifactId: "spring-boot-starter-data-r2dbc"},
 		},
 	},
@@ -599,7 +599,7 @@ var dependencyCatalog = map[string]CatalogEntry{
 		Name:        "R2DBC PostgreSQL",
 		Description: "Reactive PostgreSQL driver",
 		Category:    "SQL",
-		Dependencies: []maven.Dependency{
+		Dependencies: []buildtool.Dependency{
 			{GroupId: "org.postgresql", ArtifactId: "r2dbc-postgresql", Scope: "runtime"},
 		},
 	},
@@ -607,7 +607,7 @@ var dependencyCatalog = map[string]CatalogEntry{
 		Name:        "MyBatis",
 		Description: "MyBatis SQL mapping framework",
 		Category:    "SQL",
-		Dependencies: []maven.Dependency{
+		Dependencies: []buildtool.Dependency{
 			{GroupId: "org.mybatis.spring.boot", ArtifactId: "mybatis-spring-boot-starter", Version: "3.0.3"},
 		},
 	},
@@ -615,7 +615,7 @@ var dependencyCatalog = map[string]CatalogEntry{
 		Name:        "jOOQ",
 		Description: "Type-safe SQL query builder",
 		Category:    "SQL",
-		Dependencies: []maven.Dependency{
+		Dependencies: []buildtool.Dependency{
 			{GroupId: "org.springframework.boot", ArtifactId: "spring-boot-starter-jooq"},
 		},
 	},
@@ -623,7 +623,7 @@ var dependencyCatalog = map[string]CatalogEntry{
 		Name:        "Oracle Driver",
 		Description: "Oracle database JDBC driver",
 		Category:    "SQL",
-		Dependencies: []maven.Dependency{
+		Dependencies: []buildtool.Dependency{
 			{GroupId: "com.oracle.database.jdbc", ArtifactId: "ojdbc11", Scope: "runtime"},
 		},
 	},
@@ -631,7 +631,7 @@ var dependencyCatalog = map[string]CatalogEntry{
 		Name:        "SQL Server Driver",
 		Description: "Microsoft SQL Server JDBC driver",
 		Category:    "SQL",
-		Dependencies: []maven.Dependency{
+		Dependencies: []buildtool.Dependency{
 			{GroupId: "com.microsoft.sqlserver", ArtifactId: "mssql-jdbc", Scope: "runtime"},
 		},
 	},
@@ -641,7 +641,7 @@ var dependencyCatalog = map[string]CatalogEntry{
 		Name:        "Spring Data MongoDB Reactive",
 		Description: "Reactive MongoDB support",
 		Category:    "NoSQL",
-		Dependencies: []maven.Dependency{
+		Dependencies: []buildtool.Dependency{
 			{GroupId: "org.springframework.boot", ArtifactId: "spring-boot-starter-data-mongodb-reactive"},
 		},
 	},
@@ -649,7 +649,7 @@ var dependencyCatalog = map[string]CatalogEntry{
 		Name:        "Spring Data Couchbase",
 		Description: "Couchbase NoSQL database",
 		Category:    "NoSQL",
-		Dependencies: []maven.Dependency{
+		Dependencies: []buildtool.Dependency{
 			{GroupId: "org.springframework.boot", ArtifactId: "spring-boot-starter-data-couchbase"},
 		},
 	},
@@ -659,7 +659,7 @@ var dependencyCatalog = map[string]CatalogEntry{
 		Name:        "Spring Pulsar",
 		Description: "Apache Pulsar messaging",
 		Category:    "Messaging",
-		Dependencies: []maven.Dependency{
+		Dependencies: []buildtool.Dependency{
 			{GroupId: "org.springframework.boot", ArtifactId: "spring-boot-starter-pulsar"},
 		},
 	},
@@ -667,7 +667,7 @@ var dependencyCatalog = map[string]CatalogEntry{
 		Name:        "Apache ActiveMQ",
 		Description: "ActiveMQ JMS messaging",
 		Category:    "Messaging",
-		Dependencies: []maven.Dependency{
+		Dependencies: []buildtool.Dependency{
 			{GroupId: "org.springframework.boot", ArtifactId: "spring-boot-starter-activemq"},
 		},
 	},
@@ -675,7 +675,7 @@ var dependencyCatalog = map[string]CatalogEntry{
 		Name:        "RSocket",
 		Description: "RSocket reactive messaging",
 		Category:    "Messaging",
-		Dependencies: []maven.Dependency{
+		Dependencies: []buildtool.Dependency{
 			{GroupId: "org.springframework.boot", ArtifactId: "spring-boot-starter-rsocket"},
 		},
 	},
@@ -685,7 +685,7 @@ var dependencyCatalog = map[string]CatalogEntry{
 		Name:        "Spring Session Redis",
 		Description: "Distributed sessions with Redis",
 		Category:    "Web",
-		Dependencies: []maven.Dependency{
+		Dependencies: []buildtool.Dependency{
 			{GroupId: "org.springframework.session", ArtifactId: "spring-session-data-redis"},
 		},
 	},
@@ -693,7 +693,7 @@ var dependencyCatalog = map[string]CatalogEntry{
 		Name:        "Spring Session JDBC",
 		Description: "Distributed sessions with JDBC",
 		Category:    "Web",
-		Dependencies: []maven.Dependency{
+		Dependencies: []buildtool.Dependency{
 			{GroupId: "org.springframework.session", ArtifactId: "spring-session-jdbc"},
 		},
 	},
@@ -703,7 +703,7 @@ var dependencyCatalog = map[string]CatalogEntry{
 		Name:        "Spring RestClient",
 		Description: "Synchronous HTTP client",
 		Category:    "Web",
-		Dependencies: []maven.Dependency{
+		Dependencies: []buildtool.Dependency{
 			{GroupId: "org.springframework.boot", ArtifactId: "spring-boot-starter-web"},
 		},
 	},
@@ -711,7 +711,7 @@ var dependencyCatalog = map[string]CatalogEntry{
 		Name:        "Spring WebClient",
 		Description: "Reactive HTTP client",
 		Category:    "Web",
-		Dependencies: []maven.Dependency{
+		Dependencies: []buildtool.Dependency{
 			{GroupId: "org.springframework.boot", ArtifactId: "spring-boot-starter-webflux"},
 		},
 	},
@@ -721,7 +721,7 @@ var dependencyCatalog = map[string]CatalogEntry{
 		Name:        "Apache POI",
 		Description: "Microsoft Office file handling (Excel, Word)",
 		Category:    "I/O",
-		Dependencies: []maven.Dependency{
+		Dependencies: []buildtool.Dependency{
 			{GroupId: "org.apache.poi", ArtifactId: "poi-ooxml", Version: "5.2.5"},
 		},
 	},
@@ -729,7 +729,7 @@ var dependencyCatalog = map[string]CatalogEntry{
 		Name:        "iText PDF",
 		Description: "PDF generation and manipulation",
 		Category:    "I/O",
-		Dependencies: []maven.Dependency{
+		Dependencies: []buildtool.Dependency{
 			{GroupId: "com.itextpdf", ArtifactId: "itext7-core", Version: "8.0.2"},
 		},
 	},
@@ -737,7 +737,7 @@ var dependencyCatalog = map[string]CatalogEntry{
 		Name:        "MinIO",
 		Description: "S3-compatible object storage client",
 		Category:    "I/O",
-		Dependencies: []maven.Dependency{
+		Dependencies: []buildtool.Dependency{
 			{GroupId: "io.minio", ArtifactId: "minio", Version: "8.5.7"},
 		},
 	},
@@ -747,7 +747,7 @@ var dependencyCatalog = map[string]CatalogEntry{
 		Name:        "Spring Scheduler",
 		Description: "Task scheduling with @Scheduled",
 		Category:    "I/O",
-		Dependencies: []maven.Dependency{
+		Dependencies: []buildtool.Dependency{
 			{GroupId: "org.springframework.boot", ArtifactId: "spring-boot-starter"},
 		},
 	},
@@ -757,7 +757,7 @@ var dependencyCatalog = map[string]CatalogEntry{
 		Name:        "Passay",
 		Description: "Password validation library",
 		Category:    "Security",
-		Dependencies: []maven.Dependency{
+		Dependencies: []buildtool.Dependency{
 			{GroupId: "org.passay", ArtifactId: "passay", Version: "1.6.4"},
 		},
 	},
@@ -767,7 +767,7 @@ var dependencyCatalog = map[string]CatalogEntry{
 		Name:        "JsonPath",
 		Description: "JSON path query library",
 		Category:    "I/O",
-		Dependencies: []maven.Dependency{
+		Dependencies: []buildtool.Dependency{
 			{GroupId: "com.jayway.jsonpath", ArtifactId: "json-path", Version: "2.9.0"},
 		},
 	},
@@ -777,7 +777,7 @@ var dependencyCatalog = map[string]CatalogEntry{
 		Name:        "gRPC",
 		Description: "gRPC framework for Spring Boot",
 		Category:    "Web",
-		Dependencies: []maven.Dependency{
+		Dependencies: []buildtool.Dependency{
 			{GroupId: "net.devh", ArtifactId: "grpc-spring-boot-starter", Version: "3.0.0.RELEASE"},
 		},
 	},
@@ -787,7 +787,7 @@ var dependencyCatalog = map[string]CatalogEntry{
 		Name:        "Bucket4j",
 		Description: "Rate limiting library",
 		Category:    "Web",
-		Dependencies: []maven.Dependency{
+		Dependencies: []buildtool.Dependency{
 			{GroupId: "com.bucket4j", ArtifactId: "bucket4j-core", Version: "8.7.0"},
 		},
 	},
@@ -797,7 +797,7 @@ var dependencyCatalog = map[string]CatalogEntry{
 		Name:        "Configuration Processor",
 		Description: "IDE support for custom @ConfigurationProperties",
 		Category:    "Developer Tools",
-		Dependencies: []maven.Dependency{
+		Dependencies: []buildtool.Dependency{
 			{GroupId: "org.springframework.boot", ArtifactId: "spring-boot-configuration-processor", Scope: "provided"},
 		},
 	},
@@ -805,7 +805,7 @@ var dependencyCatalog = map[string]CatalogEntry{
 		Name:        "Docker Compose Support",
 		Description: "Docker Compose development support",
 		Category:    "Developer Tools",
-		Dependencies: []maven.Dependency{
+		Dependencies: []buildtool.Dependency{
 			{GroupId: "org.springframework.boot", ArtifactId: "spring-boot-docker-compose", Scope: "runtime"},
 		},
 	},
@@ -815,7 +815,7 @@ var dependencyCatalog = map[string]CatalogEntry{
 		Name:        "GraalVM Native",
 		Description: "GraalVM native image support",
 		Category:    "Developer Tools",
-		Dependencies: []maven.Dependency{
+		Dependencies: []buildtool.Dependency{
 			{GroupId: "org.graalvm.buildtools", ArtifactId: "native-maven-plugin"},
 		},
 	},
@@ -827,7 +827,7 @@ var dependencyCatalog = map[string]CatalogEntry{
 		Name:        "Twilio",
 		Description: "SMS, WhatsApp, Voice API",
 		Category:    "Notifications",
-		Dependencies: []maven.Dependency{
+		Dependencies: []buildtool.Dependency{
 			{GroupId: "com.twilio.sdk", ArtifactId: "twilio", Version: "10.1.0"},
 		},
 	},
@@ -835,7 +835,7 @@ var dependencyCatalog = map[string]CatalogEntry{
 		Name:        "SendGrid",
 		Description: "Email delivery service",
 		Category:    "Notifications",
-		Dependencies: []maven.Dependency{
+		Dependencies: []buildtool.Dependency{
 			{GroupId: "com.sendgrid", ArtifactId: "sendgrid-java", Version: "4.10.2"},
 		},
 	},
@@ -843,7 +843,7 @@ var dependencyCatalog = map[string]CatalogEntry{
 		Name:        "MailerSend",
 		Description: "Transactional email service",
 		Category:    "Notifications",
-		Dependencies: []maven.Dependency{
+		Dependencies: []buildtool.Dependency{
 			{GroupId: "com.mailersend", ArtifactId: "java-sdk", Version: "1.0.0"},
 		},
 	},
@@ -851,7 +851,7 @@ var dependencyCatalog = map[string]CatalogEntry{
 		Name:        "Firebase Admin",
 		Description: "Firebase push notifications and services",
 		Category:    "Notifications",
-		Dependencies: []maven.Dependency{
+		Dependencies: []buildtool.Dependency{
 			{GroupId: "com.google.firebase", ArtifactId: "firebase-admin", Version: "9.2.0"},
 		},
 	},
@@ -859,7 +859,7 @@ var dependencyCatalog = map[string]CatalogEntry{
 		Name:        "Pusher",
 		Description: "Real-time messaging and websockets",
 		Category:    "Notifications",
-		Dependencies: []maven.Dependency{
+		Dependencies: []buildtool.Dependency{
 			{GroupId: "com.pusher", ArtifactId: "pusher-http-java", Version: "1.3.3"},
 		},
 	},
@@ -867,7 +867,7 @@ var dependencyCatalog = map[string]CatalogEntry{
 		Name:        "Slack SDK",
 		Description: "Slack API integration",
 		Category:    "Notifications",
-		Dependencies: []maven.Dependency{
+		Dependencies: []buildtool.Dependency{
 			{GroupId: "com.slack.api", ArtifactId: "slack-api-client", Version: "1.38.0"},
 		},
 	},
@@ -875,7 +875,7 @@ var dependencyCatalog = map[string]CatalogEntry{
 		Name:        "Discord JDA",
 		Description: "Discord bot and API integration",
 		Category:    "Notifications",
-		Dependencies: []maven.Dependency{
+		Dependencies: []buildtool.Dependency{
 			{GroupId: "net.dv8tion", ArtifactId: "JDA", Version: "5.0.0-beta.21"},
 		},
 	},
@@ -883,7 +883,7 @@ var dependencyCatalog = map[string]CatalogEntry{
 		Name:        "Telegram Bot",
 		Description: "Telegram bot API",
 		Category:    "Notifications",
-		Dependencies: []maven.Dependency{
+		Dependencies: []buildtool.Dependency{
 			{GroupId: "org.telegram", ArtifactId: "telegrambots", Version: "6.9.7.1"},
 		},
 	},
@@ -891,7 +891,7 @@ var dependencyCatalog = map[string]CatalogEntry{
 		Name:        "Mailgun",
 		Description: "Email delivery via Mailgun",
 		Category:    "Notifications",
-		Dependencies: []maven.Dependency{
+		Dependencies: []buildtool.Dependency{
 			{GroupId: "net.sargue", ArtifactId: "mailgun", Version: "1.10.0"},
 		},
 	},
@@ -899,7 +899,7 @@ var dependencyCatalog = map[string]CatalogEntry{
 		Name:        "OneSignal",
 		Description: "Push notification service",
 		Category:    "Notifications",
-		Dependencies: []maven.Dependency{
+		Dependencies: []buildtool.Dependency{
 			{GroupId: "com.onesignal", ArtifactId: "onesignal-java-client", Version: "2.0.2"},
 		},
 	},
@@ -911,7 +911,7 @@ var dependencyCatalog = map[string]CatalogEntry{
 		Name:        "AWS SNS",
 		Description: "Amazon Simple Notification Service",
 		Category:    "Cloud",
-		Dependencies: []maven.Dependency{
+		Dependencies: []buildtool.Dependency{
 			{GroupId: "software.amazon.awssdk", ArtifactId: "sns", Version: "2.25.0"},
 		},
 	},
@@ -919,7 +919,7 @@ var dependencyCatalog = map[string]CatalogEntry{
 		Name:        "AWS Lambda",
 		Description: "Amazon Lambda serverless functions",
 		Category:    "Cloud",
-		Dependencies: []maven.Dependency{
+		Dependencies: []buildtool.Dependency{
 			{GroupId: "com.amazonaws", ArtifactId: "aws-lambda-java-core", Version: "1.2.3"},
 			{GroupId: "com.amazonaws", ArtifactId: "aws-lambda-java-events", Version: "3.11.4"},
 		},
@@ -928,7 +928,7 @@ var dependencyCatalog = map[string]CatalogEntry{
 		Name:        "AWS Cognito",
 		Description: "Amazon Cognito user authentication",
 		Category:    "Cloud",
-		Dependencies: []maven.Dependency{
+		Dependencies: []buildtool.Dependency{
 			{GroupId: "software.amazon.awssdk", ArtifactId: "cognitoidentityprovider", Version: "2.25.0"},
 		},
 	},
@@ -936,7 +936,7 @@ var dependencyCatalog = map[string]CatalogEntry{
 		Name:        "AWS Secrets Manager",
 		Description: "Amazon Secrets Manager",
 		Category:    "Cloud",
-		Dependencies: []maven.Dependency{
+		Dependencies: []buildtool.Dependency{
 			{GroupId: "software.amazon.awssdk", ArtifactId: "secretsmanager", Version: "2.25.0"},
 		},
 	},
@@ -944,7 +944,7 @@ var dependencyCatalog = map[string]CatalogEntry{
 		Name:        "AWS CloudWatch",
 		Description: "Amazon CloudWatch monitoring",
 		Category:    "Cloud",
-		Dependencies: []maven.Dependency{
+		Dependencies: []buildtool.Dependency{
 			{GroupId: "software.amazon.awssdk", ArtifactId: "cloudwatch", Version: "2.25.0"},
 		},
 	},
@@ -952,7 +952,7 @@ var dependencyCatalog = map[string]CatalogEntry{
 		Name:        "AWS Kinesis",
 		Description: "Amazon Kinesis data streaming",
 		Category:    "Cloud",
-		Dependencies: []maven.Dependency{
+		Dependencies: []buildtool.Dependency{
 			{GroupId: "software.amazon.awssdk", ArtifactId: "kinesis", Version: "2.25.0"},
 		},
 	},
@@ -962,7 +962,7 @@ var dependencyCatalog = map[string]CatalogEntry{
 		Name:        "Google Cloud Storage",
 		Description: "GCP object storage",
 		Category:    "Cloud",
-		Dependencies: []maven.Dependency{
+		Dependencies: []buildtool.Dependency{
 			{GroupId: "com.google.cloud", ArtifactId: "google-cloud-storage", Version: "2.35.0"},
 		},
 	},
@@ -970,7 +970,7 @@ var dependencyCatalog = map[string]CatalogEntry{
 		Name:        "Google Cloud Pub/Sub",
 		Description: "GCP messaging service",
 		Category:    "Cloud",
-		Dependencies: []maven.Dependency{
+		Dependencies: []buildtool.Dependency{
 			{GroupId: "com.google.cloud", ArtifactId: "google-cloud-pubsub", Version: "1.127.0"},
 		},
 	},
@@ -978,7 +978,7 @@ var dependencyCatalog = map[string]CatalogEntry{
 		Name:        "Google BigQuery",
 		Description: "GCP data warehouse",
 		Category:    "Cloud",
-		Dependencies: []maven.Dependency{
+		Dependencies: []buildtool.Dependency{
 			{GroupId: "com.google.cloud", ArtifactId: "google-cloud-bigquery", Version: "2.38.1"},
 		},
 	},
@@ -986,7 +986,7 @@ var dependencyCatalog = map[string]CatalogEntry{
 		Name:        "Google Firestore",
 		Description: "GCP Firestore NoSQL database",
 		Category:    "Cloud",
-		Dependencies: []maven.Dependency{
+		Dependencies: []buildtool.Dependency{
 			{GroupId: "com.google.cloud", ArtifactId: "google-cloud-firestore", Version: "3.18.0"},
 		},
 	},
@@ -994,7 +994,7 @@ var dependencyCatalog = map[string]CatalogEntry{
 		Name:        "Google Secret Manager",
 		Description: "GCP secrets management",
 		Category:    "Cloud",
-		Dependencies: []maven.Dependency{
+		Dependencies: []buildtool.Dependency{
 			{GroupId: "com.google.cloud", ArtifactId: "google-cloud-secretmanager", Version: "2.37.0"},
 		},
 	},
@@ -1002,7 +1002,7 @@ var dependencyCatalog = map[string]CatalogEntry{
 		Name:        "Google Cloud Functions",
 		Description: "GCP serverless functions",
 		Category:    "Cloud",
-		Dependencies: []maven.Dependency{
+		Dependencies: []buildtool.Dependency{
 			{GroupId: "com.google.cloud.functions", ArtifactId: "functions-framework-api", Version: "1.1.0"},
 		},
 	},
@@ -1012,7 +1012,7 @@ var dependencyCatalog = map[string]CatalogEntry{
 		Name:        "Azure Blob Storage",
 		Description: "Azure object storage",
 		Category:    "Cloud",
-		Dependencies: []maven.Dependency{
+		Dependencies: []buildtool.Dependency{
 			{GroupId: "com.azure", ArtifactId: "azure-storage-blob", Version: "12.25.2"},
 		},
 	},
@@ -1020,7 +1020,7 @@ var dependencyCatalog = map[string]CatalogEntry{
 		Name:        "Azure Service Bus",
 		Description: "Azure messaging service",
 		Category:    "Cloud",
-		Dependencies: []maven.Dependency{
+		Dependencies: []buildtool.Dependency{
 			{GroupId: "com.azure", ArtifactId: "azure-messaging-servicebus", Version: "7.15.1"},
 		},
 	},
@@ -1028,7 +1028,7 @@ var dependencyCatalog = map[string]CatalogEntry{
 		Name:        "Azure Key Vault",
 		Description: "Azure secrets management",
 		Category:    "Cloud",
-		Dependencies: []maven.Dependency{
+		Dependencies: []buildtool.Dependency{
 			{GroupId: "com.azure", ArtifactId: "azure-security-keyvault-secrets", Version: "4.8.0"},
 		},
 	},
@@ -1036,7 +1036,7 @@ var dependencyCatalog = map[string]CatalogEntry{
 		Name:        "Azure Cosmos DB",
 		Description: "Azure NoSQL database",
 		Category:    "Cloud",
-		Dependencies: []maven.Dependency{
+		Dependencies: []buildtool.Dependency{
 			{GroupId: "com.azure", ArtifactId: "azure-cosmos", Version: "4.55.0"},
 		},
 	},
@@ -1044,7 +1044,7 @@ var dependencyCatalog = map[string]CatalogEntry{
 		Name:        "Azure Functions",
 		Description: "Azure serverless functions",
 		Category:    "Cloud",
-		Dependencies: []maven.Dependency{
+		Dependencies: []buildtool.Dependency{
 			{GroupId: "com.microsoft.azure.functions", ArtifactId: "azure-functions-java-library", Version: "3.0.0"},
 		},
 	},
@@ -1056,7 +1056,7 @@ var dependencyCatalog = map[string]CatalogEntry{
 		Name:        "Algolia",
 		Description: "Search-as-a-service",
 		Category:    "Search",
-		Dependencies: []maven.Dependency{
+		Dependencies: []buildtool.Dependency{
 			{GroupId: "com.algolia", ArtifactId: "algoliasearch", Version: "3.16.9"},
 		},
 	},
@@ -1064,7 +1064,7 @@ var dependencyCatalog = map[string]CatalogEntry{
 		Name:        "Meilisearch",
 		Description: "Fast open-source search engine",
 		Category:    "Search",
-		Dependencies: []maven.Dependency{
+		Dependencies: []buildtool.Dependency{
 			{GroupId: "com.meilisearch.sdk", ArtifactId: "meilisearch-java", Version: "0.11.8"},
 		},
 	},
@@ -1072,7 +1072,7 @@ var dependencyCatalog = map[string]CatalogEntry{
 		Name:        "Typesense",
 		Description: "Open-source typo-tolerant search",
 		Category:    "Search",
-		Dependencies: []maven.Dependency{
+		Dependencies: []buildtool.Dependency{
 			{GroupId: "org.typesense", ArtifactId: "typesense-java", Version: "0.5.0"},
 		},
 	},
@@ -1080,7 +1080,7 @@ var dependencyCatalog = map[string]CatalogEntry{
 		Name:        "Apache Solr",
 		Description: "Enterprise search platform",
 		Category:    "Search",
-		Dependencies: []maven.Dependency{
+		Dependencies: []buildtool.Dependency{
 			{GroupId: "org.apache.solr", ArtifactId: "solr-solrj", Version: "9.5.0"},
 		},
 	},
@@ -1088,7 +1088,7 @@ var dependencyCatalog = map[string]CatalogEntry{
 		Name:        "OpenSearch",
 		Description: "OpenSearch client (Elasticsearch fork)",
 		Category:    "Search",
-		Dependencies: []maven.Dependency{
+		Dependencies: []buildtool.Dependency{
 			{GroupId: "org.opensearch.client", ArtifactId: "opensearch-rest-high-level-client", Version: "2.12.0"},
 		},
 	},
@@ -1100,7 +1100,7 @@ var dependencyCatalog = map[string]CatalogEntry{
 		Name:        "ScyllaDB",
 		Description: "High-performance Cassandra-compatible DB",
 		Category:    "NoSQL",
-		Dependencies: []maven.Dependency{
+		Dependencies: []buildtool.Dependency{
 			{GroupId: "com.scylladb", ArtifactId: "java-driver-core", Version: "4.17.0.0"},
 		},
 	},
@@ -1108,7 +1108,7 @@ var dependencyCatalog = map[string]CatalogEntry{
 		Name:        "CockroachDB",
 		Description: "Distributed SQL database",
 		Category:    "SQL",
-		Dependencies: []maven.Dependency{
+		Dependencies: []buildtool.Dependency{
 			{GroupId: "org.postgresql", ArtifactId: "postgresql", Scope: "runtime"},
 		},
 	},
@@ -1116,7 +1116,7 @@ var dependencyCatalog = map[string]CatalogEntry{
 		Name:        "InfluxDB",
 		Description: "Time-series database",
 		Category:    "NoSQL",
-		Dependencies: []maven.Dependency{
+		Dependencies: []buildtool.Dependency{
 			{GroupId: "com.influxdb", ArtifactId: "influxdb-client-java", Version: "7.0.0"},
 		},
 	},
@@ -1124,7 +1124,7 @@ var dependencyCatalog = map[string]CatalogEntry{
 		Name:        "TimescaleDB",
 		Description: "PostgreSQL-based time-series database",
 		Category:    "SQL",
-		Dependencies: []maven.Dependency{
+		Dependencies: []buildtool.Dependency{
 			{GroupId: "org.postgresql", ArtifactId: "postgresql", Scope: "runtime"},
 		},
 	},
@@ -1132,7 +1132,7 @@ var dependencyCatalog = map[string]CatalogEntry{
 		Name:        "ClickHouse",
 		Description: "Column-oriented OLAP database",
 		Category:    "SQL",
-		Dependencies: []maven.Dependency{
+		Dependencies: []buildtool.Dependency{
 			{GroupId: "com.clickhouse", ArtifactId: "clickhouse-jdbc", Version: "0.6.0"},
 		},
 	},
@@ -1140,7 +1140,7 @@ var dependencyCatalog = map[string]CatalogEntry{
 		Name:        "DynamoDB Enhanced",
 		Description: "DynamoDB enhanced client with mapping",
 		Category:    "NoSQL",
-		Dependencies: []maven.Dependency{
+		Dependencies: []buildtool.Dependency{
 			{GroupId: "software.amazon.awssdk", ArtifactId: "dynamodb-enhanced", Version: "2.25.0"},
 		},
 	},
@@ -1148,7 +1148,7 @@ var dependencyCatalog = map[string]CatalogEntry{
 		Name:        "ArangoDB",
 		Description: "Multi-model graph database",
 		Category:    "NoSQL",
-		Dependencies: []maven.Dependency{
+		Dependencies: []buildtool.Dependency{
 			{GroupId: "com.arangodb", ArtifactId: "arangodb-java-driver", Version: "7.5.0"},
 		},
 	},
@@ -1156,7 +1156,7 @@ var dependencyCatalog = map[string]CatalogEntry{
 		Name:        "VoltDB",
 		Description: "In-memory ACID SQL database",
 		Category:    "SQL",
-		Dependencies: []maven.Dependency{
+		Dependencies: []buildtool.Dependency{
 			{GroupId: "org.voltdb", ArtifactId: "voltdbclient", Version: "13.0"},
 		},
 	},
@@ -1164,7 +1164,7 @@ var dependencyCatalog = map[string]CatalogEntry{
 		Name:        "Hazelcast",
 		Description: "In-memory data grid",
 		Category:    "NoSQL",
-		Dependencies: []maven.Dependency{
+		Dependencies: []buildtool.Dependency{
 			{GroupId: "com.hazelcast", ArtifactId: "hazelcast-spring", Version: "5.3.6"},
 		},
 	},
@@ -1172,7 +1172,7 @@ var dependencyCatalog = map[string]CatalogEntry{
 		Name:        "Apache Ignite",
 		Description: "Distributed in-memory computing",
 		Category:    "NoSQL",
-		Dependencies: []maven.Dependency{
+		Dependencies: []buildtool.Dependency{
 			{GroupId: "org.apache.ignite", ArtifactId: "ignite-spring-boot-autoconfigure-ext", Version: "1.0.0"},
 		},
 	},
@@ -1180,7 +1180,7 @@ var dependencyCatalog = map[string]CatalogEntry{
 		Name:        "Memcached",
 		Description: "Distributed memory caching",
 		Category:    "NoSQL",
-		Dependencies: []maven.Dependency{
+		Dependencies: []buildtool.Dependency{
 			{GroupId: "com.google.code.simple-spring-memcached", ArtifactId: "spymemcached-provider", Version: "4.1.3"},
 		},
 	},
@@ -1192,7 +1192,7 @@ var dependencyCatalog = map[string]CatalogEntry{
 		Name:        "OkHttp",
 		Description: "Efficient HTTP client",
 		Category:    "Utilities",
-		Dependencies: []maven.Dependency{
+		Dependencies: []buildtool.Dependency{
 			{GroupId: "com.squareup.okhttp3", ArtifactId: "okhttp", Version: "4.12.0"},
 		},
 	},
@@ -1200,7 +1200,7 @@ var dependencyCatalog = map[string]CatalogEntry{
 		Name:        "Retrofit",
 		Description: "Type-safe REST client",
 		Category:    "Utilities",
-		Dependencies: []maven.Dependency{
+		Dependencies: []buildtool.Dependency{
 			{GroupId: "com.squareup.retrofit2", ArtifactId: "retrofit", Version: "2.9.0"},
 			{GroupId: "com.squareup.retrofit2", ArtifactId: "converter-jackson", Version: "2.9.0"},
 		},
@@ -1209,7 +1209,7 @@ var dependencyCatalog = map[string]CatalogEntry{
 		Name:        "Jsoup",
 		Description: "HTML parsing and web scraping",
 		Category:    "Utilities",
-		Dependencies: []maven.Dependency{
+		Dependencies: []buildtool.Dependency{
 			{GroupId: "org.jsoup", ArtifactId: "jsoup", Version: "1.17.2"},
 		},
 	},
@@ -1217,7 +1217,7 @@ var dependencyCatalog = map[string]CatalogEntry{
 		Name:        "ZXing",
 		Description: "QR code and barcode generation",
 		Category:    "Utilities",
-		Dependencies: []maven.Dependency{
+		Dependencies: []buildtool.Dependency{
 			{GroupId: "com.google.zxing", ArtifactId: "core", Version: "3.5.3"},
 			{GroupId: "com.google.zxing", ArtifactId: "javase", Version: "3.5.3"},
 		},
@@ -1226,7 +1226,7 @@ var dependencyCatalog = map[string]CatalogEntry{
 		Name:        "Thumbnailator",
 		Description: "Image resizing and processing",
 		Category:    "Utilities",
-		Dependencies: []maven.Dependency{
+		Dependencies: []buildtool.Dependency{
 			{GroupId: "net.coobird", ArtifactId: "thumbnailator", Version: "0.4.20"},
 		},
 	},
@@ -1234,7 +1234,7 @@ var dependencyCatalog = map[string]CatalogEntry{
 		Name:        "JasperReports",
 		Description: "Report generation library",
 		Category:    "Utilities",
-		Dependencies: []maven.Dependency{
+		Dependencies: []buildtool.Dependency{
 			{GroupId: "net.sf.jasperreports", ArtifactId: "jasperreports", Version: "6.21.2"},
 		},
 	},
@@ -1242,7 +1242,7 @@ var dependencyCatalog = map[string]CatalogEntry{
 		Name:        "JFreeChart",
 		Description: "Chart and graph generation",
 		Category:    "Utilities",
-		Dependencies: []maven.Dependency{
+		Dependencies: []buildtool.Dependency{
 			{GroupId: "org.jfree", ArtifactId: "jfreechart", Version: "1.5.4"},
 		},
 	},
@@ -1250,7 +1250,7 @@ var dependencyCatalog = map[string]CatalogEntry{
 		Name:        "OpenCSV",
 		Description: "CSV parsing and writing",
 		Category:    "Utilities",
-		Dependencies: []maven.Dependency{
+		Dependencies: []buildtool.Dependency{
 			{GroupId: "com.opencsv", ArtifactId: "opencsv", Version: "5.9"},
 		},
 	},
@@ -1258,7 +1258,7 @@ var dependencyCatalog = map[string]CatalogEntry{
 		Name:        "SnakeYAML",
 		Description: "YAML parsing and writing",
 		Category:    "Utilities",
-		Dependencies: []maven.Dependency{
+		Dependencies: []buildtool.Dependency{
 			{GroupId: "org.yaml", ArtifactId: "snakeyaml", Version: "2.2"},
 		},
 	},
@@ -1266,7 +1266,7 @@ var dependencyCatalog = map[string]CatalogEntry{
 		Name:        "JNA",
 		Description: "Java Native Access",
 		Category:    "Utilities",
-		Dependencies: []maven.Dependency{
+		Dependencies: []buildtool.Dependency{
 			{GroupId: "net.java.dev.jna", ArtifactId: "jna", Version: "5.14.0"},
 		},
 	},
@@ -1274,7 +1274,7 @@ var dependencyCatalog = map[string]CatalogEntry{
 		Name:        "Joda-Time",
 		Description: "Date and time library (legacy)",
 		Category:    "Utilities",
-		Dependencies: []maven.Dependency{
+		Dependencies: []buildtool.Dependency{
 			{GroupId: "joda-time", ArtifactId: "joda-time", Version: "2.12.7"},
 		},
 	},
@@ -1282,7 +1282,7 @@ var dependencyCatalog = map[string]CatalogEntry{
 		Name:        "Slugify",
 		Description: "URL slug generation",
 		Category:    "Utilities",
-		Dependencies: []maven.Dependency{
+		Dependencies: []buildtool.Dependency{
 			{GroupId: "com.github.slugify", ArtifactId: "slugify", Version: "3.0.6"},
 		},
 	},
@@ -1290,7 +1290,7 @@ var dependencyCatalog = map[string]CatalogEntry{
 		Name:        "LibPhoneNumber",
 		Description: "Phone number parsing and validation",
 		Category:    "Utilities",
-		Dependencies: []maven.Dependency{
+		Dependencies: []buildtool.Dependency{
 			{GroupId: "com.googlecode.libphonenumber", ArtifactId: "libphonenumber", Version: "8.13.30"},
 		},
 	},
@@ -1298,7 +1298,7 @@ var dependencyCatalog = map[string]CatalogEntry{
 		Name:        "Emoji Java",
 		Description: "Emoji parsing and manipulation",
 		Category:    "Utilities",
-		Dependencies: []maven.Dependency{
+		Dependencies: []buildtool.Dependency{
 			{GroupId: "com.vdurmont", ArtifactId: "emoji-java", Version: "5.1.1"},
 		},
 	},
@@ -1306,7 +1306,7 @@ var dependencyCatalog = map[string]CatalogEntry{
 		Name:        "CommonMark",
 		Description: "Markdown parsing and rendering",
 		Category:    "Utilities",
-		Dependencies: []maven.Dependency{
+		Dependencies: []buildtool.Dependency{
 			{GroupId: "org.commonmark", ArtifactId: "commonmark", Version: "0.21.0"},
 		},
 	},
@@ -1314,7 +1314,7 @@ var dependencyCatalog = map[string]CatalogEntry{
 		Name:        "Flexmark",
 		Description: "Advanced Markdown processor",
 		Category:    "Utilities",
-		Dependencies: []maven.Dependency{
+		Dependencies: []buildtool.Dependency{
 			{GroupId: "com.vladsch.flexmark", ArtifactId: "flexmark-all", Version: "0.64.8"},
 		},
 	},
@@ -1322,7 +1322,7 @@ var dependencyCatalog = map[string]CatalogEntry{
 		Name:        "Apache HttpClient 5",
 		Description: "Apache HTTP client",
 		Category:    "Utilities",
-		Dependencies: []maven.Dependency{
+		Dependencies: []buildtool.Dependency{
 			{GroupId: "org.apache.httpcomponents.client5", ArtifactId: "httpclient5", Version: "5.3.1"},
 		},
 	},
@@ -1330,7 +1330,7 @@ var dependencyCatalog = map[string]CatalogEntry{
 		Name:        "JSch",
 		Description: "SSH and SFTP client",
 		Category:    "Utilities",
-		Dependencies: []maven.Dependency{
+		Dependencies: []buildtool.Dependency{
 			{GroupId: "com.github.mwiede", ArtifactId: "jsch", Version: "0.2.16"},
 		},
 	},
@@ -1338,7 +1338,7 @@ var dependencyCatalog = map[string]CatalogEntry{
 		Name:        "SSHJ",
 		Description: "Modern SSH client library",
 		Category:    "Utilities",
-		Dependencies: []maven.Dependency{
+		Dependencies: []buildtool.Dependency{
 			{GroupId: "com.hierynomus", ArtifactId: "sshj", Version: "0.38.0"},
 		},
 	},
@@ -1346,7 +1346,7 @@ var dependencyCatalog = map[string]CatalogEntry{
 		Name:        "JAXB",
 		Description: "XML binding (Java 11+)",
 		Category:    "Utilities",
-		Dependencies: []maven.Dependency{
+		Dependencies: []buildtool.Dependency{
 			{GroupId: "jakarta.xml.bind", ArtifactId: "jakarta.xml.bind-api", Version: "4.0.1"},
 			{GroupId: "org.glassfish.jaxb", ArtifactId: "jaxb-runtime", Version: "4.0.4"},
 		},
@@ -1355,7 +1355,7 @@ var dependencyCatalog = map[string]CatalogEntry{
 		Name:        "Dom4j",
 		Description: "XML parsing and manipulation",
 		Category:    "Utilities",
-		Dependencies: []maven.Dependency{
+		Dependencies: []buildtool.Dependency{
 			{GroupId: "org.dom4j", ArtifactId: "dom4j", Version: "2.1.4"},
 		},
 	},
@@ -1363,7 +1363,7 @@ var dependencyCatalog = map[string]CatalogEntry{
 		Name:        "XStream",
 		Description: "XML serialization",
 		Category:    "Utilities",
-		Dependencies: []maven.Dependency{
+		Dependencies: []buildtool.Dependency{
 			{GroupId: "com.thoughtworks.xstream", ArtifactId: "xstream", Version: "1.4.20"},
 		},
 	},
@@ -1371,7 +1371,7 @@ var dependencyCatalog = map[string]CatalogEntry{
 		Name:        "Protocol Buffers",
 		Description: "Google Protocol Buffers",
 		Category:    "Utilities",
-		Dependencies: []maven.Dependency{
+		Dependencies: []buildtool.Dependency{
 			{GroupId: "com.google.protobuf", ArtifactId: "protobuf-java", Version: "3.25.3"},
 		},
 	},
@@ -1379,7 +1379,7 @@ var dependencyCatalog = map[string]CatalogEntry{
 		Name:        "Apache Avro",
 		Description: "Data serialization system",
 		Category:    "Utilities",
-		Dependencies: []maven.Dependency{
+		Dependencies: []buildtool.Dependency{
 			{GroupId: "org.apache.avro", ArtifactId: "avro", Version: "1.11.3"},
 		},
 	},
@@ -1387,7 +1387,7 @@ var dependencyCatalog = map[string]CatalogEntry{
 		Name:        "MessagePack",
 		Description: "Binary serialization format",
 		Category:    "Utilities",
-		Dependencies: []maven.Dependency{
+		Dependencies: []buildtool.Dependency{
 			{GroupId: "org.msgpack", ArtifactId: "msgpack-core", Version: "0.9.8"},
 		},
 	},
@@ -1395,7 +1395,7 @@ var dependencyCatalog = map[string]CatalogEntry{
 		Name:        "Kryo",
 		Description: "Fast binary serialization",
 		Category:    "Utilities",
-		Dependencies: []maven.Dependency{
+		Dependencies: []buildtool.Dependency{
 			{GroupId: "com.esotericsoftware", ArtifactId: "kryo", Version: "5.6.0"},
 		},
 	},
@@ -1407,7 +1407,7 @@ var dependencyCatalog = map[string]CatalogEntry{
 		Name:        "RabbitMQ Client",
 		Description: "RabbitMQ Java client (direct)",
 		Category:    "Messaging",
-		Dependencies: []maven.Dependency{
+		Dependencies: []buildtool.Dependency{
 			{GroupId: "com.rabbitmq", ArtifactId: "amqp-client", Version: "5.20.0"},
 		},
 	},
@@ -1415,7 +1415,7 @@ var dependencyCatalog = map[string]CatalogEntry{
 		Name:        "NATS",
 		Description: "NATS messaging system",
 		Category:    "Messaging",
-		Dependencies: []maven.Dependency{
+		Dependencies: []buildtool.Dependency{
 			{GroupId: "io.nats", ArtifactId: "jnats", Version: "2.17.3"},
 		},
 	},
@@ -1423,7 +1423,7 @@ var dependencyCatalog = map[string]CatalogEntry{
 		Name:        "ZeroMQ",
 		Description: "High-performance messaging",
 		Category:    "Messaging",
-		Dependencies: []maven.Dependency{
+		Dependencies: []buildtool.Dependency{
 			{GroupId: "org.zeromq", ArtifactId: "jeromq", Version: "0.6.0"},
 		},
 	},
@@ -1431,7 +1431,7 @@ var dependencyCatalog = map[string]CatalogEntry{
 		Name:        "Apache Artemis",
 		Description: "Apache ActiveMQ Artemis",
 		Category:    "Messaging",
-		Dependencies: []maven.Dependency{
+		Dependencies: []buildtool.Dependency{
 			{GroupId: "org.springframework.boot", ArtifactId: "spring-boot-starter-artemis"},
 		},
 	},
@@ -1443,7 +1443,7 @@ var dependencyCatalog = map[string]CatalogEntry{
 		Name:        "Bouncy Castle",
 		Description: "Cryptography provider",
 		Category:    "Security",
-		Dependencies: []maven.Dependency{
+		Dependencies: []buildtool.Dependency{
 			{GroupId: "org.bouncycastle", ArtifactId: "bcprov-jdk18on", Version: "1.77"},
 		},
 	},
@@ -1451,7 +1451,7 @@ var dependencyCatalog = map[string]CatalogEntry{
 		Name:        "Jasypt",
 		Description: "Encryption for application properties",
 		Category:    "Security",
-		Dependencies: []maven.Dependency{
+		Dependencies: []buildtool.Dependency{
 			{GroupId: "com.github.ulisesbocchio", ArtifactId: "jasypt-spring-boot-starter", Version: "3.0.5"},
 		},
 	},
@@ -1459,7 +1459,7 @@ var dependencyCatalog = map[string]CatalogEntry{
 		Name:        "Keycloak",
 		Description: "Keycloak admin client",
 		Category:    "Security",
-		Dependencies: []maven.Dependency{
+		Dependencies: []buildtool.Dependency{
 			{GroupId: "org.keycloak", ArtifactId: "keycloak-admin-client", Version: "24.0.1"},
 		},
 	},
@@ -1467,7 +1467,7 @@ var dependencyCatalog = map[string]CatalogEntry{
 		Name:        "Auth0",
 		Description: "Auth0 authentication",
 		Category:    "Security",
-		Dependencies: []maven.Dependency{
+		Dependencies: []buildtool.Dependency{
 			{GroupId: "com.auth0", ArtifactId: "auth0-spring-security-api", Version: "1.5.3"},
 		},
 	},
@@ -1475,7 +1475,7 @@ var dependencyCatalog = map[string]CatalogEntry{
 		Name:        "Nimbus JOSE+JWT",
 		Description: "JWT and JOSE implementation",
 		Category:    "Security",
-		Dependencies: []maven.Dependency{
+		Dependencies: []buildtool.Dependency{
 			{GroupId: "com.nimbusds", ArtifactId: "nimbus-jose-jwt", Version: "9.37.3"},
 		},
 	},
@@ -1483,7 +1483,7 @@ var dependencyCatalog = map[string]CatalogEntry{
 		Name:        "Google Authenticator",
 		Description: "TOTP/HOTP for 2FA",
 		Category:    "Security",
-		Dependencies: []maven.Dependency{
+		Dependencies: []buildtool.Dependency{
 			{GroupId: "dev.samstevens.totp", ArtifactId: "totp", Version: "1.7.1"},
 		},
 	},
@@ -1495,7 +1495,7 @@ var dependencyCatalog = map[string]CatalogEntry{
 		Name:        "WireMock",
 		Description: "HTTP mock server for testing",
 		Category:    "Testing",
-		Dependencies: []maven.Dependency{
+		Dependencies: []buildtool.Dependency{
 			{GroupId: "org.wiremock", ArtifactId: "wiremock-standalone", Version: "3.4.2", Scope: "test"},
 		},
 	},
@@ -1503,7 +1503,7 @@ var dependencyCatalog = map[string]CatalogEntry{
 		Name:        "Awaitility",
 		Description: "Async testing utility",
 		Category:    "Testing",
-		Dependencies: []maven.Dependency{
+		Dependencies: []buildtool.Dependency{
 			{GroupId: "org.awaitility", ArtifactId: "awaitility", Version: "4.2.0", Scope: "test"},
 		},
 	},
@@ -1511,7 +1511,7 @@ var dependencyCatalog = map[string]CatalogEntry{
 		Name:        "ArchUnit",
 		Description: "Architecture testing",
 		Category:    "Testing",
-		Dependencies: []maven.Dependency{
+		Dependencies: []buildtool.Dependency{
 			{GroupId: "com.tngtech.archunit", ArtifactId: "archunit-junit5", Version: "1.2.1", Scope: "test"},
 		},
 	},
@@ -1519,7 +1519,7 @@ var dependencyCatalog = map[string]CatalogEntry{
 		Name:        "AssertJ",
 		Description: "Fluent assertions library",
 		Category:    "Testing",
-		Dependencies: []maven.Dependency{
+		Dependencies: []buildtool.Dependency{
 			{GroupId: "org.assertj", ArtifactId: "assertj-core", Version: "3.25.3", Scope: "test"},
 		},
 	},
@@ -1527,7 +1527,7 @@ var dependencyCatalog = map[string]CatalogEntry{
 		Name:        "JSONAssert",
 		Description: "JSON comparison for tests",
 		Category:    "Testing",
-		Dependencies: []maven.Dependency{
+		Dependencies: []buildtool.Dependency{
 			{GroupId: "org.skyscreamer", ArtifactId: "jsonassert", Version: "1.5.1", Scope: "test"},
 		},
 	},
@@ -1535,7 +1535,7 @@ var dependencyCatalog = map[string]CatalogEntry{
 		Name:        "REST Assured",
 		Description: "REST API testing",
 		Category:    "Testing",
-		Dependencies: []maven.Dependency{
+		Dependencies: []buildtool.Dependency{
 			{GroupId: "io.rest-assured", ArtifactId: "rest-assured", Version: "5.4.0", Scope: "test"},
 		},
 	},
@@ -1543,7 +1543,7 @@ var dependencyCatalog = map[string]CatalogEntry{
 		Name:        "Gatling",
 		Description: "Load testing framework",
 		Category:    "Testing",
-		Dependencies: []maven.Dependency{
+		Dependencies: []buildtool.Dependency{
 			{GroupId: "io.gatling.highcharts", ArtifactId: "gatling-charts-highcharts", Version: "3.10.4", Scope: "test"},
 		},
 	},
@@ -1551,7 +1551,7 @@ var dependencyCatalog = map[string]CatalogEntry{
 		Name:        "JMH",
 		Description: "Java Microbenchmark Harness",
 		Category:    "Testing",
-		Dependencies: []maven.Dependency{
+		Dependencies: []buildtool.Dependency{
 			{GroupId: "org.openjdk.jmh", ArtifactId: "jmh-core", Version: "1.37", Scope: "test"},
 			{GroupId: "org.openjdk.jmh", ArtifactId: "jmh-generator-annprocess", Version: "1.37", Scope: "test"},
 		},
@@ -1560,7 +1560,7 @@ var dependencyCatalog = map[string]CatalogEntry{
 		Name:        "DataFaker",
 		Description: "Generate fake test data",
 		Category:    "Testing",
-		Dependencies: []maven.Dependency{
+		Dependencies: []buildtool.Dependency{
 			{GroupId: "net.datafaker", ArtifactId: "datafaker", Version: "2.1.0", Scope: "test"},
 		},
 	},
@@ -1568,7 +1568,7 @@ var dependencyCatalog = map[string]CatalogEntry{
 		Name:        "GreenMail",
 		Description: "Email testing server",
 		Category:    "Testing",
-		Dependencies: []maven.Dependency{
+		Dependencies: []buildtool.Dependency{
 			{GroupId: "com.icegreen", ArtifactId: "greenmail-junit5", Version: "2.0.1", Scope: "test"},
 		},
 	},
@@ -1580,7 +1580,7 @@ var dependencyCatalog = map[string]CatalogEntry{
 		Name:        "SpotBugs",
 		Description: "Static analysis annotations",
 		Category:    "Developer Tools",
-		Dependencies: []maven.Dependency{
+		Dependencies: []buildtool.Dependency{
 			{GroupId: "com.github.spotbugs", ArtifactId: "spotbugs-annotations", Version: "4.8.3"},
 		},
 	},
@@ -1588,7 +1588,7 @@ var dependencyCatalog = map[string]CatalogEntry{
 		Name:        "Error Prone",
 		Description: "Static analysis annotations",
 		Category:    "Developer Tools",
-		Dependencies: []maven.Dependency{
+		Dependencies: []buildtool.Dependency{
 			{GroupId: "com.google.errorprone", ArtifactId: "error_prone_annotations", Version: "2.25.0"},
 		},
 	},
@@ -1596,7 +1596,7 @@ var dependencyCatalog = map[string]CatalogEntry{
 		Name:        "Checker Framework",
 		Description: "Type annotations for static analysis",
 		Category:    "Developer Tools",
-		Dependencies: []maven.Dependency{
+		Dependencies: []buildtool.Dependency{
 			{GroupId: "org.checkerframework", ArtifactId: "checker-qual", Version: "3.42.0"},
 		},
 	},
@@ -1604,7 +1604,7 @@ var dependencyCatalog = map[string]CatalogEntry{
 		Name:        "jMolecules",
 		Description: "DDD architectural concepts",
 		Category:    "Developer Tools",
-		Dependencies: []maven.Dependency{
+		Dependencies: []buildtool.Dependency{
 			{GroupId: "org.jmolecules", ArtifactId: "jmolecules-ddd", Version: "1.9.0"},
 		},
 	},
@@ -1612,7 +1612,7 @@ var dependencyCatalog = map[string]CatalogEntry{
 		Name:        "Vavr",
 		Description: "Functional programming library",
 		Category:    "Developer Tools",
-		Dependencies: []maven.Dependency{
+		Dependencies: []buildtool.Dependency{
 			{GroupId: "io.vavr", ArtifactId: "vavr", Version: "0.10.4"},
 		},
 	},
@@ -1620,7 +1620,7 @@ var dependencyCatalog = map[string]CatalogEntry{
 		Name:        "Immutables",
 		Description: "Immutable object generation",
 		Category:    "Developer Tools",
-		Dependencies: []maven.Dependency{
+		Dependencies: []buildtool.Dependency{
 			{GroupId: "org.immutables", ArtifactId: "value", Version: "2.10.1", Scope: "provided"},
 		},
 	},
@@ -1628,7 +1628,7 @@ var dependencyCatalog = map[string]CatalogEntry{
 		Name:        "RecordBuilder",
 		Description: "Builder pattern for Java records",
 		Category:    "Developer Tools",
-		Dependencies: []maven.Dependency{
+		Dependencies: []buildtool.Dependency{
 			{GroupId: "io.soabase.record-builder", ArtifactId: "record-builder-processor", Version: "40", Scope: "provided"},
 		},
 	},
@@ -1640,7 +1640,7 @@ var dependencyCatalog = map[string]CatalogEntry{
 		Name:        "Jaeger",
 		Description: "Distributed tracing with Jaeger",
 		Category:    "Observability",
-		Dependencies: []maven.Dependency{
+		Dependencies: []buildtool.Dependency{
 			{GroupId: "io.opentracing.contrib", ArtifactId: "opentracing-spring-jaeger-cloud-starter", Version: "3.3.1"},
 		},
 	},
@@ -1648,7 +1648,7 @@ var dependencyCatalog = map[string]CatalogEntry{
 		Name:        "Datadog",
 		Description: "Datadog APM metrics",
 		Category:    "Observability",
-		Dependencies: []maven.Dependency{
+		Dependencies: []buildtool.Dependency{
 			{GroupId: "io.micrometer", ArtifactId: "micrometer-registry-datadog"},
 		},
 	},
@@ -1656,7 +1656,7 @@ var dependencyCatalog = map[string]CatalogEntry{
 		Name:        "New Relic",
 		Description: "New Relic APM metrics",
 		Category:    "Observability",
-		Dependencies: []maven.Dependency{
+		Dependencies: []buildtool.Dependency{
 			{GroupId: "io.micrometer", ArtifactId: "micrometer-registry-new-relic"},
 		},
 	},
@@ -1664,7 +1664,7 @@ var dependencyCatalog = map[string]CatalogEntry{
 		Name:        "Grafana LGTM",
 		Description: "Grafana Loki/Tempo metrics",
 		Category:    "Observability",
-		Dependencies: []maven.Dependency{
+		Dependencies: []buildtool.Dependency{
 			{GroupId: "io.micrometer", ArtifactId: "micrometer-tracing-bridge-otel"},
 		},
 	},
@@ -1672,7 +1672,7 @@ var dependencyCatalog = map[string]CatalogEntry{
 		Name:        "Sentry",
 		Description: "Error tracking and monitoring",
 		Category:    "Observability",
-		Dependencies: []maven.Dependency{
+		Dependencies: []buildtool.Dependency{
 			{GroupId: "io.sentry", ArtifactId: "sentry-spring-boot-starter-jakarta", Version: "7.4.0"},
 		},
 	},
@@ -1680,7 +1680,7 @@ var dependencyCatalog = map[string]CatalogEntry{
 		Name:        "Loki Logback",
 		Description: "Grafana Loki logging",
 		Category:    "Observability",
-		Dependencies: []maven.Dependency{
+		Dependencies: []buildtool.Dependency{
 			{GroupId: "com.github.loki4j", ArtifactId: "loki-logback-appender", Version: "1.5.1"},
 		},
 	},
@@ -1692,7 +1692,7 @@ var dependencyCatalog = map[string]CatalogEntry{
 		Name:        "Camunda",
 		Description: "Workflow and process automation",
 		Category:    "Workflow",
-		Dependencies: []maven.Dependency{
+		Dependencies: []buildtool.Dependency{
 			{GroupId: "org.camunda.bpm.springboot", ArtifactId: "camunda-bpm-spring-boot-starter-rest", Version: "7.21.0"},
 		},
 	},
@@ -1700,7 +1700,7 @@ var dependencyCatalog = map[string]CatalogEntry{
 		Name:        "Flowable",
 		Description: "BPMN workflow engine",
 		Category:    "Workflow",
-		Dependencies: []maven.Dependency{
+		Dependencies: []buildtool.Dependency{
 			{GroupId: "org.flowable", ArtifactId: "flowable-spring-boot-starter", Version: "7.0.1"},
 		},
 	},
@@ -1708,7 +1708,7 @@ var dependencyCatalog = map[string]CatalogEntry{
 		Name:        "Temporal",
 		Description: "Durable workflow orchestration",
 		Category:    "Workflow",
-		Dependencies: []maven.Dependency{
+		Dependencies: []buildtool.Dependency{
 			{GroupId: "io.temporal", ArtifactId: "temporal-sdk", Version: "1.22.3"},
 		},
 	},
@@ -1720,7 +1720,7 @@ var dependencyCatalog = map[string]CatalogEntry{
 		Name:        "Spring Cloud Gateway",
 		Description: "API Gateway for microservices",
 		Category:    "Web",
-		Dependencies: []maven.Dependency{
+		Dependencies: []buildtool.Dependency{
 			{GroupId: "org.springframework.cloud", ArtifactId: "spring-cloud-starter-gateway"},
 		},
 	},
@@ -1728,7 +1728,7 @@ var dependencyCatalog = map[string]CatalogEntry{
 		Name:        "Eureka Client",
 		Description: "Service discovery with Eureka",
 		Category:    "Web",
-		Dependencies: []maven.Dependency{
+		Dependencies: []buildtool.Dependency{
 			{GroupId: "org.springframework.cloud", ArtifactId: "spring-cloud-starter-netflix-eureka-client"},
 		},
 	},
@@ -1736,7 +1736,7 @@ var dependencyCatalog = map[string]CatalogEntry{
 		Name:        "Consul",
 		Description: "Service discovery with Consul",
 		Category:    "Web",
-		Dependencies: []maven.Dependency{
+		Dependencies: []buildtool.Dependency{
 			{GroupId: "org.springframework.cloud", ArtifactId: "spring-cloud-starter-consul-discovery"},
 		},
 	},
@@ -1744,7 +1744,7 @@ var dependencyCatalog = map[string]CatalogEntry{
 		Name:        "Config Server",
 		Description: "Centralized configuration",
 		Category:    "Web",
-		Dependencies: []maven.Dependency{
+		Dependencies: []buildtool.Dependency{
 			{GroupId: "org.springframework.cloud", ArtifactId: "spring-cloud-config-server"},
 		},
 	},
@@ -1752,7 +1752,7 @@ var dependencyCatalog = map[string]CatalogEntry{
 		Name:        "Config Client",
 		Description: "Config server client",
 		Category:    "Web",
-		Dependencies: []maven.Dependency{
+		Dependencies: []buildtool.Dependency{
 			{GroupId: "org.springframework.cloud", ArtifactId: "spring-cloud-starter-config"},
 		},
 	},
@@ -1760,7 +1760,7 @@ var dependencyCatalog = map[string]CatalogEntry{
 		Name:        "Vault",
 		Description: "HashiCorp Vault integration",
 		Category:    "Security",
-		Dependencies: []maven.Dependency{
+		Dependencies: []buildtool.Dependency{
 			{GroupId: "org.springframework.cloud", ArtifactId: "spring-cloud-starter-vault-config"},
 		},
 	},
@@ -1772,7 +1772,7 @@ var dependencyCatalog = map[string]CatalogEntry{
 		Name:        "Google Maps",
 		Description: "Google Maps Server SDK (Geocoding, Directions, Places)",
 		Category:    "Maps",
-		Dependencies: []maven.Dependency{
+		Dependencies: []buildtool.Dependency{
 			{GroupId: "com.google.maps", ArtifactId: "google-maps-services", Version: "2.2.0"},
 		},
 	},
@@ -1780,7 +1780,7 @@ var dependencyCatalog = map[string]CatalogEntry{
 		Name:        "Mapbox",
 		Description: "Mapbox Java SDK (Navigation, Search, Maps)",
 		Category:    "Maps",
-		Dependencies: []maven.Dependency{
+		Dependencies: []buildtool.Dependency{
 			{GroupId: "com.mapbox.mapboxsdk", ArtifactId: "mapbox-sdk-services", Version: "6.15.0"},
 		},
 	},
@@ -1788,7 +1788,7 @@ var dependencyCatalog = map[string]CatalogEntry{
 		Name:        "GraphHopper",
 		Description: "Open-source routing engine (Directions API)",
 		Category:    "Maps",
-		Dependencies: []maven.Dependency{
+		Dependencies: []buildtool.Dependency{
 			{GroupId: "com.graphhopper", ArtifactId: "graphhopper-core", Version: "8.0"},
 		},
 	},
@@ -1796,7 +1796,7 @@ var dependencyCatalog = map[string]CatalogEntry{
 		Name:        "H3",
 		Description: "Uber's Hexagonal Hierarchical Spatial Index",
 		Category:    "Maps",
-		Dependencies: []maven.Dependency{
+		Dependencies: []buildtool.Dependency{
 			{GroupId: "com.uber", ArtifactId: "h3", Version: "4.1.1"},
 		},
 	},
@@ -1804,7 +1804,7 @@ var dependencyCatalog = map[string]CatalogEntry{
 		Name:        "JTS Topology Suite",
 		Description: "Geometry and spatial operations",
 		Category:    "Maps",
-		Dependencies: []maven.Dependency{
+		Dependencies: []buildtool.Dependency{
 			{GroupId: "org.locationtech.jts", ArtifactId: "jts-core", Version: "1.19.0"},
 		},
 	},
@@ -1812,7 +1812,7 @@ var dependencyCatalog = map[string]CatalogEntry{
 		Name:        "GeoTools",
 		Description: "Geospatial data tools (Shapefiles, CRS)",
 		Category:    "Maps",
-		Dependencies: []maven.Dependency{
+		Dependencies: []buildtool.Dependency{
 			{GroupId: "org.geotools", ArtifactId: "gt-main", Version: "30.2"},
 		},
 	},
@@ -1820,7 +1820,7 @@ var dependencyCatalog = map[string]CatalogEntry{
 		Name:        "IP2Location",
 		Description: "IP Address to Geo-location lookup",
 		Category:    "Maps",
-		Dependencies: []maven.Dependency{
+		Dependencies: []buildtool.Dependency{
 			{GroupId: "com.ip2location", ArtifactId: "ip2location-java", Version: "8.11.1"},
 		},
 	},
@@ -1828,7 +1828,7 @@ var dependencyCatalog = map[string]CatalogEntry{
 		Name:        "MaxMind GeoIP2",
 		Description: "MaxMind GeoIP2 Database integration",
 		Category:    "Maps",
-		Dependencies: []maven.Dependency{
+		Dependencies: []buildtool.Dependency{
 			{GroupId: "com.maxmind.geoip2", ArtifactId: "geoip2", Version: "4.2.0"},
 		},
 	},
@@ -1840,7 +1840,7 @@ var dependencyCatalog = map[string]CatalogEntry{
 		Name:        "FFmpeg",
 		Description: "FFmpeg wrapper for video/audio processing",
 		Category:    "Media",
-		Dependencies: []maven.Dependency{
+		Dependencies: []buildtool.Dependency{
 			{GroupId: "net.bramp.ffmpeg", ArtifactId: "ffmpeg", Version: "0.8.0"},
 		},
 	},
@@ -1848,7 +1848,7 @@ var dependencyCatalog = map[string]CatalogEntry{
 		Name:        "Apache Tika",
 		Description: "Content detection and metadata extraction",
 		Category:    "Media",
-		Dependencies: []maven.Dependency{
+		Dependencies: []buildtool.Dependency{
 			{GroupId: "org.apache.tika", ArtifactId: "tika-core", Version: "2.9.1"},
 		},
 	},
@@ -1856,7 +1856,7 @@ var dependencyCatalog = map[string]CatalogEntry{
 		Name:        "Apache Batik",
 		Description: "SVG generation and manipulation",
 		Category:    "Media",
-		Dependencies: []maven.Dependency{
+		Dependencies: []buildtool.Dependency{
 			{GroupId: "org.apache.xmlgraphics", ArtifactId: "batik-transcoder", Version: "1.17"},
 		},
 	},
@@ -1864,7 +1864,7 @@ var dependencyCatalog = map[string]CatalogEntry{
 		Name:        "OpenCV",
 		Description: "Computer Vision library bindings",
 		Category:    "Media",
-		Dependencies: []maven.Dependency{
+		Dependencies: []buildtool.Dependency{
 			{GroupId: "org.openpnp", ArtifactId: "opencv", Version: "4.9.0-0"},
 		},
 	},
@@ -1872,7 +1872,7 @@ var dependencyCatalog = map[string]CatalogEntry{
 		Name:        "Metadata Extractor",
 		Description: "Read Exif/IPTC metadata from images",
 		Category:    "Media",
-		Dependencies: []maven.Dependency{
+		Dependencies: []buildtool.Dependency{
 			{GroupId: "com.drewnoakes", ArtifactId: "metadata-extractor", Version: "2.19.0"},
 		},
 	},
@@ -1880,7 +1880,7 @@ var dependencyCatalog = map[string]CatalogEntry{
 		Name:        "ImgScalr",
 		Description: "Simple image scaling library",
 		Category:    "Media",
-		Dependencies: []maven.Dependency{
+		Dependencies: []buildtool.Dependency{
 			{GroupId: "org.imgscalr", ArtifactId: "imgscalr-lib", Version: "4.2"},
 		},
 	},
@@ -1888,7 +1888,7 @@ var dependencyCatalog = map[string]CatalogEntry{
 		Name:        "Apache PDFBox",
 		Description: "Create and edit PDF documents",
 		Category:    "Media",
-		Dependencies: []maven.Dependency{
+		Dependencies: []buildtool.Dependency{
 			{GroupId: "org.apache.pdfbox", ArtifactId: "pdfbox", Version: "3.0.1"},
 		},
 	},
@@ -1896,7 +1896,7 @@ var dependencyCatalog = map[string]CatalogEntry{
 		Name:        "OpenHTMLtoPDF",
 		Description: "Convert HTML/CSS directly to PDF",
 		Category:    "Media",
-		Dependencies: []maven.Dependency{
+		Dependencies: []buildtool.Dependency{
 			{GroupId: "com.openhtmltopdf", ArtifactId: "openhtmltopdf-pdfbox", Version: "1.0.10"},
 		},
 	},
@@ -1904,7 +1904,7 @@ var dependencyCatalog = map[string]CatalogEntry{
 		Name:        "Docx4j",
 		Description: "Manipulate Word and PowerPoint files",
 		Category:    "Media",
-		Dependencies: []maven.Dependency{
+		Dependencies: []buildtool.Dependency{
 			{GroupId: "org.docx4j", ArtifactId: "docx4j-JAXB-ReferenceImpl", Version: "11.4.10"},
 		},
 	},
@@ -1912,7 +1912,7 @@ var dependencyCatalog = map[string]CatalogEntry{
 		Name:        "JXLS",
 		Description: "Excel templates with logic",
 		Category:    "Media",
-		Dependencies: []maven.Dependency{
+		Dependencies: []buildtool.Dependency{
 			{GroupId: "org.jxls", ArtifactId: "jxls-poi", Version: "3.0.0"},
 		},
 	},
@@ -1920,7 +1920,7 @@ var dependencyCatalog = map[string]CatalogEntry{
 		Name:        "Flying Saucer",
 		Description: "XHTML/CSS to PDF renderer",
 		Category:    "Media",
-		Dependencies: []maven.Dependency{
+		Dependencies: []buildtool.Dependency{
 			{GroupId: "org.xhtmlrenderer", ArtifactId: "flying-saucer-pdf", Version: "9.3.1"},
 		},
 	},
@@ -1928,7 +1928,7 @@ var dependencyCatalog = map[string]CatalogEntry{
 		Name:        "Barcode4J",
 		Description: "Barcode generation library",
 		Category:    "Media",
-		Dependencies: []maven.Dependency{
+		Dependencies: []buildtool.Dependency{
 			{GroupId: "net.sf.barcode4j", ArtifactId: "barcode4j", Version: "2.1"},
 		},
 	},
@@ -1940,7 +1940,7 @@ var dependencyCatalog = map[string]CatalogEntry{
 		Name:        "Web3j",
 		Description: "Ethereum Blockchain integration",
 		Category:    "Fintech",
-		Dependencies: []maven.Dependency{
+		Dependencies: []buildtool.Dependency{
 			{GroupId: "org.web3j", ArtifactId: "core", Version: "4.11.0"},
 		},
 	},
@@ -1948,7 +1948,7 @@ var dependencyCatalog = map[string]CatalogEntry{
 		Name:        "BitcoinJ",
 		Description: "Bitcoin protocol implementation",
 		Category:    "Fintech",
-		Dependencies: []maven.Dependency{
+		Dependencies: []buildtool.Dependency{
 			{GroupId: "org.bitcoinj", ArtifactId: "bitcoinj-core", Version: "0.16.2"},
 		},
 	},
@@ -1956,7 +1956,7 @@ var dependencyCatalog = map[string]CatalogEntry{
 		Name:        "Plaid",
 		Description: "Plaid SDK (Bank account linking)",
 		Category:    "Fintech",
-		Dependencies: []maven.Dependency{
+		Dependencies: []buildtool.Dependency{
 			{GroupId: "com.plaid", ArtifactId: "plaid-java", Version: "18.2.0"},
 		},
 	},
@@ -1964,7 +1964,7 @@ var dependencyCatalog = map[string]CatalogEntry{
 		Name:        "XChange",
 		Description: "Crypto exchange library (Binance, Coinbase)",
 		Category:    "Fintech",
-		Dependencies: []maven.Dependency{
+		Dependencies: []buildtool.Dependency{
 			{GroupId: "org.knowm.xchange", ArtifactId: "xchange-core", Version: "5.1.1"},
 		},
 	},
@@ -1972,7 +1972,7 @@ var dependencyCatalog = map[string]CatalogEntry{
 		Name:        "Stellar",
 		Description: "Stellar network SDK",
 		Category:    "Fintech",
-		Dependencies: []maven.Dependency{
+		Dependencies: []buildtool.Dependency{
 			{GroupId: "com.github.stellar", ArtifactId: "java-stellar-sdk", Version: "0.43.0"},
 		},
 	},
@@ -1980,7 +1980,7 @@ var dependencyCatalog = map[string]CatalogEntry{
 		Name:        "Braintree",
 		Description: "Braintree payment processing",
 		Category:    "Payments",
-		Dependencies: []maven.Dependency{
+		Dependencies: []buildtool.Dependency{
 			{GroupId: "com.braintreepayments.gateway", ArtifactId: "braintree-java", Version: "3.28.0"},
 		},
 	},
@@ -1988,7 +1988,7 @@ var dependencyCatalog = map[string]CatalogEntry{
 		Name:        "Square",
 		Description: "Square payment processing",
 		Category:    "Payments",
-		Dependencies: []maven.Dependency{
+		Dependencies: []buildtool.Dependency{
 			{GroupId: "com.squareup", ArtifactId: "square", Version: "35.1.0.20240320"},
 		},
 	},
@@ -1996,7 +1996,7 @@ var dependencyCatalog = map[string]CatalogEntry{
 		Name:        "Razorpay",
 		Description: "Razorpay payment gateway",
 		Category:    "Payments",
-		Dependencies: []maven.Dependency{
+		Dependencies: []buildtool.Dependency{
 			{GroupId: "com.razorpay", ArtifactId: "razorpay-java", Version: "1.4.6"},
 		},
 	},
@@ -2004,7 +2004,7 @@ var dependencyCatalog = map[string]CatalogEntry{
 		Name:        "Mollie",
 		Description: "Mollie payment gateway",
 		Category:    "Payments",
-		Dependencies: []maven.Dependency{
+		Dependencies: []buildtool.Dependency{
 			{GroupId: "com.mollie", ArtifactId: "mollie-api", Version: "3.4.0"},
 		},
 	},
@@ -2012,7 +2012,7 @@ var dependencyCatalog = map[string]CatalogEntry{
 		Name:        "Adyen",
 		Description: "Adyen payment platform",
 		Category:    "Payments",
-		Dependencies: []maven.Dependency{
+		Dependencies: []buildtool.Dependency{
 			{GroupId: "com.adyen", ArtifactId: "adyen-java-api-library", Version: "25.1.0"},
 		},
 	},
@@ -2024,7 +2024,7 @@ var dependencyCatalog = map[string]CatalogEntry{
 		Name:        "Facebook SDK",
 		Description: "Facebook Graph API integration",
 		Category:    "Social",
-		Dependencies: []maven.Dependency{
+		Dependencies: []buildtool.Dependency{
 			{GroupId: "com.facebook.business.sdk", ArtifactId: "facebook-java-business-sdk", Version: "19.0.3"},
 		},
 	},
@@ -2032,7 +2032,7 @@ var dependencyCatalog = map[string]CatalogEntry{
 		Name:        "Twitter API",
 		Description: "Twitter/X API v2 integration",
 		Category:    "Social",
-		Dependencies: []maven.Dependency{
+		Dependencies: []buildtool.Dependency{
 			{GroupId: "io.github.redouane59.twitter", ArtifactId: "twittered", Version: "2.23"},
 		},
 	},
@@ -2040,7 +2040,7 @@ var dependencyCatalog = map[string]CatalogEntry{
 		Name:        "LinkedIn API",
 		Description: "LinkedIn API integration",
 		Category:    "Social",
-		Dependencies: []maven.Dependency{
+		Dependencies: []buildtool.Dependency{
 			{GroupId: "com.linkedin.dex", ArtifactId: "api", Version: "3.0.0"},
 		},
 	},
@@ -2048,7 +2048,7 @@ var dependencyCatalog = map[string]CatalogEntry{
 		Name:        "Zoom",
 		Description: "Zoom API (Meeting generation)",
 		Category:    "Social",
-		Dependencies: []maven.Dependency{
+		Dependencies: []buildtool.Dependency{
 			{GroupId: "us.zoom", ArtifactId: "zoomsdk", Version: "5.15.7"},
 		},
 	},
@@ -2056,7 +2056,7 @@ var dependencyCatalog = map[string]CatalogEntry{
 		Name:        "Agora",
 		Description: "Agora SDK (Real-time Video/Audio)",
 		Category:    "Social",
-		Dependencies: []maven.Dependency{
+		Dependencies: []buildtool.Dependency{
 			{GroupId: "io.agora", ArtifactId: "authentication", Version: "2.0.0"},
 		},
 	},
@@ -2064,7 +2064,7 @@ var dependencyCatalog = map[string]CatalogEntry{
 		Name:        "Matrix",
 		Description: "Matrix.org protocol (Decentralized chat)",
 		Category:    "Social",
-		Dependencies: []maven.Dependency{
+		Dependencies: []buildtool.Dependency{
 			{GroupId: "io.github.ma1uta.matrix", ArtifactId: "client", Version: "0.14.0"},
 		},
 	},
@@ -2076,7 +2076,7 @@ var dependencyCatalog = map[string]CatalogEntry{
 		Name:        "Apache Spark",
 		Description: "Apache Spark Java API",
 		Category:    "Data",
-		Dependencies: []maven.Dependency{
+		Dependencies: []buildtool.Dependency{
 			{GroupId: "org.apache.spark", ArtifactId: "spark-core_2.13", Version: "3.5.0"},
 		},
 	},
@@ -2084,7 +2084,7 @@ var dependencyCatalog = map[string]CatalogEntry{
 		Name:        "Apache Flink",
 		Description: "Stream processing framework",
 		Category:    "Data",
-		Dependencies: []maven.Dependency{
+		Dependencies: []buildtool.Dependency{
 			{GroupId: "org.apache.flink", ArtifactId: "flink-java", Version: "1.18.1"},
 		},
 	},
@@ -2092,7 +2092,7 @@ var dependencyCatalog = map[string]CatalogEntry{
 		Name:        "Apache Hadoop",
 		Description: "Hadoop client libraries",
 		Category:    "Data",
-		Dependencies: []maven.Dependency{
+		Dependencies: []buildtool.Dependency{
 			{GroupId: "org.apache.hadoop", ArtifactId: "hadoop-client", Version: "3.3.6"},
 		},
 	},
@@ -2100,7 +2100,7 @@ var dependencyCatalog = map[string]CatalogEntry{
 		Name:        "Deep Java Library",
 		Description: "Amazon's ML toolkit for Java",
 		Category:    "AI",
-		Dependencies: []maven.Dependency{
+		Dependencies: []buildtool.Dependency{
 			{GroupId: "ai.djl", ArtifactId: "api", Version: "0.27.0"},
 		},
 	},
@@ -2108,7 +2108,7 @@ var dependencyCatalog = map[string]CatalogEntry{
 		Name:        "Weka",
 		Description: "Machine Learning algorithms collection",
 		Category:    "AI",
-		Dependencies: []maven.Dependency{
+		Dependencies: []buildtool.Dependency{
 			{GroupId: "nz.ac.waikato.cms.weka", ArtifactId: "weka-stable", Version: "3.8.6"},
 		},
 	},
@@ -2116,7 +2116,7 @@ var dependencyCatalog = map[string]CatalogEntry{
 		Name:        "Stanford CoreNLP",
 		Description: "Natural Language Processing",
 		Category:    "AI",
-		Dependencies: []maven.Dependency{
+		Dependencies: []buildtool.Dependency{
 			{GroupId: "edu.stanford.nlp", ArtifactId: "stanford-corenlp", Version: "4.5.6"},
 		},
 	},
@@ -2124,7 +2124,7 @@ var dependencyCatalog = map[string]CatalogEntry{
 		Name:        "LangChain4j",
 		Description: "LangChain for Java (LLM orchestration)",
 		Category:    "AI",
-		Dependencies: []maven.Dependency{
+		Dependencies: []buildtool.Dependency{
 			{GroupId: "dev.langchain4j", ArtifactId: "langchain4j", Version: "0.28.0"},
 		},
 	},
@@ -2132,7 +2132,7 @@ var dependencyCatalog = map[string]CatalogEntry{
 		Name:        "Pinecone",
 		Description: "Pinecone vector database client",
 		Category:    "AI",
-		Dependencies: []maven.Dependency{
+		Dependencies: []buildtool.Dependency{
 			{GroupId: "io.pinecone", ArtifactId: "pinecone-client", Version: "1.0.0"},
 		},
 	},
@@ -2140,7 +2140,7 @@ var dependencyCatalog = map[string]CatalogEntry{
 		Name:        "Weaviate",
 		Description: "Weaviate vector database client",
 		Category:    "AI",
-		Dependencies: []maven.Dependency{
+		Dependencies: []buildtool.Dependency{
 			{GroupId: "io.weaviate", ArtifactId: "client", Version: "4.5.1"},
 		},
 	},
@@ -2148,7 +2148,7 @@ var dependencyCatalog = map[string]CatalogEntry{
 		Name:        "Qdrant",
 		Description: "Qdrant vector database client",
 		Category:    "AI",
-		Dependencies: []maven.Dependency{
+		Dependencies: []buildtool.Dependency{
 			{GroupId: "io.qdrant", ArtifactId: "client", Version: "1.7.2"},
 		},
 	},
@@ -2156,7 +2156,7 @@ var dependencyCatalog = map[string]CatalogEntry{
 		Name:        "Chroma",
 		Description: "Chroma vector database client",
 		Category:    "AI",
-		Dependencies: []maven.Dependency{
+		Dependencies: []buildtool.Dependency{
 			{GroupId: "dev.langchain4j", ArtifactId: "langchain4j-chroma", Version: "0.28.0"},
 		},
 	},
@@ -2168,7 +2168,7 @@ var dependencyCatalog = map[string]CatalogEntry{
 		Name:        "Unleash",
 		Description: "Unleash feature toggle client",
 		Category:    "Feature Flags",
-		Dependencies: []maven.Dependency{
+		Dependencies: []buildtool.Dependency{
 			{GroupId: "io.getunleash", ArtifactId: "unleash-client-java", Version: "9.2.0"},
 		},
 	},
@@ -2176,7 +2176,7 @@ var dependencyCatalog = map[string]CatalogEntry{
 		Name:        "LaunchDarkly",
 		Description: "LaunchDarkly feature flags SDK",
 		Category:    "Feature Flags",
-		Dependencies: []maven.Dependency{
+		Dependencies: []buildtool.Dependency{
 			{GroupId: "com.launchdarkly", ArtifactId: "launchdarkly-java-server-sdk", Version: "7.2.5"},
 		},
 	},
@@ -2184,7 +2184,7 @@ var dependencyCatalog = map[string]CatalogEntry{
 		Name:        "Flagsmith",
 		Description: "Flagsmith feature flags",
 		Category:    "Feature Flags",
-		Dependencies: []maven.Dependency{
+		Dependencies: []buildtool.Dependency{
 			{GroupId: "com.flagsmith", ArtifactId: "flagsmith-java-client", Version: "7.1.0"},
 		},
 	},
@@ -2192,7 +2192,7 @@ var dependencyCatalog = map[string]CatalogEntry{
 		Name:        "Togglz",
 		Description: "Feature Flags for Java (Spring)",
 		Category:    "Feature Flags",
-		Dependencies: []maven.Dependency{
+		Dependencies: []buildtool.Dependency{
 			{GroupId: "org.togglz", ArtifactId: "togglz-spring-boot-starter", Version: "4.4.0"},
 		},
 	},
@@ -2200,7 +2200,7 @@ var dependencyCatalog = map[string]CatalogEntry{
 		Name:        "FF4J",
 		Description: "Feature Flipping for Java",
 		Category:    "Feature Flags",
-		Dependencies: []maven.Dependency{
+		Dependencies: []buildtool.Dependency{
 			{GroupId: "org.ff4j", ArtifactId: "ff4j-spring-boot-starter", Version: "2.1"},
 		},
 	},
@@ -2212,7 +2212,7 @@ var dependencyCatalog = map[string]CatalogEntry{
 		Name:        "SuperTokens",
 		Description: "Open source auth provider",
 		Category:    "Security",
-		Dependencies: []maven.Dependency{
+		Dependencies: []buildtool.Dependency{
 			{GroupId: "io.supertokens", ArtifactId: "supertokens-plugin-interface", Version: "6.0.0"},
 		},
 	},
@@ -2220,7 +2220,7 @@ var dependencyCatalog = map[string]CatalogEntry{
 		Name:        "Ory Kratos",
 		Description: "Identity management client",
 		Category:    "Security",
-		Dependencies: []maven.Dependency{
+		Dependencies: []buildtool.Dependency{
 			{GroupId: "sh.ory.kratos", ArtifactId: "kratos-client", Version: "1.0.0"},
 		},
 	},
@@ -2228,7 +2228,7 @@ var dependencyCatalog = map[string]CatalogEntry{
 		Name:        "CAS Client",
 		Description: "Central Authentication Service client",
 		Category:    "Security",
-		Dependencies: []maven.Dependency{
+		Dependencies: []buildtool.Dependency{
 			{GroupId: "org.apereo.cas.client", ArtifactId: "cas-client-support-springboot", Version: "4.0.3"},
 		},
 	},
@@ -2236,7 +2236,7 @@ var dependencyCatalog = map[string]CatalogEntry{
 		Name:        "Spring Security SAML",
 		Description: "SAML authentication extension",
 		Category:    "Security",
-		Dependencies: []maven.Dependency{
+		Dependencies: []buildtool.Dependency{
 			{GroupId: "org.springframework.security", ArtifactId: "spring-security-saml2-service-provider"},
 		},
 	},
@@ -2244,7 +2244,7 @@ var dependencyCatalog = map[string]CatalogEntry{
 		Name:        "Spring Session",
 		Description: "Distributed session management",
 		Category:    "Security",
-		Dependencies: []maven.Dependency{
+		Dependencies: []buildtool.Dependency{
 			{GroupId: "org.springframework.session", ArtifactId: "spring-session-core"},
 		},
 	},
@@ -2252,7 +2252,7 @@ var dependencyCatalog = map[string]CatalogEntry{
 		Name:        "reCAPTCHA",
 		Description: "Google reCAPTCHA integration",
 		Category:    "Security",
-		Dependencies: []maven.Dependency{
+		Dependencies: []buildtool.Dependency{
 			{GroupId: "com.google.recaptcha", ArtifactId: "recaptcha", Version: "1.0.0"},
 		},
 	},
@@ -2264,7 +2264,7 @@ var dependencyCatalog = map[string]CatalogEntry{
 		Name:        "Spring Cloud Stream",
 		Description: "Event-driven framework (Kafka/RabbitMQ abstraction)",
 		Category:    "Microservices",
-		Dependencies: []maven.Dependency{
+		Dependencies: []buildtool.Dependency{
 			{GroupId: "org.springframework.cloud", ArtifactId: "spring-cloud-starter-stream-kafka"},
 		},
 	},
@@ -2272,7 +2272,7 @@ var dependencyCatalog = map[string]CatalogEntry{
 		Name:        "Spring Cloud Bus",
 		Description: "Broadcasts state changes across nodes",
 		Category:    "Microservices",
-		Dependencies: []maven.Dependency{
+		Dependencies: []buildtool.Dependency{
 			{GroupId: "org.springframework.cloud", ArtifactId: "spring-cloud-starter-bus-amqp"},
 		},
 	},
@@ -2280,7 +2280,7 @@ var dependencyCatalog = map[string]CatalogEntry{
 		Name:        "Spring Cloud Function",
 		Description: "Write once, run as Web/Lambda/Serverless",
 		Category:    "Microservices",
-		Dependencies: []maven.Dependency{
+		Dependencies: []buildtool.Dependency{
 			{GroupId: "org.springframework.cloud", ArtifactId: "spring-cloud-starter-function-web"},
 		},
 	},
@@ -2288,7 +2288,7 @@ var dependencyCatalog = map[string]CatalogEntry{
 		Name:        "Spring Retry",
 		Description: "Simple retry logic for operations",
 		Category:    "Microservices",
-		Dependencies: []maven.Dependency{
+		Dependencies: []buildtool.Dependency{
 			{GroupId: "org.springframework.retry", ArtifactId: "spring-retry"},
 		},
 	},
@@ -2296,7 +2296,7 @@ var dependencyCatalog = map[string]CatalogEntry{
 		Name:        "ShedLock",
 		Description: "Distributed lock for @Scheduled tasks",
 		Category:    "Microservices",
-		Dependencies: []maven.Dependency{
+		Dependencies: []buildtool.Dependency{
 			{GroupId: "net.javacrumbs.shedlock", ArtifactId: "shedlock-spring", Version: "5.10.2"},
 			{GroupId: "net.javacrumbs.shedlock", ArtifactId: "shedlock-provider-jdbc-template", Version: "5.10.2"},
 		},
@@ -2305,7 +2305,7 @@ var dependencyCatalog = map[string]CatalogEntry{
 		Name:        "Pact",
 		Description: "Consumer-Driven Contract testing",
 		Category:    "Testing",
-		Dependencies: []maven.Dependency{
+		Dependencies: []buildtool.Dependency{
 			{GroupId: "au.com.dius.pact.consumer", ArtifactId: "junit5", Version: "4.6.7", Scope: "test"},
 		},
 	},
@@ -2313,7 +2313,7 @@ var dependencyCatalog = map[string]CatalogEntry{
 		Name:        "Etcd",
 		Description: "Etcd client (distributed key-value store)",
 		Category:    "Microservices",
-		Dependencies: []maven.Dependency{
+		Dependencies: []buildtool.Dependency{
 			{GroupId: "io.etcd", ArtifactId: "jetcd-core", Version: "0.8.0"},
 		},
 	},
@@ -2321,7 +2321,7 @@ var dependencyCatalog = map[string]CatalogEntry{
 		Name:        "Apache Zookeeper",
 		Description: "Zookeeper client",
 		Category:    "Microservices",
-		Dependencies: []maven.Dependency{
+		Dependencies: []buildtool.Dependency{
 			{GroupId: "org.apache.curator", ArtifactId: "curator-framework", Version: "5.6.0"},
 		},
 	},
@@ -2329,7 +2329,7 @@ var dependencyCatalog = map[string]CatalogEntry{
 		Name:        "Dapr",
 		Description: "Dapr SDK (Distributed Application Runtime)",
 		Category:    "Microservices",
-		Dependencies: []maven.Dependency{
+		Dependencies: []buildtool.Dependency{
 			{GroupId: "io.dapr", ArtifactId: "dapr-sdk-springboot", Version: "1.11.0"},
 		},
 	},
@@ -2337,7 +2337,7 @@ var dependencyCatalog = map[string]CatalogEntry{
 		Name:        "gRPC Server",
 		Description: "gRPC server starter",
 		Category:    "Microservices",
-		Dependencies: []maven.Dependency{
+		Dependencies: []buildtool.Dependency{
 			{GroupId: "net.devh", ArtifactId: "grpc-server-spring-boot-starter", Version: "3.0.0.RELEASE"},
 		},
 	},
@@ -2349,7 +2349,7 @@ var dependencyCatalog = map[string]CatalogEntry{
 		Name:        "Spring Integration",
 		Description: "Enterprise Integration Patterns (EIP)",
 		Category:    "Integration",
-		Dependencies: []maven.Dependency{
+		Dependencies: []buildtool.Dependency{
 			{GroupId: "org.springframework.boot", ArtifactId: "spring-boot-starter-integration"},
 		},
 	},
@@ -2357,7 +2357,7 @@ var dependencyCatalog = map[string]CatalogEntry{
 		Name:        "Apache Camel",
 		Description: "Integration framework (Routing and mediation)",
 		Category:    "Integration",
-		Dependencies: []maven.Dependency{
+		Dependencies: []buildtool.Dependency{
 			{GroupId: "org.apache.camel.springboot", ArtifactId: "camel-spring-boot-starter", Version: "4.4.0"},
 		},
 	},
@@ -2365,7 +2365,7 @@ var dependencyCatalog = map[string]CatalogEntry{
 		Name:        "Spring Cloud Data Flow",
 		Description: "Orchestration for data microservices",
 		Category:    "Integration",
-		Dependencies: []maven.Dependency{
+		Dependencies: []buildtool.Dependency{
 			{GroupId: "org.springframework.cloud", ArtifactId: "spring-cloud-dataflow-rest-client", Version: "2.11.2"},
 		},
 	},
@@ -2373,7 +2373,7 @@ var dependencyCatalog = map[string]CatalogEntry{
 		Name:        "Spring Cloud Task",
 		Description: "Short-lived microservices (ephemeral tasks)",
 		Category:    "Integration",
-		Dependencies: []maven.Dependency{
+		Dependencies: []buildtool.Dependency{
 			{GroupId: "org.springframework.cloud", ArtifactId: "spring-cloud-starter-task"},
 		},
 	},
@@ -2385,7 +2385,7 @@ var dependencyCatalog = map[string]CatalogEntry{
 		Name:        "Eclipse Paho MQTT",
 		Description: "MQTT messaging client",
 		Category:    "IoT",
-		Dependencies: []maven.Dependency{
+		Dependencies: []buildtool.Dependency{
 			{GroupId: "org.eclipse.paho", ArtifactId: "org.eclipse.paho.client.mqttv3", Version: "1.2.5"},
 		},
 	},
@@ -2393,7 +2393,7 @@ var dependencyCatalog = map[string]CatalogEntry{
 		Name:        "Spring Integration MQTT",
 		Description: "Spring's MQTT integration",
 		Category:    "IoT",
-		Dependencies: []maven.Dependency{
+		Dependencies: []buildtool.Dependency{
 			{GroupId: "org.springframework.integration", ArtifactId: "spring-integration-mqtt"},
 		},
 	},
@@ -2401,7 +2401,7 @@ var dependencyCatalog = map[string]CatalogEntry{
 		Name:        "Californium CoAP",
 		Description: "CoAP for constrained devices",
 		Category:    "IoT",
-		Dependencies: []maven.Dependency{
+		Dependencies: []buildtool.Dependency{
 			{GroupId: "org.eclipse.californium", ArtifactId: "californium-core", Version: "3.10.0"},
 		},
 	},
@@ -2409,7 +2409,7 @@ var dependencyCatalog = map[string]CatalogEntry{
 		Name:        "Modbus",
 		Description: "Modbus protocol (Industrial automation)",
 		Category:    "IoT",
-		Dependencies: []maven.Dependency{
+		Dependencies: []buildtool.Dependency{
 			{GroupId: "com.ghgande", ArtifactId: "j2mod", Version: "3.2.1"},
 		},
 	},
@@ -2417,7 +2417,7 @@ var dependencyCatalog = map[string]CatalogEntry{
 		Name:        "Pi4J",
 		Description: "Raspberry Pi I/O control for Java",
 		Category:    "IoT",
-		Dependencies: []maven.Dependency{
+		Dependencies: []buildtool.Dependency{
 			{GroupId: "com.pi4j", ArtifactId: "pi4j-core", Version: "2.5.0"},
 		},
 	},
@@ -2429,7 +2429,7 @@ var dependencyCatalog = map[string]CatalogEntry{
 		Name:        "Tablesaw",
 		Description: "Java Dataframes (Pandas equivalent)",
 		Category:    "Data",
-		Dependencies: []maven.Dependency{
+		Dependencies: []buildtool.Dependency{
 			{GroupId: "tech.tablesaw", ArtifactId: "tablesaw-core", Version: "0.43.1"},
 		},
 	},
@@ -2437,7 +2437,7 @@ var dependencyCatalog = map[string]CatalogEntry{
 		Name:        "Apache Commons Math",
 		Description: "Math and statistics library",
 		Category:    "Data",
-		Dependencies: []maven.Dependency{
+		Dependencies: []buildtool.Dependency{
 			{GroupId: "org.apache.commons", ArtifactId: "commons-math3", Version: "3.6.1"},
 		},
 	},
@@ -2445,7 +2445,7 @@ var dependencyCatalog = map[string]CatalogEntry{
 		Name:        "ND4J",
 		Description: "N-Dimensional Arrays (NumPy equivalent)",
 		Category:    "Data",
-		Dependencies: []maven.Dependency{
+		Dependencies: []buildtool.Dependency{
 			{GroupId: "org.nd4j", ArtifactId: "nd4j-native-platform", Version: "1.0.0-M2.1"},
 		},
 	},
@@ -2453,7 +2453,7 @@ var dependencyCatalog = map[string]CatalogEntry{
 		Name:        "Joda-Money",
 		Description: "Currency and money handling",
 		Category:    "Data",
-		Dependencies: []maven.Dependency{
+		Dependencies: []buildtool.Dependency{
 			{GroupId: "org.joda", ArtifactId: "joda-money", Version: "1.0.4"},
 		},
 	},
@@ -2461,7 +2461,7 @@ var dependencyCatalog = map[string]CatalogEntry{
 		Name:        "JGraphT",
 		Description: "Graph theory data structures and algorithms",
 		Category:    "Data",
-		Dependencies: []maven.Dependency{
+		Dependencies: []buildtool.Dependency{
 			{GroupId: "org.jgrapht", ArtifactId: "jgrapht-core", Version: "1.5.2"},
 		},
 	},
@@ -2473,7 +2473,7 @@ var dependencyCatalog = map[string]CatalogEntry{
 		Name:        "Google Jib",
 		Description: "Build Docker images without Docker daemon",
 		Category:    "DevOps",
-		Dependencies: []maven.Dependency{
+		Dependencies: []buildtool.Dependency{
 			{GroupId: "com.google.cloud.tools", ArtifactId: "jib-core", Version: "0.27.0"},
 		},
 	},
@@ -2481,7 +2481,7 @@ var dependencyCatalog = map[string]CatalogEntry{
 		Name:        "Docker Java",
 		Description: "Java API for Docker Engine",
 		Category:    "DevOps",
-		Dependencies: []maven.Dependency{
+		Dependencies: []buildtool.Dependency{
 			{GroupId: "com.github.docker-java", ArtifactId: "docker-java-core", Version: "3.3.6"},
 		},
 	},
@@ -2489,7 +2489,7 @@ var dependencyCatalog = map[string]CatalogEntry{
 		Name:        "Kubernetes Client",
 		Description: "Official Kubernetes Java client",
 		Category:    "DevOps",
-		Dependencies: []maven.Dependency{
+		Dependencies: []buildtool.Dependency{
 			{GroupId: "io.kubernetes", ArtifactId: "client-java", Version: "20.0.0"},
 		},
 	},
@@ -2497,7 +2497,7 @@ var dependencyCatalog = map[string]CatalogEntry{
 		Name:        "Fabric8 Kubernetes",
 		Description: "Popular Kubernetes client",
 		Category:    "DevOps",
-		Dependencies: []maven.Dependency{
+		Dependencies: []buildtool.Dependency{
 			{GroupId: "io.fabric8", ArtifactId: "kubernetes-client", Version: "6.10.0"},
 		},
 	},
@@ -2509,7 +2509,7 @@ var dependencyCatalog = map[string]CatalogEntry{
 		Name:        "Selenium",
 		Description: "Browser automation framework",
 		Category:    "Testing",
-		Dependencies: []maven.Dependency{
+		Dependencies: []buildtool.Dependency{
 			{GroupId: "org.seleniumhq.selenium", ArtifactId: "selenium-java", Version: "4.18.1", Scope: "test"},
 		},
 	},
@@ -2517,7 +2517,7 @@ var dependencyCatalog = map[string]CatalogEntry{
 		Name:        "Selenide",
 		Description: "Concise UI tests (Selenium wrapper)",
 		Category:    "Testing",
-		Dependencies: []maven.Dependency{
+		Dependencies: []buildtool.Dependency{
 			{GroupId: "com.codeborne", ArtifactId: "selenide", Version: "7.2.1", Scope: "test"},
 		},
 	},
@@ -2525,7 +2525,7 @@ var dependencyCatalog = map[string]CatalogEntry{
 		Name:        "Playwright",
 		Description: "Microsoft Playwright browser automation",
 		Category:    "Testing",
-		Dependencies: []maven.Dependency{
+		Dependencies: []buildtool.Dependency{
 			{GroupId: "com.microsoft.playwright", ArtifactId: "playwright", Version: "1.41.2", Scope: "test"},
 		},
 	},
@@ -2533,7 +2533,7 @@ var dependencyCatalog = map[string]CatalogEntry{
 		Name:        "Cucumber",
 		Description: "BDD (Behavior Driven Development) testing",
 		Category:    "Testing",
-		Dependencies: []maven.Dependency{
+		Dependencies: []buildtool.Dependency{
 			{GroupId: "io.cucumber", ArtifactId: "cucumber-java", Version: "7.15.0", Scope: "test"},
 			{GroupId: "io.cucumber", ArtifactId: "cucumber-spring", Version: "7.15.0", Scope: "test"},
 		},
@@ -2542,7 +2542,7 @@ var dependencyCatalog = map[string]CatalogEntry{
 		Name:        "Hoverfly",
 		Description: "API simulation/virtualization",
 		Category:    "Testing",
-		Dependencies: []maven.Dependency{
+		Dependencies: []buildtool.Dependency{
 			{GroupId: "io.specto", ArtifactId: "hoverfly-java", Version: "0.18.1", Scope: "test"},
 		},
 	},
@@ -2554,7 +2554,7 @@ var dependencyCatalog = map[string]CatalogEntry{
 		Name:        "JaCoCo",
 		Description: "Java Code Coverage Library",
 		Category:    "Quality",
-		Dependencies: []maven.Dependency{
+		Dependencies: []buildtool.Dependency{
 			{GroupId: "org.jacoco", ArtifactId: "jacoco-maven-plugin", Version: "0.8.11"},
 		},
 	},
@@ -2562,7 +2562,7 @@ var dependencyCatalog = map[string]CatalogEntry{
 		Name:        "Checkstyle",
 		Description: "Coding standards enforcement",
 		Category:    "Quality",
-		Dependencies: []maven.Dependency{
+		Dependencies: []buildtool.Dependency{
 			{GroupId: "com.puppycrawl.tools", ArtifactId: "checkstyle", Version: "10.14.0"},
 		},
 	},
@@ -2570,7 +2570,7 @@ var dependencyCatalog = map[string]CatalogEntry{
 		Name:        "Spotless",
 		Description: "Auto-format code during build",
 		Category:    "Quality",
-		Dependencies: []maven.Dependency{
+		Dependencies: []buildtool.Dependency{
 			{GroupId: "com.diffplug.spotless", ArtifactId: "spotless-maven-plugin", Version: "2.43.0"},
 		},
 	},
@@ -2578,7 +2578,7 @@ var dependencyCatalog = map[string]CatalogEntry{
 		Name:        "PMD",
 		Description: "Source code analyzer",
 		Category:    "Quality",
-		Dependencies: []maven.Dependency{
+		Dependencies: []buildtool.Dependency{
 			{GroupId: "net.sourceforge.pmd", ArtifactId: "pmd-java", Version: "7.0.0"},
 		},
 	},
@@ -2586,7 +2586,7 @@ var dependencyCatalog = map[string]CatalogEntry{
 		Name:        "SonarQube Scanner",
 		Description: "SonarQube integration",
 		Category:    "Quality",
-		Dependencies: []maven.Dependency{
+		Dependencies: []buildtool.Dependency{
 			{GroupId: "org.sonarsource.scanner.maven", ArtifactId: "sonar-maven-plugin", Version: "3.10.0.2594"},
 		},
 	},
@@ -2598,7 +2598,7 @@ var dependencyCatalog = map[string]CatalogEntry{
 		Name:        "Caffeine",
 		Description: "High-performance local caching",
 		Category:    "Caching",
-		Dependencies: []maven.Dependency{
+		Dependencies: []buildtool.Dependency{
 			{GroupId: "com.github.ben-manes.caffeine", ArtifactId: "caffeine", Version: "3.1.8"},
 		},
 	},
@@ -2606,7 +2606,7 @@ var dependencyCatalog = map[string]CatalogEntry{
 		Name:        "Ehcache",
 		Description: "Robust enterprise caching",
 		Category:    "Caching",
-		Dependencies: []maven.Dependency{
+		Dependencies: []buildtool.Dependency{
 			{GroupId: "org.ehcache", ArtifactId: "ehcache", Version: "3.10.8"},
 		},
 	},
@@ -2614,7 +2614,7 @@ var dependencyCatalog = map[string]CatalogEntry{
 		Name:        "Hazelcast Jet",
 		Description: "Distributed stream processing",
 		Category:    "Caching",
-		Dependencies: []maven.Dependency{
+		Dependencies: []buildtool.Dependency{
 			{GroupId: "com.hazelcast.jet", ArtifactId: "hazelcast-jet", Version: "5.3"},
 		},
 	},
@@ -2622,7 +2622,7 @@ var dependencyCatalog = map[string]CatalogEntry{
 		Name:        "Infinispan",
 		Description: "Distributed in-memory data grid",
 		Category:    "Caching",
-		Dependencies: []maven.Dependency{
+		Dependencies: []buildtool.Dependency{
 			{GroupId: "org.infinispan", ArtifactId: "infinispan-spring-boot3-starter-embedded", Version: "15.0.0.Final"},
 		},
 	},
@@ -2634,7 +2634,7 @@ var dependencyCatalog = map[string]CatalogEntry{
 		Name:        "Rome",
 		Description: "RSS and Atom feed parser/generator",
 		Category:    "Content",
-		Dependencies: []maven.Dependency{
+		Dependencies: []buildtool.Dependency{
 			{GroupId: "com.rometools", ArtifactId: "rome", Version: "2.1.0"},
 		},
 	},
@@ -2642,7 +2642,7 @@ var dependencyCatalog = map[string]CatalogEntry{
 		Name:        "HtmlUnit",
 		Description: "Headless browser for scraping/testing",
 		Category:    "Content",
-		Dependencies: []maven.Dependency{
+		Dependencies: []buildtool.Dependency{
 			{GroupId: "org.htmlunit", ArtifactId: "htmlunit", Version: "4.0.0"},
 		},
 	},
@@ -2650,7 +2650,7 @@ var dependencyCatalog = map[string]CatalogEntry{
 		Name:        "Bliki",
 		Description: "Wikipedia syntax parser",
 		Category:    "Content",
-		Dependencies: []maven.Dependency{
+		Dependencies: []buildtool.Dependency{
 			{GroupId: "info.bliki.wiki", ArtifactId: "bliki-core", Version: "3.1.0"},
 		},
 	},
@@ -2658,7 +2658,7 @@ var dependencyCatalog = map[string]CatalogEntry{
 		Name:        "Emoji Java",
 		Description: "Emoji handling in strings",
 		Category:    "Content",
-		Dependencies: []maven.Dependency{
+		Dependencies: []buildtool.Dependency{
 			{GroupId: "com.vdurmont", ArtifactId: "emoji-java", Version: "5.1.1"},
 		},
 	},
@@ -2670,7 +2670,7 @@ var dependencyCatalog = map[string]CatalogEntry{
 		Name:        "Netty",
 		Description: "Async event-driven network framework",
 		Category:    "Networking",
-		Dependencies: []maven.Dependency{
+		Dependencies: []buildtool.Dependency{
 			{GroupId: "io.netty", ArtifactId: "netty-all", Version: "4.1.107.Final"},
 		},
 	},
@@ -2678,7 +2678,7 @@ var dependencyCatalog = map[string]CatalogEntry{
 		Name:        "Pcap4J",
 		Description: "Packet capture library",
 		Category:    "Networking",
-		Dependencies: []maven.Dependency{
+		Dependencies: []buildtool.Dependency{
 			{GroupId: "org.pcap4j", ArtifactId: "pcap4j-core", Version: "1.8.2"},
 		},
 	},
@@ -2686,7 +2686,7 @@ var dependencyCatalog = map[string]CatalogEntry{
 		Name:        "dnsjava",
 		Description: "DNS protocol implementation",
 		Category:    "Networking",
-		Dependencies: []maven.Dependency{
+		Dependencies: []buildtool.Dependency{
 			{GroupId: "dnsjava", ArtifactId: "dnsjava", Version: "3.5.3"},
 		},
 	},
@@ -2698,7 +2698,7 @@ var dependencyCatalog = map[string]CatalogEntry{
 		Name:        "SpringDoc",
 		Description: "OpenAPI 3 (Swagger) generation",
 		Category:    "API",
-		Dependencies: []maven.Dependency{
+		Dependencies: []buildtool.Dependency{
 			{GroupId: "org.springdoc", ArtifactId: "springdoc-openapi-starter-webmvc-ui", Version: "2.3.0"},
 		},
 	},
@@ -2706,7 +2706,7 @@ var dependencyCatalog = map[string]CatalogEntry{
 		Name:        "AsyncAPI",
 		Description: "Event-Driven API documentation",
 		Category:    "API",
-		Dependencies: []maven.Dependency{
+		Dependencies: []buildtool.Dependency{
 			{GroupId: "com.asyncapi", ArtifactId: "asyncapi-core", Version: "1.0.0-EAP"},
 		},
 	},
@@ -2714,7 +2714,7 @@ var dependencyCatalog = map[string]CatalogEntry{
 		Name:        "Netflix DGS",
 		Description: "Netflix Domain Graph Service (GraphQL)",
 		Category:    "API",
-		Dependencies: []maven.Dependency{
+		Dependencies: []buildtool.Dependency{
 			{GroupId: "com.netflix.graphql.dgs", ArtifactId: "graphql-dgs-spring-boot-starter", Version: "8.4.0"},
 		},
 	},
@@ -2722,7 +2722,7 @@ var dependencyCatalog = map[string]CatalogEntry{
 		Name:        "Avro Serializer",
 		Description: "Avro serialization for Kafka schemas",
 		Category:    "API",
-		Dependencies: []maven.Dependency{
+		Dependencies: []buildtool.Dependency{
 			{GroupId: "io.confluent", ArtifactId: "kafka-avro-serializer", Version: "7.6.0"},
 		},
 	},
@@ -2730,7 +2730,7 @@ var dependencyCatalog = map[string]CatalogEntry{
 		Name:        "JSON Schema",
 		Description: "JSON Schema validation",
 		Category:    "API",
-		Dependencies: []maven.Dependency{
+		Dependencies: []buildtool.Dependency{
 			{GroupId: "com.networknt", ArtifactId: "json-schema-validator", Version: "1.3.3"},
 		},
 	},
@@ -2742,7 +2742,7 @@ var dependencyCatalog = map[string]CatalogEntry{
 		Name:        "JobRunr",
 		Description: "Distributed background job processing",
 		Category:    "Scheduling",
-		Dependencies: []maven.Dependency{
+		Dependencies: []buildtool.Dependency{
 			{GroupId: "org.jobrunr", ArtifactId: "jobrunr-spring-boot-3-starter", Version: "7.1.0"},
 		},
 	},
@@ -2750,7 +2750,7 @@ var dependencyCatalog = map[string]CatalogEntry{
 		Name:        "DB Scheduler",
 		Description: "Persistent task scheduler",
 		Category:    "Scheduling",
-		Dependencies: []maven.Dependency{
+		Dependencies: []buildtool.Dependency{
 			{GroupId: "com.github.kagkarlsson", ArtifactId: "db-scheduler-spring-boot-starter", Version: "14.0.1"},
 		},
 	},
@@ -2762,7 +2762,7 @@ var dependencyCatalog = map[string]CatalogEntry{
 		Name:        "SQLite",
 		Description: "SQLite embedded database",
 		Category:    "SQL",
-		Dependencies: []maven.Dependency{
+		Dependencies: []buildtool.Dependency{
 			{GroupId: "org.xerial", ArtifactId: "sqlite-jdbc", Version: "3.45.1.0", Scope: "runtime"},
 		},
 	},
@@ -2770,7 +2770,7 @@ var dependencyCatalog = map[string]CatalogEntry{
 		Name:        "HSQLDB",
 		Description: "HyperSQL embedded database",
 		Category:    "SQL",
-		Dependencies: []maven.Dependency{
+		Dependencies: []buildtool.Dependency{
 			{GroupId: "org.hsqldb", ArtifactId: "hsqldb", Scope: "runtime"},
 		},
 	},
@@ -2778,7 +2778,7 @@ var dependencyCatalog = map[string]CatalogEntry{
 		Name:        "Apache Derby",
 		Description: "Apache Derby embedded database",
 		Category:    "SQL",
-		Dependencies: []maven.Dependency{
+		Dependencies: []buildtool.Dependency{
 			{GroupId: "org.apache.derby", ArtifactId: "derby", Version: "10.17.1.0", Scope: "runtime"},
 		},
 	},
@@ -2786,7 +2786,7 @@ var dependencyCatalog = map[string]CatalogEntry{
 		Name:        "DuckDB",
 		Description: "DuckDB analytical database",
 		Category:    "SQL",
-		Dependencies: []maven.Dependency{
+		Dependencies: []buildtool.Dependency{
 			{GroupId: "org.duckdb", ArtifactId: "duckdb_jdbc", Version: "0.10.0", Scope: "runtime"},
 		},
 	},
@@ -2794,7 +2794,7 @@ var dependencyCatalog = map[string]CatalogEntry{
 		Name:        "QuestDB",
 		Description: "QuestDB time-series database",
 		Category:    "SQL",
-		Dependencies: []maven.Dependency{
+		Dependencies: []buildtool.Dependency{
 			{GroupId: "org.questdb", ArtifactId: "questdb", Version: "7.4.0"},
 		},
 	},
@@ -2806,7 +2806,7 @@ var dependencyCatalog = map[string]CatalogEntry{
 		Name:        "Logback",
 		Description: "Logback logging framework",
 		Category:    "Logging",
-		Dependencies: []maven.Dependency{
+		Dependencies: []buildtool.Dependency{
 			{GroupId: "ch.qos.logback", ArtifactId: "logback-classic"},
 		},
 	},
@@ -2814,7 +2814,7 @@ var dependencyCatalog = map[string]CatalogEntry{
 		Name:        "Log4j2",
 		Description: "Apache Log4j 2 logging",
 		Category:    "Logging",
-		Dependencies: []maven.Dependency{
+		Dependencies: []buildtool.Dependency{
 			{GroupId: "org.springframework.boot", ArtifactId: "spring-boot-starter-log4j2"},
 		},
 	},
@@ -2822,7 +2822,7 @@ var dependencyCatalog = map[string]CatalogEntry{
 		Name:        "SLF4J",
 		Description: "Simple Logging Facade for Java",
 		Category:    "Logging",
-		Dependencies: []maven.Dependency{
+		Dependencies: []buildtool.Dependency{
 			{GroupId: "org.slf4j", ArtifactId: "slf4j-api"},
 		},
 	},
@@ -2834,7 +2834,7 @@ var dependencyCatalog = map[string]CatalogEntry{
 		Name:        "GraphQL Kickstart",
 		Description: "GraphQL Java Kickstart starter",
 		Category:    "API",
-		Dependencies: []maven.Dependency{
+		Dependencies: []buildtool.Dependency{
 			{GroupId: "com.graphql-java-kickstart", ArtifactId: "graphql-spring-boot-starter", Version: "15.1.0"},
 		},
 	},

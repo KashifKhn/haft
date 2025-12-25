@@ -7,9 +7,10 @@ import (
 	"regexp"
 	"strings"
 
+	"github.com/KashifKhn/haft/internal/buildtool"
 	"github.com/KashifKhn/haft/internal/generator"
 	"github.com/KashifKhn/haft/internal/logger"
-	"github.com/KashifKhn/haft/internal/maven"
+	_ "github.com/KashifKhn/haft/internal/maven"
 	"github.com/KashifKhn/haft/internal/tui/components"
 	"github.com/KashifKhn/haft/internal/tui/wizard"
 	tea "github.com/charmbracelet/bubbletea"
@@ -32,21 +33,21 @@ func DetectProjectConfig() (ComponentConfig, error) {
 		return cfg, err
 	}
 
-	parser := maven.NewParser()
-	pomPath, err := parser.FindPomXml(cwd)
+	fs := afero.NewOsFs()
+	result, err := buildtool.Detect(cwd, fs)
 	if err != nil {
 		return cfg, err
 	}
 
-	project, err := parser.Parse(pomPath)
+	project, err := result.Parser.Parse(result.FilePath)
 	if err != nil {
 		return cfg, err
 	}
 
-	cfg.BasePackage = parser.GetBasePackage(project)
-	cfg.HasLombok = parser.HasLombok(project)
-	cfg.HasJpa = parser.HasSpringDataJpa(project)
-	cfg.HasValidation = parser.HasValidation(project)
+	cfg.BasePackage = result.Parser.GetBasePackage(project)
+	cfg.HasLombok = result.Parser.HasLombok(project)
+	cfg.HasJpa = result.Parser.HasSpringDataJpa(project)
+	cfg.HasValidation = result.Parser.HasValidation(project)
 
 	return cfg, nil
 }
@@ -98,7 +99,7 @@ func buildComponentWizardSteps(cfg ComponentConfig, componentType string) ([]wiz
 		Default:     cfg.BasePackage,
 		Required:    true,
 		Validator:   ValidatePackageName,
-		HelpText:    "Base package for generated classes (auto-detected from pom.xml)",
+		HelpText:    "Base package for generated classes (auto-detected from build file)",
 	}))
 	keys = append(keys, "basePackage")
 

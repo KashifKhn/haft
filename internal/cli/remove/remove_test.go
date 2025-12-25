@@ -3,7 +3,7 @@ package remove
 import (
 	"testing"
 
-	"github.com/KashifKhn/haft/internal/maven"
+	"github.com/KashifKhn/haft/internal/buildtool"
 	"github.com/stretchr/testify/assert"
 )
 
@@ -19,13 +19,11 @@ func TestNewCommand(t *testing.T) {
 }
 
 func TestResolveInput(t *testing.T) {
-	project := &maven.Project{
-		Dependencies: &maven.Dependencies{
-			Dependency: []maven.Dependency{
-				{GroupId: "org.projectlombok", ArtifactId: "lombok"},
-				{GroupId: "org.springframework.boot", ArtifactId: "spring-boot-starter-web"},
-				{GroupId: "org.springframework.boot", ArtifactId: "spring-boot-starter-jpa"},
-			},
+	project := &buildtool.Project{
+		Dependencies: []buildtool.Dependency{
+			{GroupId: "org.projectlombok", ArtifactId: "lombok"},
+			{GroupId: "org.springframework.boot", ArtifactId: "spring-boot-starter-web"},
+			{GroupId: "org.springframework.boot", ArtifactId: "spring-boot-starter-jpa"},
 		},
 	}
 
@@ -77,7 +75,7 @@ func TestResolveInput(t *testing.T) {
 }
 
 func TestRemovePickerModel(t *testing.T) {
-	deps := []maven.Dependency{
+	deps := []buildtool.Dependency{
 		{GroupId: "org.projectlombok", ArtifactId: "lombok"},
 		{GroupId: "org.springframework.boot", ArtifactId: "spring-boot-starter-web"},
 	}
@@ -92,7 +90,7 @@ func TestRemovePickerModel(t *testing.T) {
 }
 
 func TestRemovePickerToggle(t *testing.T) {
-	deps := []maven.Dependency{
+	deps := []buildtool.Dependency{
 		{GroupId: "org.projectlombok", ArtifactId: "lombok"},
 	}
 
@@ -108,7 +106,7 @@ func TestRemovePickerToggle(t *testing.T) {
 }
 
 func TestRemovePickerSelectAll(t *testing.T) {
-	deps := []maven.Dependency{
+	deps := []buildtool.Dependency{
 		{GroupId: "org.projectlombok", ArtifactId: "lombok"},
 		{GroupId: "org.springframework.boot", ArtifactId: "spring-boot-starter-web"},
 	}
@@ -120,7 +118,7 @@ func TestRemovePickerSelectAll(t *testing.T) {
 }
 
 func TestRemovePickerSelectNone(t *testing.T) {
-	deps := []maven.Dependency{
+	deps := []buildtool.Dependency{
 		{GroupId: "org.projectlombok", ArtifactId: "lombok"},
 	}
 
@@ -134,7 +132,7 @@ func TestRemovePickerSelectNone(t *testing.T) {
 }
 
 func TestRemovePickerFilter(t *testing.T) {
-	deps := []maven.Dependency{
+	deps := []buildtool.Dependency{
 		{GroupId: "org.projectlombok", ArtifactId: "lombok"},
 		{GroupId: "org.springframework.boot", ArtifactId: "spring-boot-starter-web"},
 	}
@@ -151,7 +149,7 @@ func TestRemovePickerFilter(t *testing.T) {
 }
 
 func TestRemovePickerSelectedDeps(t *testing.T) {
-	deps := []maven.Dependency{
+	deps := []buildtool.Dependency{
 		{GroupId: "org.projectlombok", ArtifactId: "lombok"},
 		{GroupId: "org.springframework.boot", ArtifactId: "spring-boot-starter-web"},
 	}
@@ -165,7 +163,7 @@ func TestRemovePickerSelectedDeps(t *testing.T) {
 }
 
 func TestRemovePickerMoveCursor(t *testing.T) {
-	deps := []maven.Dependency{
+	deps := []buildtool.Dependency{
 		{GroupId: "org.projectlombok", ArtifactId: "lombok"},
 		{GroupId: "org.springframework.boot", ArtifactId: "spring-boot-starter-web"},
 		{GroupId: "org.springframework.boot", ArtifactId: "spring-boot-starter-jpa"},
