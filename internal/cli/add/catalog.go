@@ -276,6 +276,152 @@ var dependencyCatalog = map[string]CatalogEntry{
 			{GroupId: "org.springframework.boot", ArtifactId: "spring-boot-starter-quartz"},
 		},
 	},
+	"jwt": {
+		Name:        "JJWT (JSON Web Token)",
+		Description: "JWT creation and verification",
+		Category:    "Security",
+		Dependencies: []maven.Dependency{
+			{GroupId: "io.jsonwebtoken", ArtifactId: "jjwt-api", Version: "0.12.5"},
+			{GroupId: "io.jsonwebtoken", ArtifactId: "jjwt-impl", Version: "0.12.5", Scope: "runtime"},
+			{GroupId: "io.jsonwebtoken", ArtifactId: "jjwt-jackson", Version: "0.12.5", Scope: "runtime"},
+		},
+	},
+	"commons-lang": {
+		Name:        "Apache Commons Lang",
+		Description: "String manipulation and utilities",
+		Category:    "Developer Tools",
+		Dependencies: []maven.Dependency{
+			{GroupId: "org.apache.commons", ArtifactId: "commons-lang3", Version: "3.14.0"},
+		},
+	},
+	"commons-io": {
+		Name:        "Apache Commons IO",
+		Description: "IO utilities and file operations",
+		Category:    "I/O",
+		Dependencies: []maven.Dependency{
+			{GroupId: "commons-io", ArtifactId: "commons-io", Version: "2.15.1"},
+		},
+	},
+	"guava": {
+		Name:        "Google Guava",
+		Description: "Core libraries for collections and utilities",
+		Category:    "Developer Tools",
+		Dependencies: []maven.Dependency{
+			{GroupId: "com.google.guava", ArtifactId: "guava", Version: "33.0.0-jre"},
+		},
+	},
+	"modelmapper": {
+		Name:        "ModelMapper",
+		Description: "Object mapping made simple",
+		Category:    "Developer Tools",
+		Dependencies: []maven.Dependency{
+			{GroupId: "org.modelmapper", ArtifactId: "modelmapper", Version: "3.2.0"},
+		},
+	},
+	"jackson-datatype": {
+		Name:        "Jackson Java 8 Datatypes",
+		Description: "Java 8 date/time support for Jackson",
+		Category:    "I/O",
+		Dependencies: []maven.Dependency{
+			{GroupId: "com.fasterxml.jackson.datatype", ArtifactId: "jackson-datatype-jsr310"},
+		},
+	},
+	"feign": {
+		Name:        "Spring Cloud OpenFeign",
+		Description: "Declarative REST client",
+		Category:    "Web",
+		Dependencies: []maven.Dependency{
+			{GroupId: "org.springframework.cloud", ArtifactId: "spring-cloud-starter-openfeign"},
+		},
+	},
+	"resilience4j": {
+		Name:        "Resilience4j",
+		Description: "Fault tolerance library (circuit breaker)",
+		Category:    "Web",
+		Dependencies: []maven.Dependency{
+			{GroupId: "io.github.resilience4j", ArtifactId: "resilience4j-spring-boot3", Version: "2.2.0"},
+		},
+	},
+	"micrometer": {
+		Name:        "Micrometer Prometheus",
+		Description: "Prometheus metrics exporter",
+		Category:    "Ops",
+		Dependencies: []maven.Dependency{
+			{GroupId: "io.micrometer", ArtifactId: "micrometer-registry-prometheus"},
+		},
+	},
+	"cassandra": {
+		Name:        "Spring Data Cassandra",
+		Description: "Apache Cassandra database",
+		Category:    "NoSQL",
+		Dependencies: []maven.Dependency{
+			{GroupId: "org.springframework.boot", ArtifactId: "spring-boot-starter-data-cassandra"},
+		},
+	},
+	"neo4j": {
+		Name:        "Spring Data Neo4j",
+		Description: "Neo4j graph database",
+		Category:    "NoSQL",
+		Dependencies: []maven.Dependency{
+			{GroupId: "org.springframework.boot", ArtifactId: "spring-boot-starter-data-neo4j"},
+		},
+	},
+	"freemarker": {
+		Name:        "FreeMarker",
+		Description: "FreeMarker template engine",
+		Category:    "Template Engines",
+		Dependencies: []maven.Dependency{
+			{GroupId: "org.springframework.boot", ArtifactId: "spring-boot-starter-freemarker"},
+		},
+	},
+	"mustache": {
+		Name:        "Mustache",
+		Description: "Mustache template engine",
+		Category:    "Template Engines",
+		Dependencies: []maven.Dependency{
+			{GroupId: "org.springframework.boot", ArtifactId: "spring-boot-starter-mustache"},
+		},
+	},
+	"security-test": {
+		Name:        "Spring Security Test",
+		Description: "Testing utilities for Spring Security",
+		Category:    "Testing",
+		Dependencies: []maven.Dependency{
+			{GroupId: "org.springframework.security", ArtifactId: "spring-security-test", Scope: "test"},
+		},
+	},
+	"mockito": {
+		Name:        "Mockito",
+		Description: "Mocking framework for unit tests",
+		Category:    "Testing",
+		Dependencies: []maven.Dependency{
+			{GroupId: "org.mockito", ArtifactId: "mockito-core", Scope: "test"},
+		},
+	},
+	"restdocs": {
+		Name:        "Spring REST Docs",
+		Description: "Generate API documentation from tests",
+		Category:    "Testing",
+		Dependencies: []maven.Dependency{
+			{GroupId: "org.springframework.restdocs", ArtifactId: "spring-restdocs-mockmvc", Scope: "test"},
+		},
+	},
+	"hateoas": {
+		Name:        "Spring HATEOAS",
+		Description: "Hypermedia-driven REST APIs",
+		Category:    "Web",
+		Dependencies: []maven.Dependency{
+			{GroupId: "org.springframework.boot", ArtifactId: "spring-boot-starter-hateoas"},
+		},
+	},
+	"data-rest": {
+		Name:        "Spring Data REST",
+		Description: "Expose repositories as REST endpoints",
+		Category:    "Web",
+		Dependencies: []maven.Dependency{
+			{GroupId: "org.springframework.boot", ArtifactId: "spring-boot-starter-data-rest"},
+		},
+	},
 }
 
 func GetCatalogEntry(alias string) (CatalogEntry, bool) {

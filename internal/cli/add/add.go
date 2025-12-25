@@ -7,22 +7,32 @@ import (
 
 	"github.com/KashifKhn/haft/internal/logger"
 	"github.com/KashifKhn/haft/internal/maven"
+	"github.com/KashifKhn/haft/internal/tui/components"
+	tea "github.com/charmbracelet/bubbletea"
 	"github.com/spf13/cobra"
 )
 
 func NewCommand() *cobra.Command {
 	cmd := &cobra.Command{
-		Use:   "add <dependency> [dependencies...]",
+		Use:   "add [dependency...]",
 		Short: "Add dependencies to your project",
 		Long: `Add dependencies to an existing Spring Boot project.
 
 The add command modifies your pom.xml to add new dependencies. It supports:
+  - Interactive mode: haft add (opens search picker)
+  - Browse mode: haft add --browse (category browser)
   - Shortcuts: haft add lombok, haft add jpa
   - Maven coordinates: haft add org.example:my-lib
   - With version: haft add org.example:my-lib:1.0.0
 
-Dependencies are auto-detected from the catalog or parsed as Maven coordinates.`,
-		Example: `  # Add using shortcuts
+Dependencies are auto-detected from the catalog or verified against Maven Central.`,
+		Example: `  # Interactive search picker
+  haft add
+
+  # Browse by category
+  haft add --browse
+
+  # Add using shortcuts
   haft add lombok
   haft add jpa validation
 
@@ -41,6 +51,7 @@ Dependencies are auto-detected from the catalog or parsed as Maven coordinates.`
 	cmd.Flags().String("scope", "", "Dependency scope (compile, runtime, test, provided)")
 	cmd.Flags().String("version", "", "Override dependency version")
 	cmd.Flags().Bool("list", false, "List available dependency shortcuts")
+	cmd.Flags().BoolP("browse", "b", false, "Browse dependencies by category")
 
 	return cmd
 }
@@ -54,8 +65,14 @@ func runAdd(cmd *cobra.Command, args []string) error {
 		return nil
 	}
 
-	if len(args) == 0 {
-		return fmt.Errorf("at least one dependency is required\n\nUse 'haft add --list' to see available shortcuts")
+	browseFlag, _ := cmd.Flags().GetBool("browse")
+
+	if len(args) == 0 && !browseFlag {
+		return runInteractivePicker(cmd)
+	}
+
+	if browseFlag {
+		return runBrowser(cmd)
 	}
 
 	cwd, err := os.Getwd()
@@ -126,6 +143,108 @@ func runAdd(cmd *cobra.Command, args []string) error {
 	return nil
 }
 
+func runInteractivePicker(cmd *cobra.Command) error {
+	aliases, err := RunPicker()
+	if err != nil {
+		return err
+	}
+
+	if len(aliases) == 0 {
+		return nil
+	}
+
+	return runAdd(cmd, aliases)
+}
+
+func runBrowser(cmd *cobra.Command) error {
+	categories := buildBrowserCategories()
+	model := components.NewDepPicker(components.DepPickerConfig{
+		Label:      "Browse Dependencies",
+		Categories: categories,
+	})
+
+	p := tea.NewProgram(browserWrapper{model: model})
+	finalModel, err := p.Run()
+	if err != nil {
+		return fmt.Errorf("failed to run browser: %w", err)
+	}
+
+	wrapper := finalModel.(browserWrapper)
+	if wrapper.model.GoBack() || !wrapper.model.Submitted() {
+		return nil
+	}
+
+	aliases := wrapper.model.Values()
+	if len(aliases) == 0 {
+		return nil
+	}
+
+	return runAdd(cmd, aliases)
+}
+
+type browserWrapper struct {
+	model components.DepPickerModel
+}
+
+func (w browserWrapper) Init() tea.Cmd {
+	return w.model.Init()
+}
+
+func (w browserWrapper) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
+	switch msg := msg.(type) {
+	case tea.KeyMsg:
+		if msg.String() == "ctrl+c" {
+			return w, tea.Quit
+		}
+	}
+
+	newModel, cmd := w.model.Update(msg)
+	w.model = newModel
+
+	if w.model.Submitted() || w.model.GoBack() {
+		return w, tea.Quit
+	}
+
+	return w, cmd
+}
+
+func (w browserWrapper) View() string {
+	return w.model.View()
+}
+
+func buildBrowserCategories() []components.DepCategory {
+	catalogCategories := GetCatalogByCategory()
+	categoryOrder := []string{
+		"Web", "SQL", "NoSQL", "Security", "Messaging",
+		"I/O", "Template Engines", "Ops", "Developer Tools", "Testing",
+	}
+
+	var categories []components.DepCategory
+	for _, catName := range categoryOrder {
+		aliases, ok := catalogCategories[catName]
+		if !ok {
+			continue
+		}
+
+		var deps []components.DepItem
+		for _, alias := range aliases {
+			entry, _ := GetCatalogEntry(alias)
+			deps = append(deps, components.DepItem{
+				ID:          alias,
+				Name:        entry.Name,
+				Description: entry.Description,
+			})
+		}
+
+		categories = append(categories, components.DepCategory{
+			Name:         catName,
+			Dependencies: deps,
+		})
+	}
+
+	return categories
+}
+
 func resolveDependency(input string) ([]maven.Dependency, string, error) {
 	if entry, ok := GetCatalogEntry(input); ok {
 		return entry.Dependencies, entry.Name, nil
@@ -134,12 +253,33 @@ func resolveDependency(input string) ([]maven.Dependency, string, error) {
 	parts := strings.Split(input, ":")
 	switch len(parts) {
 	case 2:
-		return []maven.Dependency{{GroupId: parts[0], ArtifactId: parts[1]}}, "", nil
+		return verifyAndResolve(parts[0], parts[1], "")
 	case 3:
-		return []maven.Dependency{{GroupId: parts[0], ArtifactId: parts[1], Version: parts[2]}}, "", nil
+		return verifyAndResolve(parts[0], parts[1], parts[2])
 	default:
 		return nil, "", fmt.Errorf("unknown shortcut '%s'. Use 'haft add --list' or specify as groupId:artifactId", input)
 	}
+}
+
+func verifyAndResolve(groupId, artifactId, version string) ([]maven.Dependency, string, error) {
+	client := NewMavenClient()
+	artifact, err := client.VerifyDependency(groupId, artifactId)
+
+	if err != nil {
+		log := logger.Default()
+		log.Warning("Could not verify dependency on Maven Central", "error", err.Error())
+		return []maven.Dependency{{GroupId: groupId, ArtifactId: artifactId, Version: version}}, "", nil
+	}
+
+	if artifact == nil {
+		return nil, "", fmt.Errorf("dependency '%s:%s' not found on Maven Central", groupId, artifactId)
+	}
+
+	if version == "" && artifact.LatestVersion != "" {
+		version = artifact.LatestVersion
+	}
+
+	return []maven.Dependency{{GroupId: groupId, ArtifactId: artifactId, Version: version}}, "", nil
 }
 
 func formatDependency(dep maven.Dependency) string {
@@ -184,7 +324,9 @@ func printCatalog() {
 		fmt.Println()
 	}
 
-	fmt.Println("Usage: haft add <shortcut>")
+	fmt.Println("Usage: haft add                      (interactive picker)")
+	fmt.Println("       haft add --browse             (browse by category)")
+	fmt.Println("       haft add <shortcut>")
 	fmt.Println("       haft add <groupId:artifactId>")
 	fmt.Println("       haft add <groupId:artifactId:version>")
 }
