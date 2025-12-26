@@ -1,8 +1,9 @@
+
 <p align="center">
   <picture>
     <source media="(prefers-color-scheme: dark)" srcset="assets/logo-dark.png">
     <source media="(prefers-color-scheme: light)" srcset="assets/logo-light.png">
-    <img src="assets/logo-light.png" alt="Haft" width="320"/>
+    <img src="assets/logo-light.png" alt="Haft - Spring Boot CLI and Scaffolding Tool" width="320"/>
   </picture>
 </p>
 
@@ -24,6 +25,18 @@
 </p>
 
 ---
+# Haft - Interactive CLI for Spring Boot
+---
+<details>
+  <summary><strong>Table of Contents</strong></summary>
+  <ol>
+    <li><a href="#the-problem">The Problem</a></li>
+    <li><a href="#the-solution">The Solution</a></li>
+    <li><a href="#install">Installation</a></li>
+    <li><a href="#quick-start">Quick Start</a></li>
+    <li><a href="#features">Features</a></li>
+  </ol>
+</details>
 
 ## The Problem
 
@@ -49,7 +62,7 @@ Copy-paste from existing code. Fix the class names. Fix the imports. Miss someth
 haft generate resource User
 ```
 
-Done. All 8 files. Properly structured. Following your project's conventions.
+Done. Haft generates all 8 files (Entity, DTO, Repository, Mapper, Controller) instantly. Properly structured. Following your project's conventions.
 
 <p align="center">
   <img src="assets/demo.gif" alt="Haft Demo" width="700"/>
@@ -73,6 +86,7 @@ Done. All 8 files. Properly structured. Following your project's conventions.
 ```bash
 curl -fsSL https://raw.githubusercontent.com/KashifKhn/haft/main/install.sh | bash
 ```
+> **Note:** You can inspect the [install.sh](https://github.com/KashifKhn/haft/blob/main/install.sh) script before running it. We prioritize security and transparency.
 
 <details>
 <summary><strong>Linux</strong></summary>
@@ -272,9 +286,16 @@ haft add --list
 - [ ] IntelliJ plugin
 - [ ] Custom templates
 
+## Built With
+
+* **[Go](https://go.dev/)** - High-performance compiled binary.
+* **[Bubble Tea](https://github.com/charmbracelet/bubbletea)** - The TUI framework.
+* **[Cobra](https://github.com/spf13/cobra)** - CLI command structure.
+
 ## Contributing
 
 Contributions are welcome. See [CONTRIBUTING.md](CONTRIBUTING.md) for guidelines.
+
 
 ## License
 
