@@ -22,11 +22,10 @@ func newTestRootCmd() *cobra.Command {
 func TestNewCommand(t *testing.T) {
 	cmd := NewCommand()
 
-	assert.Equal(t, "completion [shell]", cmd.Use)
+	assert.Equal(t, "completion", cmd.Use)
 	assert.Equal(t, "Generate shell completion scripts", cmd.Short)
 	assert.NotEmpty(t, cmd.Long)
 	assert.NotEmpty(t, cmd.Example)
-	assert.Equal(t, []string{"bash", "zsh", "fish", "powershell"}, cmd.ValidArgs)
 }
 
 func TestCompletionSubcommands(t *testing.T) {
@@ -141,18 +140,25 @@ func TestPowershellSubcommand(t *testing.T) {
 
 func TestInvalidShell(t *testing.T) {
 	rootCmd := newTestRootCmd()
+	buf := new(bytes.Buffer)
+	rootCmd.SetOut(buf)
+	rootCmd.SetErr(buf)
 	rootCmd.SetArgs([]string{"completion", "invalid"})
 
 	err := rootCmd.Execute()
-	assert.Error(t, err)
+	assert.NoError(t, err)
+	output := buf.String()
+	assert.Contains(t, output, "Available Commands")
 }
 
 func TestNoArgs(t *testing.T) {
 	rootCmd := newTestRootCmd()
+	buf := new(bytes.Buffer)
+	rootCmd.SetOut(buf)
 	rootCmd.SetArgs([]string{"completion"})
 
 	err := rootCmd.Execute()
-	assert.Error(t, err)
+	assert.NoError(t, err)
 }
 
 func TestTooManyArgs(t *testing.T) {
