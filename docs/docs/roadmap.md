@@ -82,6 +82,14 @@ This page tracks the development progress of Haft.
   - [x] Fish completion
   - [x] PowerShell completion
 
+- [x] **Development Commands** (`haft dev`)
+  - [x] `haft dev serve` — Start with hot-reload
+  - [x] `haft dev build` — Build project
+  - [x] `haft dev test` — Run tests
+  - [x] `haft dev clean` — Clean artifacts
+  - [x] Auto-detect Maven/Gradle
+  - [x] Wrapper support (mvnw/gradlew)
+
 ### Planned Features
 
 - [ ] **Custom Templates**
@@ -143,6 +151,11 @@ See [Contributing](/docs/contributing) for guidelines.
 
 ### v0.3.0 (Current)
 
+- Feature: `haft dev` command for development workflow
+- Feature: `haft dev serve` — Start application with hot-reload
+- Feature: `haft dev build` — Build project with profiles
+- Feature: `haft dev test` — Run tests with filtering
+- Feature: `haft dev clean` — Clean build artifacts
 - Feature: `haft completion` command for shell completions
 - Feature: Bash completion support
 - Feature: Zsh completion support
