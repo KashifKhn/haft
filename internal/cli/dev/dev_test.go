@@ -9,15 +9,6 @@ import (
 	"github.com/stretchr/testify/require"
 )
 
-func newTestRootCmd() *cobra.Command {
-	rootCmd := &cobra.Command{
-		Use:   "haft",
-		Short: "Test root command",
-	}
-	rootCmd.AddCommand(NewCommand())
-	return rootCmd
-}
-
 func TestNewCommand(t *testing.T) {
 	cmd := NewCommand()
 

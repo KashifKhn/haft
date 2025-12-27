@@ -192,7 +192,7 @@ public class ProductDTO {
 	}
 
 	for path, content := range files {
-		dir := path[:len(path)-len(path[len(path)-len(getFileName(path)):len(path)])-1]
+		dir := path[:len(path)-len(path[len(path)-len(getFileName(path)):])-1]
 		require.NoError(t, fs.MkdirAll(dir, 0755))
 		require.NoError(t, afero.WriteFile(fs, path, []byte(content), 0644))
 	}
@@ -356,7 +356,7 @@ public class AppConfig {
 	}
 
 	for path, content := range files {
-		dir := path[:len(path)-len(path[len(path)-len(getFileName(path)):len(path)])-1]
+		dir := path[:len(path)-len(path[len(path)-len(getFileName(path)):])-1]
 		require.NoError(t, fs.MkdirAll(dir, 0755))
 		require.NoError(t, afero.WriteFile(fs, path, []byte(content), 0644))
 	}
@@ -420,7 +420,7 @@ public interface UserRepository extends JpaRepository<User, Long> {
 	}
 
 	for path, content := range files {
-		dir := path[:len(path)-len(path[len(path)-len(getFileName(path)):len(path)])-1]
+		dir := path[:len(path)-len(path[len(path)-len(getFileName(path)):])-1]
 		require.NoError(t, fs.MkdirAll(dir, 0755))
 		require.NoError(t, afero.WriteFile(fs, path, []byte(content), 0644))
 	}
