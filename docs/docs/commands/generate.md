@@ -25,6 +25,7 @@ haft g <subcommand> [name] [flags]  # alias
 | `haft generate repository` | `haft g repo` | Generate JPA repository interface |
 | `haft generate entity` | `haft g e` | Generate JPA entity class |
 | `haft generate dto` | - | Generate Request and Response DTOs |
+| `haft generate exception` | `haft g ex` | Generate global exception handler |
 
 ## Smart Detection
 
@@ -531,6 +532,119 @@ import lombok.*;
 @Builder
 public class UserResponse {
 
+}
+```
+
+---
+
+## haft generate exception
+
+Generate a global exception handler with `@ControllerAdvice`.
+
+```bash
+# Generate exception handler
+haft generate exception
+haft g ex
+
+# Non-interactive mode
+haft generate exception --no-interactive
+
+# Override base package
+haft generate exception --package com.example.app
+```
+
+### Generated Files
+
+| File | Description |
+|------|-------------|
+| `GlobalExceptionHandler.java` | Central exception handler with `@ControllerAdvice` |
+| `ErrorResponse.java` | Standardized error response DTO |
+| `ResourceNotFoundException.java` | 404 Not Found exception |
+| `BadRequestException.java` | 400 Bad Request exception |
+| `ConflictException.java` | 409 Conflict exception |
+
+### Flags
+
+| Flag | Short | Description |
+|------|-------|-------------|
+| `--package` | `-p` | Override base package |
+| `--no-interactive` | | Skip interactive wizard |
+| `--refresh` | | Force re-scan project (ignore cached profile) |
+
+### File Placement by Architecture
+
+| Architecture | Package Location |
+|--------------|------------------|
+| **Layered** | `com.example.exception` |
+| **Feature** | `com.example.common.exception` |
+| **Hexagonal** | `com.example.infrastructure.exception` |
+| **Clean** | `com.example.infrastructure.exception` |
+
+### Example Output (GlobalExceptionHandler.java)
+
+```java
+package com.example.demo.exception;
+
+import org.springframework.http.HttpStatus;
+import org.springframework.http.ResponseEntity;
+import org.springframework.web.bind.annotation.ExceptionHandler;
+import org.springframework.web.bind.annotation.RestControllerAdvice;
+import org.springframework.web.context.request.WebRequest;
+import org.springframework.web.bind.MethodArgumentNotValidException;
+
+import java.time.LocalDateTime;
+
+@RestControllerAdvice
+public class GlobalExceptionHandler {
+
+    @ExceptionHandler(ResourceNotFoundException.class)
+    public ResponseEntity<ErrorResponse> handleResourceNotFoundException(
+            ResourceNotFoundException ex, WebRequest request) {
+        ErrorResponse error = new ErrorResponse(
+                HttpStatus.NOT_FOUND.value(),
+                ex.getMessage(),
+                request.getDescription(false),
+                LocalDateTime.now()
+        );
+        return new ResponseEntity<>(error, HttpStatus.NOT_FOUND);
+    }
+
+    @ExceptionHandler(BadRequestException.class)
+    public ResponseEntity<ErrorResponse> handleBadRequestException(
+            BadRequestException ex, WebRequest request) {
+        ErrorResponse error = new ErrorResponse(
+                HttpStatus.BAD_REQUEST.value(),
+                ex.getMessage(),
+                request.getDescription(false),
+                LocalDateTime.now()
+        );
+        return new ResponseEntity<>(error, HttpStatus.BAD_REQUEST);
+    }
+
+    // ... more handlers
+}
+```
+
+### Example Usage in Service
+
+```java
+@Service
+public class UserServiceImpl implements UserService {
+
+    @Override
+    public UserResponse findById(Long id) {
+        return userRepository.findById(id)
+            .map(userMapper::toResponse)
+            .orElseThrow(() -> new ResourceNotFoundException("User", "id", id));
+    }
+
+    @Override
+    public UserResponse create(UserRequest request) {
+        if (userRepository.existsByEmail(request.getEmail())) {
+            throw new ConflictException("User", "email", request.getEmail());
+        }
+        // ... create user
+    }
 }
 ```
 

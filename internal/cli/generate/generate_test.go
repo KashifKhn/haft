@@ -49,6 +49,7 @@ func TestAllSubcommandsExist(t *testing.T) {
 		"repository [name]": false,
 		"entity [name]":     false,
 		"dto [name]":        false,
+		"exception":         false,
 	}
 
 	for _, c := range commands {
@@ -144,6 +145,84 @@ func TestDtoCommandFlags(t *testing.T) {
 	assert.NotNil(t, noInteractiveFlag)
 	assert.NotNil(t, requestOnlyFlag)
 	assert.NotNil(t, responseOnlyFlag)
+}
+
+func TestExceptionCommandFlags(t *testing.T) {
+	cmd := newExceptionCommand()
+
+	assert.Equal(t, "exception", cmd.Use)
+	assert.Contains(t, cmd.Aliases, "ex")
+
+	packageFlag := cmd.Flags().Lookup("package")
+	noInteractiveFlag := cmd.Flags().Lookup("no-interactive")
+	refreshFlag := cmd.Flags().Lookup("refresh")
+
+	assert.NotNil(t, packageFlag)
+	assert.NotNil(t, noInteractiveFlag)
+	assert.NotNil(t, refreshFlag)
+}
+
+func TestGetExceptionPackage(t *testing.T) {
+	tests := []struct {
+		name         string
+		architecture detector.ArchitectureType
+		basePackage  string
+		expected     string
+	}{
+		{"layered", detector.ArchLayered, "com.example.app", "com.example.app.exception"},
+		{"feature", detector.ArchFeature, "com.example.app", "com.example.app.common.exception"},
+		{"hexagonal", detector.ArchHexagonal, "com.example.app", "com.example.app.infrastructure.exception"},
+		{"clean", detector.ArchClean, "com.example.app", "com.example.app.infrastructure.exception"},
+		{"flat", detector.ArchFlat, "com.example.app", "com.example.app.exception"},
+		{"modular", detector.ArchModular, "com.example.app", "com.example.app.exception"},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			profile := &detector.ProjectProfile{
+				Architecture: tt.architecture,
+				BasePackage:  tt.basePackage,
+			}
+			result := getExceptionPackage(profile)
+			assert.Equal(t, tt.expected, result)
+		})
+	}
+}
+
+func TestBuildExceptionTemplateData(t *testing.T) {
+	profile := &detector.ProjectProfile{
+		Architecture:    detector.ArchLayered,
+		BasePackage:     "com.example.app",
+		HasValidation:   true,
+		ValidationStyle: detector.ValidationJakarta,
+		Lombok:          detector.LombokProfile{Detected: true},
+	}
+
+	exceptionPackage := "com.example.app.exception"
+	data := buildExceptionTemplateData(profile, exceptionPackage)
+
+	assert.Equal(t, "com.example.app", data["BasePackage"])
+	assert.Equal(t, "com.example.app.exception", data["ExceptionPackage"])
+	assert.Equal(t, true, data["HasLombok"])
+	assert.Equal(t, true, data["HasValidation"])
+	assert.Equal(t, "jakarta.validation", data["ValidationImport"])
+	assert.Equal(t, "layered", data["Architecture"])
+}
+
+func TestBuildExceptionTemplateDataJavax(t *testing.T) {
+	profile := &detector.ProjectProfile{
+		Architecture:    detector.ArchLayered,
+		BasePackage:     "com.example.app",
+		HasValidation:   true,
+		ValidationStyle: detector.ValidationJavax,
+		Lombok:          detector.LombokProfile{Detected: false},
+	}
+
+	exceptionPackage := "com.example.app.exception"
+	data := buildExceptionTemplateData(profile, exceptionPackage)
+
+	assert.Equal(t, false, data["HasLombok"])
+	assert.Equal(t, "javax.validation", data["ValidationImport"])
 }
 
 func TestValidateComponentName(t *testing.T) {
@@ -906,7 +985,7 @@ func TestResourceConfigToComponentConfig(t *testing.T) {
 
 func TestSubcommandCount(t *testing.T) {
 	cmd := NewCommand()
-	assert.Equal(t, 6, len(cmd.Commands()), "Should have 6 subcommands: resource, controller, service, repository, entity, dto")
+	assert.Equal(t, 7, len(cmd.Commands()), "Should have 7 subcommands: resource, controller, service, repository, entity, dto, exception")
 }
 
 func TestGenerateCommandHasNoRunE(t *testing.T) {

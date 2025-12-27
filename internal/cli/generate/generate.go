@@ -34,7 +34,11 @@ All generators auto-detect your project configuration from your build file (pom.
   haft generate entity user
   haft g e product
 
-  haft generate dto order`,
+  haft generate dto order
+
+  # Generate exception handler
+  haft generate exception
+  haft g ex`,
 	}
 
 	cmd.AddCommand(newResourceCommand())
@@ -43,6 +47,7 @@ All generators auto-detect your project configuration from your build file (pom.
 	cmd.AddCommand(newRepositoryCommand())
 	cmd.AddCommand(newEntityCommand())
 	cmd.AddCommand(newDtoCommand())
+	cmd.AddCommand(newExceptionCommand())
 
 	return cmd
 }
