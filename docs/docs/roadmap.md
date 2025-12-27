@@ -110,11 +110,15 @@ This page tracks the development progress of Haft.
   - [x] `haft stats --cocomo` — COCOMO cost estimates
   - [x] JSON output support
 
-### Planned Features
-
-- [ ] **Custom Templates**
-  - [ ] Local template directory
-  - [ ] Project-level templates
+- [x] **Custom Templates**
+  - [x] Project-level templates (`.haft/templates/`)
+  - [x] Global user-level templates (`~/.haft/templates/`)
+  - [x] Template priority loading (project > global > embedded)
+  - [x] User-friendly `${var}` placeholder syntax
+  - [x] Comment-based conditionals (`@if/@else/@endif`)
+  - [x] `haft template init` — Copy templates for customization
+  - [x] `haft template list` — List all templates with sources
+  - [x] `haft template validate` — Validate template syntax
 
 ## Future: 0.5.0+
 
@@ -140,15 +144,13 @@ We believe developers should stay in their editor. The first integration will be
 
 ### Advanced Features
 
-- [ ] **Custom Templates**
-  - [ ] Local template directory
-  - [ ] Project-level templates
+- [ ] **Template Enhancements**
   - [ ] Template inheritance
-  - [ ] Template variables
+  - [ ] Additional template variables
 
 - [ ] **Additional Generators**
-  - [ ] Exception handler generation
-  - [ ] Configuration class generation
+  - [x] Exception handler generation (`haft generate exception`)
+  - [x] Configuration class generation (`haft generate config`)
   - [ ] Security configuration
 
 ## Contributing
@@ -165,6 +167,14 @@ See [Contributing](/docs/contributing) for guidelines.
 
 ### v0.4.0 (Current)
 
+- Feature: `haft generate config` — Generate configuration classes (CORS, OpenAPI, Jackson, Async, Cache, Auditing, WebMvc)
+- Feature: `haft generate exception` — Generate global exception handler with @ControllerAdvice
+- Feature: **Custom templates** — Override built-in templates with project or global custom templates
+- Feature: `haft template init` — Copy embedded templates for customization
+- Feature: `haft template list` — List all templates with source indicators
+- Feature: `haft template validate` — Validate custom template syntax
+- Feature: User-friendly `${var}` placeholder syntax for templates
+- Feature: Comment-based conditionals (`@if HasLombok`, `@else`, `@endif`)
 - Feature: **Intelligent architecture detection** — Auto-detects Layered, Feature, Hexagonal, Clean, Modular, and Flat architectures
 - Feature: **Profile caching** — First scan cached to `.haft/profile.yaml` for instant subsequent runs
 - Feature: **Test class generation** — Generates ServiceTest, ControllerTest, RepositoryTest, EntityTest

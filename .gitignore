@@ -43,4 +43,7 @@ n_docs/
 bin/
 /haft
 
+# Haft template directories (generated during tests)
+.haft/
+
 tui_demo

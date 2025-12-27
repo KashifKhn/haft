@@ -16,8 +16,9 @@ import (
 var templateFS embed.FS
 
 type Engine struct {
-	fs      afero.Fs
-	funcMap template.FuncMap
+	fs             afero.Fs
+	funcMap        template.FuncMap
+	templateLoader *TemplateLoader
 }
 
 func NewEngine(filesystem afero.Fs) *Engine {
@@ -26,6 +27,23 @@ func NewEngine(filesystem afero.Fs) *Engine {
 		funcMap: defaultFuncMap(),
 	}
 	return e
+}
+
+func NewEngineWithLoader(filesystem afero.Fs, projectRoot string) *Engine {
+	e := &Engine{
+		fs:             filesystem,
+		funcMap:        defaultFuncMap(),
+		templateLoader: NewTemplateLoader(filesystem, projectRoot),
+	}
+	return e
+}
+
+func (e *Engine) SetTemplateLoader(loader *TemplateLoader) {
+	e.templateLoader = loader
+}
+
+func (e *Engine) GetTemplateLoader() *TemplateLoader {
+	return e.templateLoader
 }
 
 func defaultFuncMap() template.FuncMap {
@@ -45,12 +63,29 @@ func defaultFuncMap() template.FuncMap {
 }
 
 func (e *Engine) RenderTemplate(name string, data any) (string, error) {
-	content, err := templateFS.ReadFile("templates/" + name)
-	if err != nil {
-		return "", err
+	var content []byte
+	var err error
+
+	if e.templateLoader != nil {
+		loaded, loadErr := e.templateLoader.LoadTemplate(name)
+		if loadErr == nil {
+			content = loaded.Content
+		} else {
+			content, err = templateFS.ReadFile("templates/" + name)
+			if err != nil {
+				return "", err
+			}
+		}
+	} else {
+		content, err = templateFS.ReadFile("templates/" + name)
+		if err != nil {
+			return "", err
+		}
 	}
 
-	tmpl, err := template.New(name).Funcs(e.funcMap).Parse(string(content))
+	preprocessed := PreprocessTemplate(string(content))
+
+	tmpl, err := template.New(name).Funcs(e.funcMap).Parse(preprocessed)
 	if err != nil {
 		return "", err
 	}
@@ -64,7 +99,9 @@ func (e *Engine) RenderTemplate(name string, data any) (string, error) {
 }
 
 func (e *Engine) RenderString(content string, data any) (string, error) {
-	tmpl, err := template.New("inline").Funcs(e.funcMap).Parse(content)
+	preprocessed := PreprocessTemplate(content)
+
+	tmpl, err := template.New("inline").Funcs(e.funcMap).Parse(preprocessed)
 	if err != nil {
 		return "", err
 	}

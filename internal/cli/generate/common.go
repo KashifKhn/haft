@@ -158,12 +158,13 @@ func ValidatePackageName(pkg string) error {
 func GenerateComponent(cfg ComponentConfig, templateName, subPackage, fileNamePattern string) (bool, error) {
 	log := logger.Default()
 	fs := afero.NewOsFs()
-	engine := generator.NewEngine(fs)
 
 	cwd, err := os.Getwd()
 	if err != nil {
 		return false, err
 	}
+
+	engine := generator.NewEngineWithLoader(fs, cwd)
 
 	srcPath := FindSourcePath(cwd)
 	if srcPath == "" {

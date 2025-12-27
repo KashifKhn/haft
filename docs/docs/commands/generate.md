@@ -25,6 +25,8 @@ haft g <subcommand> [name] [flags]  # alias
 | `haft generate repository` | `haft g repo` | Generate JPA repository interface |
 | `haft generate entity` | `haft g e` | Generate JPA entity class |
 | `haft generate dto` | - | Generate Request and Response DTOs |
+| `haft generate exception` | `haft g ex` | Generate global exception handler |
+| `haft generate config` | `haft g cfg` | Generate configuration classes |
 
 ## Smart Detection
 
@@ -128,6 +130,7 @@ haft g r Product
 | `--skip-entity` | | Skip entity generation |
 | `--skip-repository` | | Skip repository generation |
 | `--skip-tests` | | Skip test file generation |
+| `--legacy` | | Use legacy layered generation (ignores architecture detection) |
 | `--refresh` | | Force re-scan project (ignore cached profile) |
 
 ### Examples
@@ -150,6 +153,9 @@ haft generate resource Order --skip-tests
 
 # Force re-scan project profile
 haft generate resource Customer --refresh
+
+# Use legacy layered generation (ignores detected architecture)
+haft generate resource Invoice --legacy
 ```
 
 ---
@@ -532,6 +538,341 @@ public class UserResponse {
 
 ---
 
+## haft generate exception
+
+Generate a global exception handler with `@ControllerAdvice`.
+
+```bash
+# Interactive mode with optional exception picker
+haft generate exception
+haft g ex
+
+# Generate with all optional exceptions
+haft generate exception --all
+
+# Non-interactive mode (default exceptions only)
+haft generate exception --no-interactive
+
+# Override base package
+haft generate exception --package com.example.app
+```
+
+### Generated Files
+
+**Default exceptions (always generated):**
+
+| File | Status Code | Description |
+|------|-------------|-------------|
+| `GlobalExceptionHandler.java` | - | Central exception handler with `@ControllerAdvice` |
+| `ErrorResponse.java` | - | Standardized error response DTO |
+| `ResourceNotFoundException.java` | 404 | Resource not found |
+| `BadRequestException.java` | 400 | Bad request / invalid input |
+| `UnauthorizedException.java` | 401 | Authentication required |
+| `ForbiddenException.java` | 403 | Access denied |
+
+**Optional exceptions (select via interactive picker):**
+
+| File | Status Code | Description |
+|------|-------------|-------------|
+| `ConflictException.java` | 409 | Resource already exists |
+| `MethodNotAllowedException.java` | 405 | HTTP method not supported |
+| `GoneException.java` | 410 | Resource no longer available |
+| `UnsupportedMediaTypeException.java` | 415 | Wrong content type |
+| `UnprocessableEntityException.java` | 422 | Semantic errors in request |
+| `TooManyRequestsException.java` | 429 | Rate limiting |
+| `InternalServerErrorException.java` | 500 | Explicit server error handling |
+| `ServiceUnavailableException.java` | 503 | Service temporarily down |
+| `GatewayTimeoutException.java` | 504 | Upstream timeout |
+
+### Flags
+
+| Flag | Short | Description |
+|------|-------|-------------|
+| `--package` | `-p` | Override base package |
+| `--no-interactive` | | Skip interactive wizard (default exceptions only) |
+| `--all` | | Include all optional exceptions |
+| `--refresh` | | Force re-scan project (ignore cached profile) |
+
+### File Placement by Architecture
+
+| Architecture | Package Location |
+|--------------|------------------|
+| **Layered** | `com.example.exception` |
+| **Feature** | `com.example.common.exception` |
+| **Hexagonal** | `com.example.infrastructure.exception` |
+| **Clean** | `com.example.infrastructure.exception` |
+
+### Example Output (GlobalExceptionHandler.java)
+
+```java
+package com.example.demo.exception;
+
+import org.springframework.http.HttpStatus;
+import org.springframework.http.ResponseEntity;
+import org.springframework.web.bind.annotation.ExceptionHandler;
+import org.springframework.web.bind.annotation.RestControllerAdvice;
+import org.springframework.web.context.request.WebRequest;
+import org.springframework.web.bind.MethodArgumentNotValidException;
+
+import java.time.LocalDateTime;
+
+@RestControllerAdvice
+public class GlobalExceptionHandler {
+
+    @ExceptionHandler(ResourceNotFoundException.class)
+    public ResponseEntity<ErrorResponse> handleResourceNotFoundException(
+            ResourceNotFoundException ex, WebRequest request) {
+        ErrorResponse error = new ErrorResponse(
+                HttpStatus.NOT_FOUND.value(),
+                ex.getMessage(),
+                request.getDescription(false),
+                LocalDateTime.now()
+        );
+        return new ResponseEntity<>(error, HttpStatus.NOT_FOUND);
+    }
+
+    @ExceptionHandler(BadRequestException.class)
+    public ResponseEntity<ErrorResponse> handleBadRequestException(
+            BadRequestException ex, WebRequest request) {
+        ErrorResponse error = new ErrorResponse(
+                HttpStatus.BAD_REQUEST.value(),
+                ex.getMessage(),
+                request.getDescription(false),
+                LocalDateTime.now()
+        );
+        return new ResponseEntity<>(error, HttpStatus.BAD_REQUEST);
+    }
+
+    // ... more handlers
+}
+```
+
+### Example Usage in Service
+
+```java
+@Service
+public class UserServiceImpl implements UserService {
+
+    @Override
+    public UserResponse findById(Long id) {
+        return userRepository.findById(id)
+            .map(userMapper::toResponse)
+            .orElseThrow(() -> new ResourceNotFoundException("User", "id", id));
+    }
+
+    @Override
+    public UserResponse create(UserRequest request) {
+        if (userRepository.existsByEmail(request.getEmail())) {
+            throw new ConflictException("User", "email", request.getEmail());
+        }
+        // ... create user
+    }
+}
+```
+
+---
+
+## haft generate config
+
+Generate common Spring Boot configuration classes.
+
+```bash
+# Interactive mode with configuration picker
+haft generate config
+haft g cfg
+
+# Generate all configurations
+haft generate config --all
+
+# Non-interactive mode (requires --all)
+haft generate config --all --no-interactive
+
+# Override base package
+haft generate config --package com.example.app
+```
+
+### Available Configurations
+
+| File | Description |
+|------|-------------|
+| `CorsConfig.java` | Cross-origin resource sharing setup |
+| `OpenApiConfig.java` | Swagger/OpenAPI 3.0 documentation |
+| `JacksonConfig.java` | JSON serialization settings |
+| `AsyncConfig.java` | Async/thread pool configuration |
+| `CacheConfig.java` | Spring Cache configuration |
+| `AuditingConfig.java` | JPA auditing (@CreatedDate, @LastModifiedDate) |
+| `WebMvcConfig.java` | Web MVC customization (resource handlers) |
+
+### Flags
+
+| Flag | Short | Description |
+|------|-------|-------------|
+| `--package` | `-p` | Override base package |
+| `--no-interactive` | | Skip interactive wizard (requires --all) |
+| `--all` | | Generate all configuration classes |
+| `--refresh` | | Force re-scan project (ignore cached profile) |
+
+### File Placement by Architecture
+
+| Architecture | Package Location |
+|--------------|------------------|
+| **Layered** | `com.example.config` |
+| **Feature** | `com.example.common.config` |
+| **Hexagonal** | `com.example.infrastructure.config` |
+| **Clean** | `com.example.infrastructure.config` |
+
+### Example Output (CorsConfig.java)
+
+```java
+package com.example.demo.config;
+
+import org.springframework.context.annotation.Bean;
+import org.springframework.context.annotation.Configuration;
+import org.springframework.web.cors.CorsConfiguration;
+import org.springframework.web.cors.UrlBasedCorsConfigurationSource;
+import org.springframework.web.filter.CorsFilter;
+
+import java.util.Arrays;
+import java.util.List;
+
+@Configuration
+public class CorsConfig {
+
+    @Bean
+    public CorsFilter corsFilter() {
+        CorsConfiguration config = new CorsConfiguration();
+        config.setAllowCredentials(true);
+        config.setAllowedOrigins(List.of("http://localhost:3000", "http://localhost:4200"));
+        config.setAllowedHeaders(Arrays.asList(
+                "Origin", "Content-Type", "Accept", "Authorization",
+                "X-Requested-With", "Access-Control-Request-Method",
+                "Access-Control-Request-Headers"
+        ));
+        config.setAllowedMethods(Arrays.asList("GET", "POST", "PUT", "DELETE", "PATCH", "OPTIONS"));
+
+        UrlBasedCorsConfigurationSource source = new UrlBasedCorsConfigurationSource();
+        source.registerCorsConfiguration("/**", config);
+        return new CorsFilter(source);
+    }
+}
+```
+
+### Example Output (OpenApiConfig.java)
+
+```java
+package com.example.demo.config;
+
+import io.swagger.v3.oas.models.OpenAPI;
+import io.swagger.v3.oas.models.info.Contact;
+import io.swagger.v3.oas.models.info.Info;
+import io.swagger.v3.oas.models.info.License;
+import io.swagger.v3.oas.models.servers.Server;
+import org.springframework.beans.factory.annotation.Value;
+import org.springframework.context.annotation.Bean;
+import org.springframework.context.annotation.Configuration;
+
+import java.util.List;
+
+@Configuration
+public class OpenApiConfig {
+
+    @Value("${spring.application.name:Demo}")
+    private String applicationName;
+
+    @Bean
+    public OpenAPI customOpenAPI() {
+        Server devServer = new Server();
+        devServer.setUrl("http://localhost:8080");
+        devServer.setDescription("Development server");
+
+        Info info = new Info()
+                .title(applicationName + " API")
+                .version("1.0.0")
+                .description("API documentation for " + applicationName);
+
+        return new OpenAPI()
+                .info(info)
+                .servers(List.of(devServer));
+    }
+}
+```
+
+### Example Output (AsyncConfig.java)
+
+```java
+package com.example.demo.config;
+
+import org.springframework.context.annotation.Bean;
+import org.springframework.context.annotation.Configuration;
+import org.springframework.scheduling.annotation.EnableAsync;
+import org.springframework.scheduling.concurrent.ThreadPoolTaskExecutor;
+
+import java.util.concurrent.Executor;
+
+@Configuration
+@EnableAsync
+public class AsyncConfig {
+
+    @Bean(name = "taskExecutor")
+    public Executor taskExecutor() {
+        ThreadPoolTaskExecutor executor = new ThreadPoolTaskExecutor();
+        executor.setCorePoolSize(5);
+        executor.setMaxPoolSize(10);
+        executor.setQueueCapacity(25);
+        executor.setThreadNamePrefix("Async-");
+        executor.setWaitForTasksToCompleteOnShutdown(true);
+        executor.setAwaitTerminationSeconds(60);
+        executor.initialize();
+        return executor;
+    }
+}
+```
+
+### Example Output (AuditingConfig.java)
+
+```java
+package com.example.demo.config;
+
+import org.springframework.context.annotation.Bean;
+import org.springframework.context.annotation.Configuration;
+import org.springframework.data.domain.AuditorAware;
+import org.springframework.data.jpa.repository.config.EnableJpaAuditing;
+
+import java.util.Optional;
+
+@Configuration
+@EnableJpaAuditing(auditorAwareRef = "auditorProvider")
+public class AuditingConfig {
+
+    @Bean
+    public AuditorAware<String> auditorProvider() {
+        // TODO: Return current user from SecurityContext
+        return () -> Optional.of("system");
+    }
+}
+```
+
+:::tip
+Use `AuditingConfig` with `@CreatedDate`, `@LastModifiedDate`, `@CreatedBy`, and `@LastModifiedBy` annotations on your entities:
+
+```java
+@Entity
+@EntityListeners(AuditingEntityListener.class)
+public class User {
+    @CreatedDate
+    private LocalDateTime createdAt;
+    
+    @LastModifiedDate
+    private LocalDateTime updatedAt;
+    
+    @CreatedBy
+    private String createdBy;
+}
+```
+:::
+
+---
+
 ## File Safety
 
 Haft never overwrites existing files. If a file already exists, it will be skipped with a warning:
@@ -558,4 +899,5 @@ Names are automatically converted to PascalCase:
 
 - [haft init](/docs/commands/init) - Initialize a new project
 - [haft add](/docs/commands/add) - Add dependencies
+- [haft template](/docs/commands/template) - Customize templates
 - [Project Structure](/docs/guides/project-structure) - Where files are generated

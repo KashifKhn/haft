@@ -1,0 +1,24 @@
+package {{.ExceptionPackage}};
+
+import org.springframework.http.HttpStatus;
+import org.springframework.web.bind.annotation.ResponseStatus;
+
+@ResponseStatus(HttpStatus.GATEWAY_TIMEOUT)
+public class GatewayTimeoutException extends RuntimeException {
+
+    public GatewayTimeoutException(String message) {
+        super(message);
+    }
+
+    public GatewayTimeoutException(String message, Throwable cause) {
+        super(message, cause);
+    }
+
+    public GatewayTimeoutException(String serviceName) {
+        super(String.format("Request to '%s' timed out. Please try again later", serviceName));
+    }
+
+    public GatewayTimeoutException() {
+        super("The upstream server did not respond in time");
+    }
+}

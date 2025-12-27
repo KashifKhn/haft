@@ -386,7 +386,7 @@ Haft automatically detects and generates code for:
 - [ ] Neovim integration
 - [ ] VS Code extension
 - [ ] IntelliJ plugin
-- [ ] Custom templates
+- [x] Custom templates
 
 ## Built With
 

@@ -1,0 +1,85 @@
+package {{.ExceptionPackage}};
+{{if .HasLombok}}
+
+import lombok.AllArgsConstructor;
+import lombok.Builder;
+import lombok.Getter;
+import lombok.NoArgsConstructor;
+import lombok.Setter;
+{{end}}
+
+import java.time.LocalDateTime;
+import java.util.Map;
+
+{{if .HasLombok}}
+@Getter
+@Setter
+@NoArgsConstructor
+@AllArgsConstructor
+@Builder
+{{end}}
+public class ErrorResponse {
+
+    private int status;
+    private String message;
+    private String path;
+    private LocalDateTime timestamp;
+    private Map<String, String> errors;
+
+    public ErrorResponse(int status, String message, String path, LocalDateTime timestamp) {
+        this.status = status;
+        this.message = message;
+        this.path = path;
+        this.timestamp = timestamp;
+    }
+{{if not .HasLombok}}
+
+    public ErrorResponse(int status, String message, String path, LocalDateTime timestamp, Map<String, String> errors) {
+        this.status = status;
+        this.message = message;
+        this.path = path;
+        this.timestamp = timestamp;
+        this.errors = errors;
+    }
+
+    public int getStatus() {
+        return status;
+    }
+
+    public void setStatus(int status) {
+        this.status = status;
+    }
+
+    public String getMessage() {
+        return message;
+    }
+
+    public void setMessage(String message) {
+        this.message = message;
+    }
+
+    public String getPath() {
+        return path;
+    }
+
+    public void setPath(String path) {
+        this.path = path;
+    }
+
+    public LocalDateTime getTimestamp() {
+        return timestamp;
+    }
+
+    public void setTimestamp(LocalDateTime timestamp) {
+        this.timestamp = timestamp;
+    }
+
+    public Map<String, String> getErrors() {
+        return errors;
+    }
+
+    public void setErrors(Map<String, String> errors) {
+        this.errors = errors;
+    }
+{{end}}
+}
