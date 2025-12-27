@@ -67,7 +67,22 @@ When generating code, Haft reads your build file (`pom.xml` or `build.gradle`) t
 - **Validation** → Adds `@Valid` annotations
 - **Spring Data JPA** → Configures repositories correctly
 
-### 4. Architectural Consistency
+### 4. Intelligent Architecture Detection
+
+Haft scans your existing codebase and generates code that matches your patterns:
+
+| Detection | What it learns |
+|-----------|----------------|
+| **Architecture** | Layered, Feature, Hexagonal, Clean, Modular, Flat |
+| **Feature Style** | Flat (`user/UserController.java`) vs Nested (`user/controller/UserController.java`) |
+| **DTO Naming** | Request/Response vs DTO |
+| **ID Type** | Long vs UUID |
+| **Mapper** | MapStruct, ModelMapper, or manual |
+| **Base Entity** | Detects and extends your base class |
+
+Profile caching makes subsequent runs instant.
+
+### 5. Architectural Consistency
 
 Every generated file follows the same patterns:
 
@@ -76,7 +91,7 @@ Every generated file follows the same patterns:
 - DTOs for API boundaries
 - Exception handling
 
-### 5. CLI-First
+### 6. CLI-First
 
 Works in any terminal:
 
@@ -97,8 +112,11 @@ haft init my-app --group com.example --deps web,jpa --no-interactive
 | CLI interface | ❌ | ✅ |
 | Interactive TUI | ❌ | ✅ |
 | Resource generation | ❌ | ✅ |
+| Test generation | ❌ | ✅ |
 | Dependency management | ❌ | ✅ |
 | Smart detection | ❌ | ✅ |
+| Architecture detection | ❌ | ✅ |
+| Profile caching | ❌ | ✅ |
 | Works offline | ❌ | ✅ |
 
 ## Use Cases

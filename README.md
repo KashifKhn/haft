@@ -49,11 +49,45 @@ Copy-paste from existing code. Fix the class names. Fix the imports. Miss someth
 haft generate resource User
 ```
 
-Done. All 8 files. Properly structured. Following your project's conventions.
+Done. All 8 files. Properly structured. **Matching your project's existing patterns.**
 
 <p align="center">
   <img src="assets/demo.gif" alt="Haft Demo" width="700"/>
 </p>
+
+## Intelligent Code Generation
+
+Haft doesn't just generate boilerplate — it **learns from your codebase** and generates code that matches your existing conventions.
+
+### What Haft Detects Automatically
+
+| Detection | What It Does |
+|-----------|--------------|
+| **Architecture Pattern** | Layered, Feature/Package-by-Feature, Hexagonal, Clean, Modular |
+| **Feature Style** | Flat (`user/UserController.java`) vs Nested (`user/controller/UserController.java`) |
+| **DTO Naming** | `UserRequest`/`UserResponse` vs `UserDTO` |
+| **ID Type** | `Long` vs `UUID` with correct annotations |
+| **Lombok Usage** | `@Data`, `@Builder`, `@NoArgsConstructor`, `@AllArgsConstructor` |
+| **Mapper Type** | MapStruct, ModelMapper, or manual mapping |
+| **Base Entity** | Extends your `BaseEntity` if detected |
+| **Validation Style** | Jakarta (`jakarta.validation`) vs Javax (`javax.validation`) |
+| **Swagger/OpenAPI** | Adds `@Operation`, `@Tag` annotations if detected |
+| **Database Type** | JPA, MongoDB, Cassandra, R2DBC |
+
+### Profile Caching
+
+First run scans your project and caches the profile to `.haft/profile.yaml`. Subsequent runs are **instant**.
+
+```bash
+# First run (~200ms) - scans and caches
+haft generate resource User
+
+# Second run (~10ms) - uses cache
+haft generate resource Product
+
+# Force re-scan if needed
+haft generate resource Order --refresh
+```
 
 ## Why Haft?
 
@@ -62,6 +96,9 @@ Done. All 8 files. Properly structured. Following your project's conventions.
 | Project Bootstrap | ✅ | ✅ |
 | Works Offline | ❌ | ✅ |
 | Resource Generation | ❌ | ✅ |
+| **Intelligent Detection** | ❌ | ✅ |
+| **Architecture Aware** | ❌ | ✅ |
+| **Test Generation** | ❌ | ✅ |
 | Dependency Management | ❌ | ✅ |
 | Interactive TUI | ❌ | ✅ |
 | Lifecycle Companion | ❌ | ✅ |
@@ -177,37 +214,70 @@ An interactive wizard guides you through project setup:
 ? Dependencies: web, data-jpa, lombok, validation
 ```
 
-### Non-Interactive Mode
-
-Perfect for CI/CD and scripting:
+### Generate Resources (Smart Mode)
 
 ```bash
-haft init my-service \
-  --group com.example \
-  --java 21 \
-  --deps web,data-jpa,lombok \
-  --no-interactive
+cd my-app
+
+# Generate a complete CRUD resource
+# Haft automatically detects your architecture and conventions
+haft generate resource User
 ```
 
-### Generate Resources
+**Generated files match your project structure:**
+
+```
+# If your project uses Feature/Package-by-Feature (flat style):
+user/
+├── UserController.java
+├── UserService.java
+├── UserServiceImpl.java
+├── UserRepository.java
+├── User.java
+├── UserMapper.java
+└── dto/
+    ├── UserRequest.java
+    └── UserResponse.java
+
+# If your project uses Layered architecture:
+controller/UserController.java
+service/UserService.java
+service/impl/UserServiceImpl.java
+repository/UserRepository.java
+entity/User.java
+dto/UserRequest.java
+dto/UserResponse.java
+mapper/UserMapper.java
+```
+
+### Generate with Tests
 
 ```bash
-# Generate a complete CRUD resource (9 files)
-haft generate resource User   # haft g r User
+# Generate resource + unit/integration tests
+haft generate resource Product
 
-# Or generate individual components
+# Skip test generation
+haft generate resource Payment --skip-tests
+```
+
+**Generated test files:**
+
+```
+# ServiceTest - Unit tests with Mockito
+# ControllerTest - Integration tests with MockMvc
+# RepositoryTest - Integration tests with @DataJpaTest
+# EntityTest - Unit tests for entity
+```
+
+### Individual Generators
+
+```bash
 haft generate controller Product   # haft g co Product
 haft generate service Order        # haft g s Order
 haft generate repository Payment   # haft g repo Payment
 haft generate entity Customer      # haft g e Customer
 haft generate dto Invoice          # Request + Response DTOs
 ```
-
-All generators auto-detect your project configuration from `pom.xml` or `build.gradle`:
-- **Base package** - No need to specify, detected automatically
-- **Lombok** - Adds `@Getter`, `@Setter`, `@Builder` if present
-- **JPA** - Generates Entity/Repository with proper annotations
-- **Validation** - Adds `@Valid` to controller methods
 
 ### Manage Dependencies
 
@@ -218,30 +288,49 @@ haft add
 # Browse by category
 haft add --browse
 
-# Add using shortcuts
+# Add using shortcuts (330+ available)
 haft add lombok validation jwt
 
-# Add using Maven coordinates (auto-verified on Maven Central)
+# Add using Maven coordinates (auto-verified)
 haft add org.mapstruct:mapstruct
 
 # Remove dependencies
 haft remove lombok
 haft remove   # Interactive picker
+```
 
-# List available shortcuts (330+)
-haft add --list
+### Development Workflow
+
+```bash
+haft dev serve   # Start with hot-reload
+haft dev build   # Build project
+haft dev test    # Run tests
+haft dev clean   # Clean artifacts
+```
+
+### Project Analysis
+
+```bash
+haft info              # Project information
+haft info --loc        # With lines of code
+haft routes            # List REST endpoints
+haft routes --files    # With file locations
+haft stats             # Code statistics
+haft stats --cocomo    # COCOMO cost estimates
 ```
 
 ## Features
 
+- **Intelligent Detection** — Learns from your codebase patterns
+- **Architecture Aware** — Supports Layered, Feature, Hexagonal, Clean, Modular
+- **Test Generation** — Unit and integration tests with Mockito, MockMvc
+- **Profile Caching** — Instant subsequent runs with `.haft/profile.yaml`
 - **Interactive TUI** — Beautiful terminal interface with keyboard navigation
 - **Offline First** — No internet required, all metadata bundled
-- **Spring Initializr Parity** — All official starters and dependencies
 - **Smart Defaults** — Sensible defaults that match industry standards
 - **Back Navigation** — Made a mistake? Press `Esc` to go back
 - **Dependency Search** — Find any dependency with `/`
 - **Maven Central Verification** — Auto-verify and fetch latest versions
-- **Git Integration** — Initialize repository on project creation
 
 ## Keyboard Shortcuts
 
@@ -255,18 +344,31 @@ haft add --list
 | `Tab` | Next category |
 | `0-9` | Jump to category |
 
+## Supported Architectures
+
+Haft automatically detects and generates code for:
+
+| Architecture | Description |
+|--------------|-------------|
+| **Layered** | Traditional `controller/`, `service/`, `repository/`, `entity/` |
+| **Feature** | Package-by-feature with nested or flat structure |
+| **Hexagonal** | Ports & Adapters with `adapter/`, `application/`, `domain/` |
+| **Clean** | Clean Architecture with `usecase/`, `gateway/`, `infrastructure/` |
+| **Modular** | Modular monolith with `api/`, `internal/` |
+
 ## Roadmap
 
 - [x] Project initialization wizard
 - [x] All Spring Initializr dependencies  
-- [x] Maven support
-- [x] Offline operation
+- [x] Maven & Gradle support
+- [x] Intelligent architecture detection
+- [x] Test generation
+- [x] Profile caching
 - [x] `haft generate resource` — Full CRUD generation
-- [x] `haft generate controller|service|entity|repository|dto` — Individual generators
-- [x] `haft add` — Dependency management with TUI picker
-- [x] `haft remove` — Remove dependencies with TUI picker
+- [x] `haft add` / `haft remove` — Dependency management
+- [x] `haft dev` — Development commands
+- [x] `haft info` / `haft routes` / `haft stats` — Project analysis
 - [x] Shell completions (bash, zsh, fish, powershell)
-- [x] Gradle support (Groovy & Kotlin DSL)
 - [ ] Neovim integration
 - [ ] VS Code extension
 - [ ] IntelliJ plugin

@@ -8,7 +8,7 @@ description: Haft development roadmap and future plans
 
 This page tracks the development progress of Haft.
 
-## Current Version: 0.3.x
+## Current Version: 0.4.x
 
 ### Completed
 
@@ -54,6 +54,7 @@ This page tracks the development progress of Haft.
   - [x] Smart dependency detection from pom.xml and build.gradle
   - [x] Interactive TUI wizard
   - [x] File safety (skip existing files)
+  - [x] **Test class generation** (ServiceTest, ControllerTest, RepositoryTest, EntityTest)
 
 - [x] **Individual Generators**
   - [x] `haft generate controller` (alias: `co`)
@@ -72,9 +73,19 @@ This page tracks the development progress of Haft.
   - [x] `haft remove` — Interactive removal picker
   - [x] 330+ dependency shortcuts (jwt, guava, feign, etc.)
 
-## Upcoming: 0.3.0
-
-### Completed
+- [x] **Intelligent Architecture Detection**
+  - [x] Layered architecture detection
+  - [x] Feature-based architecture detection
+  - [x] Hexagonal architecture support
+  - [x] Clean architecture support
+  - [x] Modular monolith support
+  - [x] Flat architecture detection
+  - [x] Feature style detection (flat vs nested)
+  - [x] DTO naming detection (Request/Response vs DTO)
+  - [x] ID type detection (Long vs UUID)
+  - [x] Mapper detection (MapStruct, ModelMapper, manual)
+  - [x] Base entity inheritance detection
+  - [x] **Profile caching** for faster subsequent runs
 
 - [x] **Shell Completions**
   - [x] Bash completion
@@ -105,7 +116,7 @@ This page tracks the development progress of Haft.
   - [ ] Local template directory
   - [ ] Project-level templates
 
-## Future: 0.4.0+
+## Future: 0.5.0+
 
 ### Editor Integration
 
@@ -135,15 +146,9 @@ We believe developers should stay in their editor. The first integration will be
   - [ ] Template inheritance
   - [ ] Template variables
 
-- [ ] **Architecture Support**
-  - [ ] Hexagonal architecture
-  - [ ] Clean architecture
-  - [ ] Modular monolith
-
 - [ ] **Additional Generators**
   - [ ] Exception handler generation
   - [ ] Configuration class generation
-  - [ ] Test class generation
   - [ ] Security configuration
 
 ## Contributing
@@ -158,7 +163,20 @@ See [Contributing](/docs/contributing) for guidelines.
 
 ## Changelog
 
-### v0.3.0 (Current)
+### v0.4.0 (Current)
+
+- Feature: **Intelligent architecture detection** — Auto-detects Layered, Feature, Hexagonal, Clean, Modular, and Flat architectures
+- Feature: **Profile caching** — First scan cached to `.haft/profile.yaml` for instant subsequent runs
+- Feature: **Test class generation** — Generates ServiceTest, ControllerTest, RepositoryTest, EntityTest
+- Feature: `--skip-tests` flag to skip test generation
+- Feature: `--refresh` flag to force re-scan project profile
+- Feature: Feature style detection (flat vs nested)
+- Feature: DTO naming detection (Request/Response vs DTO)
+- Feature: ID type detection (Long vs UUID)
+- Feature: Mapper detection (MapStruct, ModelMapper, manual)
+- Feature: Base entity inheritance detection
+
+### v0.3.0
 
 - Feature: `haft stats` command — Code statistics using SCC
 - Feature: `haft stats --cocomo` — COCOMO cost estimates
