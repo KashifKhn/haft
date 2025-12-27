@@ -49,6 +49,12 @@ cd my-app
 haft generate resource User
 ```
 
+Haft's **intelligent detection engine** scans your project and generates code that matches your existing patterns:
+
+- **Architecture-aware** — Generates files in the correct location based on your project structure (Layered, Feature-based, Hexagonal, Clean, or Modular)
+- **Pattern-matching** — Uses your existing DTO naming (Request/Response vs DTO), ID types (Long vs UUID), and mapper style
+- **Profile caching** — First run scans your project, subsequent runs are instant
+
 This creates a complete CRUD structure:
 
 - `UserController.java` — REST endpoints
@@ -58,6 +64,8 @@ This creates a complete CRUD structure:
 - `User.java` — Entity
 - `UserRequest.java` / `UserResponse.java` — DTOs
 - `UserMapper.java` — Entity-DTO mapping
+- `UserServiceTest.java` — Unit tests with Mockito
+- `UserControllerTest.java` — Integration tests with MockMvc
 
 Or generate individual components:
 
@@ -142,6 +150,12 @@ haft init my-service \
 cd my-service
 haft generate resource User --no-interactive
 haft generate resource Product --no-interactive
+
+# Skip test generation
+haft generate resource Order --skip-tests --no-interactive
+
+# Force re-scan project (ignore cached profile)
+haft generate resource Payment --refresh --no-interactive
 
 # Or generate individual components
 haft generate controller Order --no-interactive

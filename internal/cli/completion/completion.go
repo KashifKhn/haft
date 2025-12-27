@@ -8,7 +8,7 @@ import (
 
 func NewCommand() *cobra.Command {
 	cmd := &cobra.Command{
-		Use:   "completion [shell]",
+		Use:   "completion",
 		Short: "Generate shell completion scripts",
 		Long: `Generate shell completion scripts for Haft.
 
@@ -58,11 +58,6 @@ PowerShell:
   # Write bash completion to file
   haft completion bash > /etc/bash_completion.d/haft`,
 		DisableFlagsInUseLine: true,
-		ValidArgs:             []string{"bash", "zsh", "fish", "powershell"},
-		Args:                  cobra.MatchAll(cobra.ExactArgs(1), cobra.OnlyValidArgs),
-		RunE: func(cmd *cobra.Command, args []string) error {
-			return runCompletion(cmd, args[0])
-		},
 	}
 
 	cmd.AddCommand(newBashCmd())
@@ -71,20 +66,6 @@ PowerShell:
 	cmd.AddCommand(newPowershellCmd())
 
 	return cmd
-}
-
-func runCompletion(cmd *cobra.Command, shell string) error {
-	switch shell {
-	case "bash":
-		return cmd.Root().GenBashCompletion(os.Stdout)
-	case "zsh":
-		return cmd.Root().GenZshCompletion(os.Stdout)
-	case "fish":
-		return cmd.Root().GenFishCompletion(os.Stdout, true)
-	case "powershell":
-		return cmd.Root().GenPowerShellCompletionWithDesc(os.Stdout)
-	}
-	return nil
 }
 
 func newBashCmd() *cobra.Command {

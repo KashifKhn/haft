@@ -1,0 +1,55 @@
+package {{.TestPackage}}.entity;
+
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.DisplayName;
+import org.junit.jupiter.api.Test;
+
+import {{.FeaturePackage}}.entity.{{.Name}};
+
+import static org.assertj.core.api.Assertions.assertThat;
+
+@DisplayName("{{.Name}} Entity Tests")
+class {{.Name}}Test {
+
+    private {{.Name}} {{.NameCamel}};
+
+    @BeforeEach
+    void setUp() {
+        {{.NameCamel}} = new {{.Name}}();
+    }
+
+    @Test
+    @DisplayName("Should create {{.NameLower}} instance")
+    void shouldCreateInstance() {
+        assertThat({{.NameCamel}}).isNotNull();
+    }
+{{if .HasLombok}}
+{{if .Lombok.UseBuilder}}
+
+    @Test
+    @DisplayName("Should create {{.NameLower}} with builder")
+    void shouldCreateWithBuilder() {
+        {{.Name}} built = {{.Name}}.builder().build();
+
+        assertThat(built).isNotNull();
+    }
+{{end}}
+{{end}}
+
+    @Test
+    @DisplayName("Should have correct equals and hashCode")
+    void shouldHaveCorrectEqualsAndHashCode() {
+        {{.Name}} another = new {{.Name}}();
+
+        assertThat({{.NameCamel}}).isNotEqualTo(another);
+        assertThat({{.NameCamel}}.hashCode()).isNotEqualTo(another.hashCode());
+    }
+
+    @Test
+    @DisplayName("Should have correct toString")
+    void shouldHaveCorrectToString() {
+        String toString = {{.NameCamel}}.toString();
+
+        assertThat(toString).contains("{{.Name}}");
+    }
+}

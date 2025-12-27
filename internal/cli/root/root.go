@@ -5,9 +5,13 @@ import (
 
 	addcmd "github.com/KashifKhn/haft/internal/cli/add"
 	completioncmd "github.com/KashifKhn/haft/internal/cli/completion"
+	devcmd "github.com/KashifKhn/haft/internal/cli/dev"
 	generatecmd "github.com/KashifKhn/haft/internal/cli/generate"
+	infocmd "github.com/KashifKhn/haft/internal/cli/info"
 	initcmd "github.com/KashifKhn/haft/internal/cli/init"
 	removecmd "github.com/KashifKhn/haft/internal/cli/remove"
+	routescmd "github.com/KashifKhn/haft/internal/cli/routes"
+	statscmd "github.com/KashifKhn/haft/internal/cli/stats"
 	"github.com/KashifKhn/haft/internal/logger"
 	"github.com/spf13/cobra"
 )
@@ -48,7 +52,18 @@ Features:
 
   # Remove dependencies
   haft remove h2
-  haft remove lombok validation`,
+  haft remove lombok validation
+
+  # Development workflow
+  haft dev serve          # Start with hot-reload
+  haft dev build          # Build project
+  haft dev test           # Run tests
+
+  # Project analysis
+  haft info               # Show project info
+  haft routes             # List REST endpoints
+  haft stats              # Show code statistics
+  haft stats --cocomo     # Include COCOMO estimates`,
 	PersistentPreRun: func(cmd *cobra.Command, args []string) {
 		initLogger()
 	},
@@ -79,6 +94,10 @@ func init() {
 	rootCmd.AddCommand(addcmd.NewCommand())
 	rootCmd.AddCommand(removecmd.NewCommand())
 	rootCmd.AddCommand(completioncmd.NewCommand())
+	rootCmd.AddCommand(devcmd.NewCommand())
+	rootCmd.AddCommand(infocmd.NewCommand())
+	rootCmd.AddCommand(routescmd.NewCommand())
+	rootCmd.AddCommand(statscmd.NewCommand())
 }
 
 var versionCmd = &cobra.Command{

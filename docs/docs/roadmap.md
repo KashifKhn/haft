@@ -8,7 +8,7 @@ description: Haft development roadmap and future plans
 
 This page tracks the development progress of Haft.
 
-## Current Version: 0.3.x
+## Current Version: 0.4.x
 
 ### Completed
 
@@ -54,6 +54,7 @@ This page tracks the development progress of Haft.
   - [x] Smart dependency detection from pom.xml and build.gradle
   - [x] Interactive TUI wizard
   - [x] File safety (skip existing files)
+  - [x] **Test class generation** (ServiceTest, ControllerTest, RepositoryTest, EntityTest)
 
 - [x] **Individual Generators**
   - [x] `haft generate controller` (alias: `co`)
@@ -72,9 +73,19 @@ This page tracks the development progress of Haft.
   - [x] `haft remove` — Interactive removal picker
   - [x] 330+ dependency shortcuts (jwt, guava, feign, etc.)
 
-## Upcoming: 0.3.0
-
-### Completed
+- [x] **Intelligent Architecture Detection**
+  - [x] Layered architecture detection
+  - [x] Feature-based architecture detection
+  - [x] Hexagonal architecture support
+  - [x] Clean architecture support
+  - [x] Modular monolith support
+  - [x] Flat architecture detection
+  - [x] Feature style detection (flat vs nested)
+  - [x] DTO naming detection (Request/Response vs DTO)
+  - [x] ID type detection (Long vs UUID)
+  - [x] Mapper detection (MapStruct, ModelMapper, manual)
+  - [x] Base entity inheritance detection
+  - [x] **Profile caching** for faster subsequent runs
 
 - [x] **Shell Completions**
   - [x] Bash completion
@@ -82,13 +93,30 @@ This page tracks the development progress of Haft.
   - [x] Fish completion
   - [x] PowerShell completion
 
+- [x] **Development Commands** (`haft dev`)
+  - [x] `haft dev serve` — Start with hot-reload
+  - [x] `haft dev build` — Build project
+  - [x] `haft dev test` — Run tests
+  - [x] `haft dev clean` — Clean artifacts
+  - [x] Auto-detect Maven/Gradle
+  - [x] Wrapper support (mvnw/gradlew)
+
+- [x] **Project Analysis**
+  - [x] `haft info` — Show project information
+  - [x] `haft info --loc` — Include lines of code summary
+  - [x] `haft routes` — List REST endpoints (Java & Kotlin)
+  - [x] `haft routes --files` — Show file locations
+  - [x] `haft stats` — Code statistics with language breakdown
+  - [x] `haft stats --cocomo` — COCOMO cost estimates
+  - [x] JSON output support
+
 ### Planned Features
 
 - [ ] **Custom Templates**
   - [ ] Local template directory
   - [ ] Project-level templates
 
-## Future: 0.4.0+
+## Future: 0.5.0+
 
 ### Editor Integration
 
@@ -118,15 +146,9 @@ We believe developers should stay in their editor. The first integration will be
   - [ ] Template inheritance
   - [ ] Template variables
 
-- [ ] **Architecture Support**
-  - [ ] Hexagonal architecture
-  - [ ] Clean architecture
-  - [ ] Modular monolith
-
 - [ ] **Additional Generators**
   - [ ] Exception handler generation
   - [ ] Configuration class generation
-  - [ ] Test class generation
   - [ ] Security configuration
 
 ## Contributing
@@ -141,13 +163,35 @@ See [Contributing](/docs/contributing) for guidelines.
 
 ## Changelog
 
-### v0.3.0 (Current)
+### v0.4.0 (Current)
 
+- Feature: **Intelligent architecture detection** — Auto-detects Layered, Feature, Hexagonal, Clean, Modular, and Flat architectures
+- Feature: **Profile caching** — First scan cached to `.haft/profile.yaml` for instant subsequent runs
+- Feature: **Test class generation** — Generates ServiceTest, ControllerTest, RepositoryTest, EntityTest
+- Feature: `--skip-tests` flag to skip test generation
+- Feature: `--refresh` flag to force re-scan project profile
+- Feature: Feature style detection (flat vs nested)
+- Feature: DTO naming detection (Request/Response vs DTO)
+- Feature: ID type detection (Long vs UUID)
+- Feature: Mapper detection (MapStruct, ModelMapper, manual)
+- Feature: Base entity inheritance detection
+
+### v0.3.0
+
+- Feature: `haft stats` command — Code statistics using SCC
+- Feature: `haft stats --cocomo` — COCOMO cost estimates
+- Feature: `haft info --loc` — Lines of code summary
+- Feature: `haft routes --files` — Show file locations
+- Feature: `haft routes` Kotlin support — Scans .kt files
+- Feature: `haft info` command — Show project information
+- Feature: `haft routes` command — List REST endpoints
+- Feature: `haft dev` command for development workflow
+- Feature: `haft dev serve` — Start application with hot-reload
+- Feature: `haft dev build` — Build project with profiles
+- Feature: `haft dev test` — Run tests with filtering
+- Feature: `haft dev clean` — Clean build artifacts
 - Feature: `haft completion` command for shell completions
-- Feature: Bash completion support
-- Feature: Zsh completion support
-- Feature: Fish completion support
-- Feature: PowerShell completion support
+- Feature: Bash, Zsh, Fish, PowerShell completion support
 - Feature: Full Gradle support (Groovy & Kotlin DSL)
 - Feature: Gradle parser for add/remove/generate commands
 - Feature: Gradle project generation with wrapper

@@ -1,0 +1,107 @@
+package {{.TestPackage}}.repository;
+
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.DisplayName;
+import org.junit.jupiter.api.Test;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.boot.test.autoconfigure.orm.jpa.DataJpaTest;
+import org.springframework.boot.test.autoconfigure.orm.jpa.TestEntityManager;
+import org.springframework.boot.test.autoconfigure.jdbc.AutoConfigureTestDatabase;
+import org.springframework.boot.test.autoconfigure.jdbc.AutoConfigureTestDatabase.Replace;
+import org.springframework.test.context.ActiveProfiles;
+
+import {{.FeaturePackage}}.repository.{{.Name}}Repository;
+import {{.FeaturePackage}}.entity.{{.Name}};
+{{if ne .IDImport ""}}
+import {{.IDImport}};
+{{end}}
+
+import java.util.Optional;
+
+import static org.assertj.core.api.Assertions.assertThat;
+
+@DataJpaTest
+@AutoConfigureTestDatabase(replace = Replace.NONE)
+@ActiveProfiles("test")
+@DisplayName("{{.Name}}Repository Integration Tests")
+class {{.Name}}RepositoryTest {
+
+    @Autowired
+    private TestEntityManager entityManager;
+
+    @Autowired
+    private {{.Name}}Repository {{.NameCamel}}Repository;
+
+    private {{.Name}} {{.NameCamel}};
+
+    @BeforeEach
+    void setUp() {
+        {{.NameCamel}} = new {{.Name}}();
+    }
+
+    @Test
+    @DisplayName("Should save and find {{.NameLower}} by ID")
+    void shouldSaveAndFindById() {
+        {{.Name}} saved = entityManager.persistAndFlush({{.NameCamel}});
+
+        Optional<{{.Name}}> found = {{.NameCamel}}Repository.findById(saved.getId());
+
+        assertThat(found).isPresent();
+        assertThat(found.get().getId()).isEqualTo(saved.getId());
+    }
+
+    @Test
+    @DisplayName("Should return empty when {{.NameLower}} not found")
+    void shouldReturnEmptyWhenNotFound() {
+        {{.IDType}} nonExistentId = {{.TestIdValue}};
+
+        Optional<{{.Name}}> found = {{.NameCamel}}Repository.findById(nonExistentId);
+
+        assertThat(found).isEmpty();
+    }
+
+    @Test
+    @DisplayName("Should delete {{.NameLower}} by ID")
+    void shouldDeleteById() {
+        {{.Name}} saved = entityManager.persistAndFlush({{.NameCamel}});
+        {{.IDType}} savedId = saved.getId();
+
+        {{.NameCamel}}Repository.deleteById(savedId);
+        entityManager.flush();
+        entityManager.clear();
+
+        Optional<{{.Name}}> found = {{.NameCamel}}Repository.findById(savedId);
+
+        assertThat(found).isEmpty();
+    }
+
+    @Test
+    @DisplayName("Should find all {{plural .NameLower}}")
+    void shouldFindAll() {
+        entityManager.persistAndFlush({{.NameCamel}});
+
+        var all = {{.NameCamel}}Repository.findAll();
+
+        assertThat(all).isNotEmpty();
+    }
+
+    @Test
+    @DisplayName("Should check if {{.NameLower}} exists by ID")
+    void shouldCheckExistsById() {
+        {{.Name}} saved = entityManager.persistAndFlush({{.NameCamel}});
+
+        boolean exists = {{.NameCamel}}Repository.existsById(saved.getId());
+
+        assertThat(exists).isTrue();
+    }
+
+    @Test
+    @DisplayName("Should return false when checking non-existent {{.NameLower}}")
+    void shouldReturnFalseWhenNotExists() {
+        {{.IDType}} nonExistentId = {{.TestIdValue}};
+
+        boolean exists = {{.NameCamel}}Repository.existsById(nonExistentId);
+
+        assertThat(exists).isFalse();
+    }
+}

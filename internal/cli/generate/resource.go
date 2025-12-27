@@ -6,8 +6,12 @@ import (
 	"path/filepath"
 	"strings"
 
+	"github.com/KashifKhn/haft/internal/detector"
 	"github.com/KashifKhn/haft/internal/generator"
 	"github.com/KashifKhn/haft/internal/logger"
+	"github.com/KashifKhn/haft/internal/tui/components"
+	"github.com/KashifKhn/haft/internal/tui/wizard"
+	tea "github.com/charmbracelet/bubbletea"
 	"github.com/spf13/afero"
 	"github.com/spf13/cobra"
 )
@@ -36,12 +40,16 @@ Creates the following files:
   - Request DTO
   - Response DTO
   - Mapper (entity <-> DTO conversion)
-  - ResourceNotFoundException (if JPA and not exists)
 
-The command auto-detects your project's base package from your build file and
-checks for Lombok, JPA, and Validation dependencies to customize the
-generated code accordingly. Dependencies not in your project are 
-automatically disabled.`,
+The command intelligently detects your project's architecture pattern and
+generates code that matches your existing conventions:
+  - Base package and feature modules
+  - Lombok annotations (@Data, @Builder, etc.)
+  - DTO naming style (Request/Response vs DTO)
+  - ID type (UUID vs Long)
+  - Mapper type (MapStruct vs manual)
+  - Base entity inheritance
+  - Response wrapper patterns`,
 		Example: `  # Interactive mode
   haft generate resource
 
@@ -50,20 +58,369 @@ automatically disabled.`,
   haft g r product
 
   # Non-interactive with package override
-  haft generate resource user --package com.example.myapp --no-interactive`,
+  haft generate resource user --package com.example.myapp --no-interactive
+
+  # Force re-detection of project profile
+  haft generate resource user --refresh`,
 		Args: cobra.MaximumNArgs(1),
 		RunE: runResource,
 	}
 
-	cmd.Flags().StringP("package", "p", "", "Base package (auto-detected from build file)")
+	cmd.Flags().StringP("package", "p", "", "Base package (auto-detected from project)")
 	cmd.Flags().Bool("no-interactive", false, "Skip interactive wizard")
 	cmd.Flags().Bool("skip-entity", false, "Skip entity generation")
 	cmd.Flags().Bool("skip-repository", false, "Skip repository generation")
+	cmd.Flags().Bool("skip-tests", false, "Skip test generation")
+	cmd.Flags().Bool("legacy", false, "Use legacy layered generation (ignores architecture detection)")
+	cmd.Flags().Bool("refresh", false, "Force re-detection of project profile (ignore cache)")
 
 	return cmd
 }
 
 func runResource(cmd *cobra.Command, args []string) error {
+	noInteractive, _ := cmd.Flags().GetBool("no-interactive")
+	useLegacy, _ := cmd.Flags().GetBool("legacy")
+	forceRefresh, _ := cmd.Flags().GetBool("refresh")
+	log := logger.Default()
+
+	if useLegacy {
+		return runLegacyResource(cmd, args)
+	}
+
+	profile, err := DetectProjectProfileWithRefresh(forceRefresh)
+	if err != nil {
+		log.Warning("Could not detect project profile, falling back to legacy mode")
+		return runLegacyResource(cmd, args)
+	}
+
+	var resourceName string
+	if len(args) > 0 {
+		resourceName = ToPascalCase(args[0])
+	}
+
+	if pkg, _ := cmd.Flags().GetString("package"); pkg != "" {
+		profile.BasePackage = pkg
+	}
+
+	if !noInteractive {
+		var wizErr error
+		resourceName, wizErr = runResourceNameWizard(resourceName)
+		if wizErr != nil {
+			return wizErr
+		}
+	}
+
+	if resourceName == "" {
+		return fmt.Errorf("resource name is required")
+	}
+
+	if profile.BasePackage == "" {
+		return fmt.Errorf("base package is required")
+	}
+
+	skipEntity, _ := cmd.Flags().GetBool("skip-entity")
+	skipRepository, _ := cmd.Flags().GetBool("skip-repository")
+	skipTests, _ := cmd.Flags().GetBool("skip-tests")
+
+	return generateResourceWithProfile(resourceName, profile, skipEntity, skipRepository, skipTests)
+}
+
+func runResourceNameWizard(currentName string) (string, error) {
+	steps, keys := []wizard.Step{}, []string{}
+
+	steps = append(steps, wizard.NewTextInputStep(components.TextInputConfig{
+		Label:       "Resource Name",
+		Placeholder: "User",
+		Default:     currentName,
+		Required:    true,
+		Validator:   ValidateComponentName,
+		HelpText:    "Name of the resource (e.g., User, Product, Order)",
+	}))
+	keys = append(keys, "name")
+
+	w := wizard.New(wizard.WizardConfig{
+		Title:    "Generate Resource",
+		Steps:    steps,
+		StepKeys: keys,
+	})
+
+	p := tea.NewProgram(w)
+	finalModel, err := p.Run()
+	if err != nil {
+		return "", fmt.Errorf("wizard failed: %w", err)
+	}
+
+	wiz, ok := finalModel.(wizard.WizardModel)
+	if !ok {
+		return "", fmt.Errorf("unexpected wizard state")
+	}
+
+	if wiz.Cancelled() {
+		return "", fmt.Errorf("wizard cancelled")
+	}
+
+	return ToPascalCase(wiz.StringValue("name")), nil
+}
+
+func generateResourceWithProfile(name string, profile *detector.ProjectProfile, skipEntity, skipRepository, skipTests bool) error {
+	log := logger.Default()
+	fs := afero.NewOsFs()
+	engine := generator.NewEngine(fs)
+
+	cwd, err := os.Getwd()
+	if err != nil {
+		return err
+	}
+
+	srcPath := FindSourcePath(cwd)
+	if srcPath == "" {
+		return fmt.Errorf("could not find src/main/java directory")
+	}
+
+	ctx := BuildTemplateContextFromProfile(name, profile)
+	templateDir := GetTemplateDir(profile)
+	data := ctx.ToMap()
+
+	log.Info("Generating resource", "name", name, "architecture", profile.Architecture)
+	log.Debug("Template directory", "dir", templateDir)
+
+	if profile.Lombok.Detected {
+		log.Debug("Using Lombok annotations")
+	}
+	if ctx.HasJpa {
+		log.Debug("Generating JPA Entity and Repository")
+	}
+	if profile.HasSwagger {
+		log.Debug("Adding Swagger/OpenAPI annotations")
+	}
+	if ctx.HasMapStruct {
+		log.Debug("Using MapStruct for mapping")
+	}
+	if ctx.HasBaseEntity {
+		log.Debug("Extending base entity", "base", ctx.BaseEntityName)
+	}
+
+	templates := buildTemplateList(name, profile, templateDir, ctx, skipEntity, skipRepository)
+
+	generatedCount := 0
+	skippedCount := 0
+
+	for _, t := range templates {
+		if t.skip {
+			continue
+		}
+
+		outputPath := computeOutputPath(srcPath, profile, name, t.subPackage, t.fileName)
+
+		if engine.FileExists(outputPath) {
+			log.Warning("File exists, skipping", "file", FormatRelativePath(cwd, outputPath))
+			skippedCount++
+			continue
+		}
+
+		if err := engine.RenderAndWrite(t.template, outputPath, data); err != nil {
+			return fmt.Errorf("failed to generate %s: %w", t.fileName, err)
+		}
+
+		log.Info("Created", "file", FormatRelativePath(cwd, outputPath))
+		generatedCount++
+	}
+
+	if !skipTests {
+		testCount, testSkipped, err := generateTestsWithProfile(name, profile, ctx, skipEntity, skipRepository)
+		if err != nil {
+			log.Warning("Failed to generate tests", "error", err.Error())
+		} else {
+			generatedCount += testCount
+			skippedCount += testSkipped
+		}
+	}
+
+	if generatedCount > 0 {
+		log.Success(fmt.Sprintf("Generated %d files for %s resource", generatedCount, name))
+	}
+	if skippedCount > 0 {
+		log.Info(fmt.Sprintf("Skipped %d existing files", skippedCount))
+	}
+
+	return nil
+}
+
+func generateTestsWithProfile(name string, profile *detector.ProjectProfile, ctx TemplateContext, skipEntity, skipRepository bool) (int, int, error) {
+	log := logger.Default()
+	fs := afero.NewOsFs()
+	engine := generator.NewEngine(fs)
+
+	cwd, err := os.Getwd()
+	if err != nil {
+		return 0, 0, err
+	}
+
+	testPath := FindTestPath(cwd)
+	if testPath == "" {
+		return 0, 0, fmt.Errorf("could not find src/test/java directory")
+	}
+
+	testTemplateDir := GetTestTemplateDir(profile)
+	data := ctx.ToMap()
+
+	log.Debug("Generating tests", "template_dir", testTemplateDir)
+
+	testTemplates := buildTestTemplateList(name, profile, testTemplateDir, ctx, skipEntity, skipRepository)
+
+	generatedCount := 0
+	skippedCount := 0
+
+	for _, t := range testTemplates {
+		if t.skip {
+			continue
+		}
+
+		outputPath := computeTestOutputPath(testPath, profile, name, t.subPackage, t.fileName)
+
+		if engine.FileExists(outputPath) {
+			log.Warning("Test file exists, skipping", "file", FormatRelativePath(cwd, outputPath))
+			skippedCount++
+			continue
+		}
+
+		if err := engine.RenderAndWrite(t.template, outputPath, data); err != nil {
+			return generatedCount, skippedCount, fmt.Errorf("failed to generate %s: %w", t.fileName, err)
+		}
+
+		log.Info("Created test", "file", FormatRelativePath(cwd, outputPath))
+		generatedCount++
+	}
+
+	return generatedCount, skippedCount, nil
+}
+
+type templateSpec struct {
+	template   string
+	subPackage string
+	fileName   string
+	skip       bool
+}
+
+func buildTemplateList(name string, profile *detector.ProjectProfile, templateDir string, ctx TemplateContext, skipEntity, skipRepository bool) []templateSpec {
+	controllerSuffix := profile.ControllerSuffix
+	requestSuffix := profile.GetDTORequestSuffix()
+	responseSuffix := profile.GetDTOResponseSuffix()
+
+	hasJpa := ctx.HasJpa
+
+	templates := []templateSpec{
+		{templateDir + "/Controller.java.tmpl", "controller", name + controllerSuffix + ".java", false},
+		{templateDir + "/Service.java.tmpl", "service", name + "Service.java", false},
+		{templateDir + "/ServiceImpl.java.tmpl", "service/impl", name + "ServiceImpl.java", false},
+		{templateDir + "/Repository.java.tmpl", "repository", name + "Repository.java", skipRepository || !hasJpa},
+		{templateDir + "/Entity.java.tmpl", "entity", name + ".java", skipEntity || !hasJpa},
+		{templateDir + "/Request.java.tmpl", "dto", name + requestSuffix + ".java", false},
+		{templateDir + "/Response.java.tmpl", "dto", name + responseSuffix + ".java", false},
+		{templateDir + "/Mapper.java.tmpl", "mapper", name + "Mapper.java", false},
+	}
+
+	return templates
+}
+
+func computeOutputPath(srcPath string, profile *detector.ProjectProfile, resourceName, subPackage, fileName string) string {
+	resourceLower := strings.ToLower(resourceName)
+
+	var packagePath string
+	switch profile.Architecture {
+	case detector.ArchFeature:
+		if profile.FeatureStyle == detector.FeatureStyleFlat {
+			if subPackage == "dto" {
+				packagePath = filepath.Join(
+					strings.ReplaceAll(profile.BasePackage, ".", string(os.PathSeparator)),
+					resourceLower,
+					"dto",
+				)
+			} else {
+				packagePath = filepath.Join(
+					strings.ReplaceAll(profile.BasePackage, ".", string(os.PathSeparator)),
+					resourceLower,
+				)
+			}
+		} else {
+			packagePath = filepath.Join(
+				strings.ReplaceAll(profile.BasePackage, ".", string(os.PathSeparator)),
+				resourceLower,
+				subPackage,
+			)
+		}
+	case detector.ArchHexagonal, detector.ArchClean:
+		packagePath = filepath.Join(
+			strings.ReplaceAll(profile.BasePackage, ".", string(os.PathSeparator)),
+			resourceLower,
+			subPackage,
+		)
+	default:
+		packagePath = filepath.Join(
+			strings.ReplaceAll(profile.BasePackage, ".", string(os.PathSeparator)),
+			subPackage,
+		)
+	}
+
+	return filepath.Join(srcPath, packagePath, fileName)
+}
+
+func buildTestTemplateList(name string, profile *detector.ProjectProfile, testTemplateDir string, ctx TemplateContext, skipEntity, skipRepository bool) []templateSpec {
+	hasJpa := ctx.HasJpa
+
+	templates := []templateSpec{
+		{testTemplateDir + "/ServiceTest.java.tmpl", "service", name + "ServiceTest.java", false},
+		{testTemplateDir + "/ControllerTest.java.tmpl", "controller", name + "ControllerTest.java", false},
+		{testTemplateDir + "/RepositoryTest.java.tmpl", "repository", name + "RepositoryTest.java", skipRepository || !hasJpa},
+		{testTemplateDir + "/EntityTest.java.tmpl", "entity", name + "Test.java", skipEntity || !hasJpa},
+	}
+
+	return templates
+}
+
+func computeTestOutputPath(testPath string, profile *detector.ProjectProfile, resourceName, subPackage, fileName string) string {
+	resourceLower := strings.ToLower(resourceName)
+
+	var packagePath string
+	switch profile.Architecture {
+	case detector.ArchFeature:
+		if profile.FeatureStyle == detector.FeatureStyleFlat {
+			if subPackage == "dto" {
+				packagePath = filepath.Join(
+					strings.ReplaceAll(profile.BasePackage, ".", string(os.PathSeparator)),
+					resourceLower,
+					"dto",
+				)
+			} else {
+				packagePath = filepath.Join(
+					strings.ReplaceAll(profile.BasePackage, ".", string(os.PathSeparator)),
+					resourceLower,
+				)
+			}
+		} else {
+			packagePath = filepath.Join(
+				strings.ReplaceAll(profile.BasePackage, ".", string(os.PathSeparator)),
+				resourceLower,
+				subPackage,
+			)
+		}
+	case detector.ArchHexagonal, detector.ArchClean:
+		packagePath = filepath.Join(
+			strings.ReplaceAll(profile.BasePackage, ".", string(os.PathSeparator)),
+			resourceLower,
+			subPackage,
+		)
+	default:
+		packagePath = filepath.Join(
+			strings.ReplaceAll(profile.BasePackage, ".", string(os.PathSeparator)),
+			subPackage,
+		)
+	}
+
+	return filepath.Join(testPath, packagePath, fileName)
+}
+
+func runLegacyResource(cmd *cobra.Command, args []string) error {
 	noInteractive, _ := cmd.Flags().GetBool("no-interactive")
 	log := logger.Default()
 
@@ -148,14 +505,14 @@ func generateResource(cfg ResourceConfig, skipEntity, skipRepository bool) error
 		fileName   string
 		skip       bool
 	}{
-		{"resource/Controller.java.tmpl", "controller", cfg.Name + "Controller.java", false},
-		{"resource/Service.java.tmpl", "service", cfg.Name + "Service.java", false},
-		{"resource/ServiceImpl.java.tmpl", "service/impl", cfg.Name + "ServiceImpl.java", false},
-		{"resource/Repository.java.tmpl", "repository", cfg.Name + "Repository.java", skipRepository || !cfg.HasJpa},
-		{"resource/Entity.java.tmpl", "entity", cfg.Name + ".java", skipEntity || !cfg.HasJpa},
-		{"resource/Request.java.tmpl", "dto", cfg.Name + "Request.java", false},
-		{"resource/Response.java.tmpl", "dto", cfg.Name + "Response.java", false},
-		{"resource/Mapper.java.tmpl", "mapper", cfg.Name + "Mapper.java", false},
+		{"resource/layered/Controller.java.tmpl", "controller", cfg.Name + "Controller.java", false},
+		{"resource/layered/Service.java.tmpl", "service", cfg.Name + "Service.java", false},
+		{"resource/layered/ServiceImpl.java.tmpl", "service/impl", cfg.Name + "ServiceImpl.java", false},
+		{"resource/layered/Repository.java.tmpl", "repository", cfg.Name + "Repository.java", skipRepository || !cfg.HasJpa},
+		{"resource/layered/Entity.java.tmpl", "entity", cfg.Name + ".java", skipEntity || !cfg.HasJpa},
+		{"resource/layered/Request.java.tmpl", "dto", cfg.Name + "Request.java", false},
+		{"resource/layered/Response.java.tmpl", "dto", cfg.Name + "Response.java", false},
+		{"resource/layered/Mapper.java.tmpl", "mapper", cfg.Name + "Mapper.java", false},
 	}
 
 	if cfg.HasJpa && !skipEntity {
@@ -166,11 +523,11 @@ func generateResource(cfg ResourceConfig, skipEntity, skipRepository bool) error
 				subPackage string
 				fileName   string
 				skip       bool
-			}{"resource/ResourceNotFoundException.java.tmpl", "exception", "ResourceNotFoundException.java", false})
+			}{"resource/layered/ResourceNotFoundException.java.tmpl", "exception", "ResourceNotFoundException.java", false})
 		}
 	}
 
-	log.Info("Generating resource", "name", cfg.Name)
+	log.Info("Generating resource (legacy mode)", "name", cfg.Name)
 
 	if cfg.HasLombok {
 		log.Debug("Using Lombok annotations")
