@@ -165,12 +165,13 @@ func runResourceNameWizard(currentName string) (string, error) {
 func generateResourceWithProfile(name string, profile *detector.ProjectProfile, skipEntity, skipRepository, skipTests bool) error {
 	log := logger.Default()
 	fs := afero.NewOsFs()
-	engine := generator.NewEngine(fs)
 
 	cwd, err := os.Getwd()
 	if err != nil {
 		return err
 	}
+
+	engine := generator.NewEngineWithLoader(fs, cwd)
 
 	srcPath := FindSourcePath(cwd)
 	if srcPath == "" {
@@ -249,12 +250,13 @@ func generateResourceWithProfile(name string, profile *detector.ProjectProfile, 
 func generateTestsWithProfile(name string, profile *detector.ProjectProfile, ctx TemplateContext, skipEntity, skipRepository bool) (int, int, error) {
 	log := logger.Default()
 	fs := afero.NewOsFs()
-	engine := generator.NewEngine(fs)
 
 	cwd, err := os.Getwd()
 	if err != nil {
 		return 0, 0, err
 	}
+
+	engine := generator.NewEngineWithLoader(fs, cwd)
 
 	testPath := FindTestPath(cwd)
 	if testPath == "" {
@@ -483,12 +485,13 @@ func validateResourceConfig(cfg ResourceConfig) error {
 func generateResource(cfg ResourceConfig, skipEntity, skipRepository bool) error {
 	log := logger.Default()
 	fs := afero.NewOsFs()
-	engine := generator.NewEngine(fs)
 
 	cwd, err := os.Getwd()
 	if err != nil {
 		return err
 	}
+
+	engine := generator.NewEngineWithLoader(fs, cwd)
 
 	srcPath := FindSourcePath(cwd)
 	if srcPath == "" {

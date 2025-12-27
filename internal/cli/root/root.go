@@ -12,6 +12,7 @@ import (
 	removecmd "github.com/KashifKhn/haft/internal/cli/remove"
 	routescmd "github.com/KashifKhn/haft/internal/cli/routes"
 	statscmd "github.com/KashifKhn/haft/internal/cli/stats"
+	templatecmd "github.com/KashifKhn/haft/internal/cli/template"
 	"github.com/KashifKhn/haft/internal/logger"
 	"github.com/spf13/cobra"
 )
@@ -98,6 +99,7 @@ func init() {
 	rootCmd.AddCommand(infocmd.NewCommand())
 	rootCmd.AddCommand(routescmd.NewCommand())
 	rootCmd.AddCommand(statscmd.NewCommand())
+	rootCmd.AddCommand(templatecmd.NewCommand())
 }
 
 var versionCmd = &cobra.Command{
