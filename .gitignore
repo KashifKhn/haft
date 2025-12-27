@@ -47,3 +47,6 @@ bin/
 .haft/
 
 tui_demo
+
+# Haft cache directories (generated during tests)
+.haft/
