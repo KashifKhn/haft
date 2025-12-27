@@ -119,9 +119,7 @@ func ValidateTemplate(content string, templateName string) ValidationResult {
 	}
 
 	unknownVars := findUnknownVariables(lines)
-	for _, warn := range unknownVars {
-		result.Warnings = append(result.Warnings, warn)
-	}
+	result.Warnings = append(result.Warnings, unknownVars...)
 
 	preprocessed := PreprocessTemplate(content)
 	goTemplateErrors := validateGoTemplate(preprocessed, templateName)

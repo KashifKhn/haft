@@ -294,20 +294,20 @@ func TestEnrichProfileFromBuildFileNoError(t *testing.T) {
 	}
 
 	originalCwd, _ := os.Getwd()
-	defer os.Chdir(originalCwd)
+	defer func() { _ = os.Chdir(originalCwd) }()
 
 	tmpDir, err := os.MkdirTemp("", "test-enrich-*")
 	require.NoError(t, err)
 	defer os.RemoveAll(tmpDir)
 
-	os.Chdir(tmpDir)
+	require.NoError(t, os.Chdir(tmpDir))
 
 	enrichProfileFromBuildFile(profile)
 }
 
 func TestEnrichProfileFromBuildFileWithValidation(t *testing.T) {
 	originalCwd, _ := os.Getwd()
-	defer os.Chdir(originalCwd)
+	defer func() { _ = os.Chdir(originalCwd) }()
 
 	tmpDir, err := os.MkdirTemp("", "test-enrich-validation-*")
 	require.NoError(t, err)
@@ -332,7 +332,7 @@ func TestEnrichProfileFromBuildFileWithValidation(t *testing.T) {
 </project>`
 	require.NoError(t, os.WriteFile(filepath.Join(tmpDir, "pom.xml"), []byte(pomContent), 0644))
 
-	os.Chdir(tmpDir)
+	require.NoError(t, os.Chdir(tmpDir))
 
 	profile := &detector.ProjectProfile{
 		Architecture:    detector.ArchLayered,
@@ -350,7 +350,7 @@ func TestEnrichProfileFromBuildFileWithValidation(t *testing.T) {
 
 func TestEnrichProfilePreservesExistingValues(t *testing.T) {
 	originalCwd, _ := os.Getwd()
-	defer os.Chdir(originalCwd)
+	defer func() { _ = os.Chdir(originalCwd) }()
 
 	tmpDir, err := os.MkdirTemp("", "test-enrich-preserve-*")
 	require.NoError(t, err)
@@ -365,7 +365,7 @@ func TestEnrichProfilePreservesExistingValues(t *testing.T) {
 </project>`
 	require.NoError(t, os.WriteFile(filepath.Join(tmpDir, "pom.xml"), []byte(pomContent), 0644))
 
-	os.Chdir(tmpDir)
+	require.NoError(t, os.Chdir(tmpDir))
 
 	profile := &detector.ProjectProfile{
 		Architecture:    detector.ArchLayered,
