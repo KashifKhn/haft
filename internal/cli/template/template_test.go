@@ -542,7 +542,7 @@ func TestInitCommandCategoryResource(t *testing.T) {
 	defer os.RemoveAll(tmpDir)
 
 	originalWd, _ := os.Getwd()
-	defer os.Chdir(originalWd)
+	defer func() { _ = os.Chdir(originalWd) }()
 	err = os.Chdir(tmpDir)
 	require.NoError(t, err)
 
@@ -556,7 +556,7 @@ func TestInitCommandAllTemplates(t *testing.T) {
 	defer os.RemoveAll(tmpDir)
 
 	originalWd, _ := os.Getwd()
-	defer os.Chdir(originalWd)
+	defer func() { _ = os.Chdir(originalWd) }()
 	err = os.Chdir(tmpDir)
 	require.NoError(t, err)
 
@@ -570,7 +570,7 @@ func TestInitCommandForce(t *testing.T) {
 	defer os.RemoveAll(tmpDir)
 
 	originalWd, _ := os.Getwd()
-	defer os.Chdir(originalWd)
+	defer func() { _ = os.Chdir(originalWd) }()
 	err = os.Chdir(tmpDir)
 	require.NoError(t, err)
 
@@ -587,7 +587,7 @@ func TestInitCommandSkipExisting(t *testing.T) {
 	defer os.RemoveAll(tmpDir)
 
 	originalWd, _ := os.Getwd()
-	defer os.Chdir(originalWd)
+	defer func() { _ = os.Chdir(originalWd) }()
 	err = os.Chdir(tmpDir)
 	require.NoError(t, err)
 
