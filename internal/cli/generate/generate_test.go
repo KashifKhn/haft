@@ -199,7 +199,18 @@ func TestBuildExceptionTemplateData(t *testing.T) {
 	}
 
 	exceptionPackage := "com.example.app.exception"
-	data := buildExceptionTemplateData(profile, exceptionPackage)
+	selectedMap := map[string]bool{
+		"HasConflict":             true,
+		"HasMethodNotAllowed":     false,
+		"HasGone":                 true,
+		"HasUnsupportedMediaType": false,
+		"HasUnprocessableEntity":  false,
+		"HasTooManyRequests":      true,
+		"HasInternalServerError":  false,
+		"HasServiceUnavailable":   false,
+		"HasGatewayTimeout":       false,
+	}
+	data := buildExceptionTemplateData(profile, exceptionPackage, selectedMap)
 
 	assert.Equal(t, "com.example.app", data["BasePackage"])
 	assert.Equal(t, "com.example.app.exception", data["ExceptionPackage"])
@@ -207,6 +218,9 @@ func TestBuildExceptionTemplateData(t *testing.T) {
 	assert.Equal(t, true, data["HasValidation"])
 	assert.Equal(t, "jakarta.validation", data["ValidationImport"])
 	assert.Equal(t, "layered", data["Architecture"])
+	assert.Equal(t, true, data["HasConflict"])
+	assert.Equal(t, false, data["HasMethodNotAllowed"])
+	assert.Equal(t, true, data["HasTooManyRequests"])
 }
 
 func TestBuildExceptionTemplateDataJavax(t *testing.T) {
@@ -219,7 +233,8 @@ func TestBuildExceptionTemplateDataJavax(t *testing.T) {
 	}
 
 	exceptionPackage := "com.example.app.exception"
-	data := buildExceptionTemplateData(profile, exceptionPackage)
+	selectedMap := map[string]bool{}
+	data := buildExceptionTemplateData(profile, exceptionPackage, selectedMap)
 
 	assert.Equal(t, false, data["HasLombok"])
 	assert.Equal(t, "javax.validation", data["ValidationImport"])

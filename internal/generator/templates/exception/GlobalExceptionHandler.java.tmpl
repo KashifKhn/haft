@@ -41,6 +41,31 @@ public class GlobalExceptionHandler {
         return new ResponseEntity<>(error, HttpStatus.BAD_REQUEST);
     }
 
+    @ExceptionHandler(UnauthorizedException.class)
+    public ResponseEntity<ErrorResponse> handleUnauthorizedException(
+            UnauthorizedException ex, WebRequest request) {
+        ErrorResponse error = new ErrorResponse(
+                HttpStatus.UNAUTHORIZED.value(),
+                ex.getMessage(),
+                request.getDescription(false),
+                LocalDateTime.now()
+        );
+        return new ResponseEntity<>(error, HttpStatus.UNAUTHORIZED);
+    }
+
+    @ExceptionHandler(ForbiddenException.class)
+    public ResponseEntity<ErrorResponse> handleForbiddenException(
+            ForbiddenException ex, WebRequest request) {
+        ErrorResponse error = new ErrorResponse(
+                HttpStatus.FORBIDDEN.value(),
+                ex.getMessage(),
+                request.getDescription(false),
+                LocalDateTime.now()
+        );
+        return new ResponseEntity<>(error, HttpStatus.FORBIDDEN);
+    }
+{{if .HasConflict}}
+
     @ExceptionHandler(ConflictException.class)
     public ResponseEntity<ErrorResponse> handleConflictException(
             ConflictException ex, WebRequest request) {
@@ -52,6 +77,119 @@ public class GlobalExceptionHandler {
         );
         return new ResponseEntity<>(error, HttpStatus.CONFLICT);
     }
+{{end}}
+{{if .HasMethodNotAllowed}}
+
+    @ExceptionHandler(MethodNotAllowedException.class)
+    public ResponseEntity<ErrorResponse> handleMethodNotAllowedException(
+            MethodNotAllowedException ex, WebRequest request) {
+        ErrorResponse error = new ErrorResponse(
+                HttpStatus.METHOD_NOT_ALLOWED.value(),
+                ex.getMessage(),
+                request.getDescription(false),
+                LocalDateTime.now()
+        );
+        return new ResponseEntity<>(error, HttpStatus.METHOD_NOT_ALLOWED);
+    }
+{{end}}
+{{if .HasGone}}
+
+    @ExceptionHandler(GoneException.class)
+    public ResponseEntity<ErrorResponse> handleGoneException(
+            GoneException ex, WebRequest request) {
+        ErrorResponse error = new ErrorResponse(
+                HttpStatus.GONE.value(),
+                ex.getMessage(),
+                request.getDescription(false),
+                LocalDateTime.now()
+        );
+        return new ResponseEntity<>(error, HttpStatus.GONE);
+    }
+{{end}}
+{{if .HasUnsupportedMediaType}}
+
+    @ExceptionHandler(UnsupportedMediaTypeException.class)
+    public ResponseEntity<ErrorResponse> handleUnsupportedMediaTypeException(
+            UnsupportedMediaTypeException ex, WebRequest request) {
+        ErrorResponse error = new ErrorResponse(
+                HttpStatus.UNSUPPORTED_MEDIA_TYPE.value(),
+                ex.getMessage(),
+                request.getDescription(false),
+                LocalDateTime.now()
+        );
+        return new ResponseEntity<>(error, HttpStatus.UNSUPPORTED_MEDIA_TYPE);
+    }
+{{end}}
+{{if .HasUnprocessableEntity}}
+
+    @ExceptionHandler(UnprocessableEntityException.class)
+    public ResponseEntity<ErrorResponse> handleUnprocessableEntityException(
+            UnprocessableEntityException ex, WebRequest request) {
+        ErrorResponse error = new ErrorResponse(
+                HttpStatus.UNPROCESSABLE_ENTITY.value(),
+                ex.getMessage(),
+                request.getDescription(false),
+                LocalDateTime.now()
+        );
+        return new ResponseEntity<>(error, HttpStatus.UNPROCESSABLE_ENTITY);
+    }
+{{end}}
+{{if .HasTooManyRequests}}
+
+    @ExceptionHandler(TooManyRequestsException.class)
+    public ResponseEntity<ErrorResponse> handleTooManyRequestsException(
+            TooManyRequestsException ex, WebRequest request) {
+        ErrorResponse error = new ErrorResponse(
+                HttpStatus.TOO_MANY_REQUESTS.value(),
+                ex.getMessage(),
+                request.getDescription(false),
+                LocalDateTime.now()
+        );
+        return new ResponseEntity<>(error, HttpStatus.TOO_MANY_REQUESTS);
+    }
+{{end}}
+{{if .HasInternalServerError}}
+
+    @ExceptionHandler(InternalServerErrorException.class)
+    public ResponseEntity<ErrorResponse> handleInternalServerErrorException(
+            InternalServerErrorException ex, WebRequest request) {
+        ErrorResponse error = new ErrorResponse(
+                HttpStatus.INTERNAL_SERVER_ERROR.value(),
+                ex.getMessage(),
+                request.getDescription(false),
+                LocalDateTime.now()
+        );
+        return new ResponseEntity<>(error, HttpStatus.INTERNAL_SERVER_ERROR);
+    }
+{{end}}
+{{if .HasServiceUnavailable}}
+
+    @ExceptionHandler(ServiceUnavailableException.class)
+    public ResponseEntity<ErrorResponse> handleServiceUnavailableException(
+            ServiceUnavailableException ex, WebRequest request) {
+        ErrorResponse error = new ErrorResponse(
+                HttpStatus.SERVICE_UNAVAILABLE.value(),
+                ex.getMessage(),
+                request.getDescription(false),
+                LocalDateTime.now()
+        );
+        return new ResponseEntity<>(error, HttpStatus.SERVICE_UNAVAILABLE);
+    }
+{{end}}
+{{if .HasGatewayTimeout}}
+
+    @ExceptionHandler(GatewayTimeoutException.class)
+    public ResponseEntity<ErrorResponse> handleGatewayTimeoutException(
+            GatewayTimeoutException ex, WebRequest request) {
+        ErrorResponse error = new ErrorResponse(
+                HttpStatus.GATEWAY_TIMEOUT.value(),
+                ex.getMessage(),
+                request.getDescription(false),
+                LocalDateTime.now()
+        );
+        return new ResponseEntity<>(error, HttpStatus.GATEWAY_TIMEOUT);
+    }
+{{end}}
 {{if .HasValidation}}
 
     @ExceptionHandler(MethodArgumentNotValidException.class)

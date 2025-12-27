@@ -542,11 +542,14 @@ public class UserResponse {
 Generate a global exception handler with `@ControllerAdvice`.
 
 ```bash
-# Generate exception handler
+# Interactive mode with optional exception picker
 haft generate exception
 haft g ex
 
-# Non-interactive mode
+# Generate with all optional exceptions
+haft generate exception --all
+
+# Non-interactive mode (default exceptions only)
 haft generate exception --no-interactive
 
 # Override base package
@@ -555,20 +558,38 @@ haft generate exception --package com.example.app
 
 ### Generated Files
 
-| File | Description |
-|------|-------------|
-| `GlobalExceptionHandler.java` | Central exception handler with `@ControllerAdvice` |
-| `ErrorResponse.java` | Standardized error response DTO |
-| `ResourceNotFoundException.java` | 404 Not Found exception |
-| `BadRequestException.java` | 400 Bad Request exception |
-| `ConflictException.java` | 409 Conflict exception |
+**Default exceptions (always generated):**
+
+| File | Status Code | Description |
+|------|-------------|-------------|
+| `GlobalExceptionHandler.java` | - | Central exception handler with `@ControllerAdvice` |
+| `ErrorResponse.java` | - | Standardized error response DTO |
+| `ResourceNotFoundException.java` | 404 | Resource not found |
+| `BadRequestException.java` | 400 | Bad request / invalid input |
+| `UnauthorizedException.java` | 401 | Authentication required |
+| `ForbiddenException.java` | 403 | Access denied |
+
+**Optional exceptions (select via interactive picker):**
+
+| File | Status Code | Description |
+|------|-------------|-------------|
+| `ConflictException.java` | 409 | Resource already exists |
+| `MethodNotAllowedException.java` | 405 | HTTP method not supported |
+| `GoneException.java` | 410 | Resource no longer available |
+| `UnsupportedMediaTypeException.java` | 415 | Wrong content type |
+| `UnprocessableEntityException.java` | 422 | Semantic errors in request |
+| `TooManyRequestsException.java` | 429 | Rate limiting |
+| `InternalServerErrorException.java` | 500 | Explicit server error handling |
+| `ServiceUnavailableException.java` | 503 | Service temporarily down |
+| `GatewayTimeoutException.java` | 504 | Upstream timeout |
 
 ### Flags
 
 | Flag | Short | Description |
 |------|-------|-------------|
 | `--package` | `-p` | Override base package |
-| `--no-interactive` | | Skip interactive wizard |
+| `--no-interactive` | | Skip interactive wizard (default exceptions only) |
+| `--all` | | Include all optional exceptions |
 | `--refresh` | | Force re-scan project (ignore cached profile) |
 
 ### File Placement by Architecture
