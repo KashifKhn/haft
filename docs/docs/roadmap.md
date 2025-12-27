@@ -92,7 +92,11 @@ This page tracks the development progress of Haft.
 
 - [x] **Project Analysis**
   - [x] `haft info` — Show project information
-  - [x] `haft routes` — List REST endpoints
+  - [x] `haft info --loc` — Include lines of code summary
+  - [x] `haft routes` — List REST endpoints (Java & Kotlin)
+  - [x] `haft routes --files` — Show file locations
+  - [x] `haft stats` — Code statistics with language breakdown
+  - [x] `haft stats --cocomo` — COCOMO cost estimates
   - [x] JSON output support
 
 ### Planned Features
@@ -156,6 +160,11 @@ See [Contributing](/docs/contributing) for guidelines.
 
 ### v0.3.0 (Current)
 
+- Feature: `haft stats` command — Code statistics using SCC
+- Feature: `haft stats --cocomo` — COCOMO cost estimates
+- Feature: `haft info --loc` — Lines of code summary
+- Feature: `haft routes --files` — Show file locations
+- Feature: `haft routes` Kotlin support — Scans .kt files
 - Feature: `haft info` command — Show project information
 - Feature: `haft routes` command — List REST endpoints
 - Feature: `haft dev` command for development workflow
@@ -164,10 +173,7 @@ See [Contributing](/docs/contributing) for guidelines.
 - Feature: `haft dev test` — Run tests with filtering
 - Feature: `haft dev clean` — Clean build artifacts
 - Feature: `haft completion` command for shell completions
-- Feature: Bash completion support
-- Feature: Zsh completion support
-- Feature: Fish completion support
-- Feature: PowerShell completion support
+- Feature: Bash, Zsh, Fish, PowerShell completion support
 - Feature: Full Gradle support (Groovy & Kotlin DSL)
 - Feature: Gradle parser for add/remove/generate commands
 - Feature: Gradle project generation with wrapper

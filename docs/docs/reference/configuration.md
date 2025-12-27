@@ -6,7 +6,7 @@ description: Haft configuration options
 
 # Configuration
 
-Haft can be configured through command-line flags, environment variables, and configuration files.
+Haft can be configured through command-line flags and configuration files.
 
 ## Command-Line Flags
 
@@ -26,20 +26,6 @@ Available for all commands:
 ```bash
 haft --verbose init my-app
 haft --no-color init
-```
-
-## Environment Variables
-
-| Variable | Description | Default |
-|----------|-------------|---------|
-| `HAFT_NO_COLOR` | Disable colors | `false` |
-| `HAFT_VERBOSE` | Enable verbose mode | `false` |
-
-### Example
-
-```bash
-export HAFT_NO_COLOR=true
-haft init
 ```
 
 ## Default Values

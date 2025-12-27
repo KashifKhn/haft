@@ -20,15 +20,20 @@ The `routes` command scans your Spring Boot project for REST controller classes 
 
 ## Flags
 
-| Flag | Description |
-|------|-------------|
-| `--json` | Output as JSON format |
+| Flag | Short | Description |
+|------|-------|-------------|
+| `--json` | | Output as JSON format |
+| `--files` | `-f` | Show file locations for each route |
 
 ## Examples
 
 ```bash
 # List all routes
 haft routes
+
+# Show file locations
+haft routes --files
+haft routes -f
 
 # Output as JSON
 haft routes --json
@@ -38,7 +43,7 @@ haft routes --json
 
 The routes command:
 
-1. Scans all `.java` files in the `src/main/java` directory
+1. Scans all `.java` and `.kt` files in the `src/main/java` and `src/main/kotlin` directories
 2. Identifies classes annotated with `@RestController` or `@Controller`
 3. Extracts the base path from `@RequestMapping` on the class
 4. Finds all method-level mappings (`@GetMapping`, `@PostMapping`, etc.)
@@ -124,14 +129,13 @@ In terminal output, HTTP methods are color-coded:
 | Method | Color |
 |--------|-------|
 | GET | Green |
-| POST | Blue |
-| PUT | Yellow |
+| POST | Yellow |
+| PUT | Blue |
 | DELETE | Red |
-| PATCH | Cyan |
+| PATCH | Magenta |
 
 ## Limitations
 
-- Only scans Java source files (not Kotlin)
 - Requires standard Spring MVC annotation patterns
 - Does not evaluate SpEL expressions in paths
 - Does not detect routes defined programmatically
