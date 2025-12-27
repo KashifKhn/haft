@@ -6,6 +6,7 @@ import (
 	"path/filepath"
 	"strings"
 
+	"github.com/KashifKhn/haft/internal/buildtool"
 	"github.com/KashifKhn/haft/internal/detector"
 	"github.com/KashifKhn/haft/internal/generator"
 	"github.com/KashifKhn/haft/internal/logger"
@@ -106,6 +107,8 @@ func runException(cmd *cobra.Command, args []string) error {
 		}
 	}
 
+	enrichProfileFromBuildFile(profile)
+
 	if pkg, _ := cmd.Flags().GetString("package"); pkg != "" {
 		profile.BasePackage = pkg
 	}
@@ -136,6 +139,39 @@ func runException(cmd *cobra.Command, args []string) error {
 	}
 
 	return generateExceptionHandler(profile, cfg)
+}
+
+func enrichProfileFromBuildFile(profile *detector.ProjectProfile) {
+	cwd, err := os.Getwd()
+	if err != nil {
+		return
+	}
+
+	fs := afero.NewOsFs()
+	result, err := buildtool.Detect(cwd, fs)
+	if err != nil {
+		return
+	}
+
+	project, err := result.Parser.Parse(result.FilePath)
+	if err != nil {
+		return
+	}
+
+	if !profile.HasValidation {
+		profile.HasValidation = result.Parser.HasValidation(project)
+		if profile.HasValidation && profile.ValidationStyle == detector.ValidationNone {
+			profile.ValidationStyle = detector.ValidationJakarta
+		}
+	}
+
+	if !profile.Lombok.Detected {
+		profile.Lombok.Detected = result.Parser.HasLombok(project)
+	}
+
+	if profile.BasePackage == "" {
+		profile.BasePackage = result.Parser.GetBasePackage(project)
+	}
 }
 
 func runExceptionWizard(currentPackage string, skipOptionalPicker bool) (exceptionConfig, error) {
