@@ -17,6 +17,9 @@ func TestNewCommand(t *testing.T) {
 
 	jsonFlag := cmd.Flags().Lookup("json")
 	assert.NotNil(t, jsonFlag)
+
+	locFlag := cmd.Flags().Lookup("loc")
+	assert.NotNil(t, locFlag)
 }
 
 func TestCountByPrefix(t *testing.T) {

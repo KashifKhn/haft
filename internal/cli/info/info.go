@@ -7,6 +7,7 @@ import (
 	"strings"
 
 	"github.com/KashifKhn/haft/internal/buildtool"
+	"github.com/KashifKhn/haft/internal/stats"
 	"github.com/charmbracelet/lipgloss"
 	"github.com/spf13/afero"
 	"github.com/spf13/cobra"
@@ -21,6 +22,7 @@ var (
 
 func NewCommand() *cobra.Command {
 	var jsonOutput bool
+	var showLoc bool
 
 	cmd := &cobra.Command{
 		Use:   "info",
@@ -33,18 +35,22 @@ Java version, and dependency summary.`,
   haft info
 
   # Output as JSON
-  haft info --json`,
+  haft info --json
+
+  # Include lines of code summary
+  haft info --loc`,
 		RunE: func(cmd *cobra.Command, args []string) error {
-			return runInfo(jsonOutput)
+			return runInfo(jsonOutput, showLoc)
 		},
 	}
 
 	cmd.Flags().BoolVar(&jsonOutput, "json", false, "Output as JSON")
+	cmd.Flags().BoolVar(&showLoc, "loc", false, "Show lines of code summary")
 
 	return cmd
 }
 
-func runInfo(jsonOutput bool) error {
+func runInfo(jsonOutput bool, showLoc bool) error {
 	fs := afero.NewOsFs()
 	result, err := buildtool.DetectWithCwd(fs)
 	if err != nil {
@@ -56,14 +62,20 @@ func runInfo(jsonOutput bool) error {
 		return fmt.Errorf("failed to parse build file: %w", err)
 	}
 
-	if jsonOutput {
-		return printJSON(project, result)
+	var locStats *stats.ProjectStats
+	if showLoc {
+		cwd, _ := os.Getwd()
+		locStats, _ = stats.CountProjectQuick(cwd)
 	}
 
-	return printFormatted(project, result)
+	if jsonOutput {
+		return printJSON(project, result, locStats)
+	}
+
+	return printFormatted(project, result, locStats)
 }
 
-func printFormatted(project *buildtool.Project, result *buildtool.DetectionResult) error {
+func printFormatted(project *buildtool.Project, result *buildtool.DetectionResult, locStats *stats.ProjectStats) error {
 	cwd, _ := os.Getwd()
 	projectName := filepath.Base(cwd)
 
@@ -120,6 +132,17 @@ func printFormatted(project *buildtool.Project, result *buildtool.DetectionResul
 	keyDeps := getKeyDependencies(project, result.Parser)
 	for _, kd := range keyDeps {
 		printRow(kd.name, kd.status)
+	}
+
+	if locStats != nil {
+		fmt.Println()
+		fmt.Println(titleStyle.Render("  Code Statistics"))
+		fmt.Println(strings.Repeat("─", 50))
+
+		printRow("Total Files", countStyle.Render(fmt.Sprintf("%d", locStats.TotalFiles)))
+		printRow("Lines of Code", countStyle.Render(fmt.Sprintf("%d", locStats.TotalCode)))
+		printRow("Comments", countStyle.Render(fmt.Sprintf("%d", locStats.TotalComments)))
+		printRow("Blank Lines", countStyle.Render(fmt.Sprintf("%d", locStats.TotalBlanks)))
 	}
 
 	fmt.Println()
@@ -206,9 +229,24 @@ func countByScope(deps []buildtool.Dependency, scope string) int {
 	return count
 }
 
-func printJSON(project *buildtool.Project, result *buildtool.DetectionResult) error {
+func printJSON(project *buildtool.Project, result *buildtool.DetectionResult, locStats *stats.ProjectStats) error {
 	cwd, _ := os.Getwd()
 	projectName := filepath.Base(cwd)
+
+	locJSON := ""
+	if locStats != nil {
+		locJSON = fmt.Sprintf(`,
+  "codeStats": {
+    "totalFiles": %d,
+    "linesOfCode": %d,
+    "comments": %d,
+    "blankLines": %d
+  }`,
+			locStats.TotalFiles,
+			locStats.TotalCode,
+			locStats.TotalComments,
+			locStats.TotalBlanks)
+	}
 
 	fmt.Printf(`{
   "name": "%s",
@@ -221,7 +259,7 @@ func printJSON(project *buildtool.Project, result *buildtool.DetectionResult) er
   "javaVersion": "%s",
   "springBootVersion": "%s",
   "packaging": "%s",
-  "dependencyCount": %d
+  "dependencyCount": %d%s
 }
 `,
 		projectName,
@@ -234,7 +272,8 @@ func printJSON(project *buildtool.Project, result *buildtool.DetectionResult) er
 		project.JavaVersion,
 		project.SpringBootVersion,
 		project.Packaging,
-		len(project.Dependencies))
+		len(project.Dependencies),
+		locJSON)
 
 	return nil
 }

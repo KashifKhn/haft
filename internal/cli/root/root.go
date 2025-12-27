@@ -11,6 +11,7 @@ import (
 	initcmd "github.com/KashifKhn/haft/internal/cli/init"
 	removecmd "github.com/KashifKhn/haft/internal/cli/remove"
 	routescmd "github.com/KashifKhn/haft/internal/cli/routes"
+	statscmd "github.com/KashifKhn/haft/internal/cli/stats"
 	"github.com/KashifKhn/haft/internal/logger"
 	"github.com/spf13/cobra"
 )
@@ -60,7 +61,9 @@ Features:
 
   # Project analysis
   haft info               # Show project info
-  haft routes             # List REST endpoints`,
+  haft routes             # List REST endpoints
+  haft stats              # Show code statistics
+  haft stats --cocomo     # Include COCOMO estimates`,
 	PersistentPreRun: func(cmd *cobra.Command, args []string) {
 		initLogger()
 	},
@@ -94,6 +97,7 @@ func init() {
 	rootCmd.AddCommand(devcmd.NewCommand())
 	rootCmd.AddCommand(infocmd.NewCommand())
 	rootCmd.AddCommand(routescmd.NewCommand())
+	rootCmd.AddCommand(statscmd.NewCommand())
 }
 
 var versionCmd = &cobra.Command{
