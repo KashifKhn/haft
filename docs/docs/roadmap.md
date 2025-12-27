@@ -150,7 +150,7 @@ We believe developers should stay in their editor. The first integration will be
 
 - [ ] **Additional Generators**
   - [x] Exception handler generation (`haft generate exception`)
-  - [ ] Configuration class generation
+  - [x] Configuration class generation (`haft generate config`)
   - [ ] Security configuration
 
 ## Contributing
@@ -167,6 +167,7 @@ See [Contributing](/docs/contributing) for guidelines.
 
 ### v0.4.0 (Current)
 
+- Feature: `haft generate config` — Generate configuration classes (CORS, OpenAPI, Jackson, Async, Cache, Auditing, WebMvc)
 - Feature: `haft generate exception` — Generate global exception handler with @ControllerAdvice
 - Feature: **Custom templates** — Override built-in templates with project or global custom templates
 - Feature: `haft template init` — Copy embedded templates for customization
