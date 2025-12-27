@@ -226,29 +226,53 @@ func (d *Detector) calculateHexagonalScore(scan *ScanResult) float64 {
 }
 
 func (d *Detector) calculateCleanScore(scan *ScanResult) float64 {
-	cleanMarkers := []string{"usecase", "gateway", "presenter", "interactor"}
-	foundMarkers := 0
+	cleanSpecificMarkers := []string{"usecase", "gateway", "presenter", "interactor"}
+	cleanSupportMarkers := []string{"domain", "application", "infrastructure"}
+	foundSpecific := 0
+	foundSupport := 0
 
 	packages := d.scanner.GetUniquePackages(scan.SourceFiles)
 
-	for _, marker := range cleanMarkers {
+	for _, marker := range cleanSpecificMarkers {
 		for _, pkg := range packages {
 			if containsPackagePart(pkg, marker) {
-				foundMarkers++
+				foundSpecific++
 				break
 			}
 		}
 	}
 
-	if foundMarkers < 2 {
+	for _, marker := range cleanSupportMarkers {
+		for _, pkg := range packages {
+			if containsPackagePart(pkg, marker) {
+				foundSupport++
+				break
+			}
+		}
+	}
+
+	if foundSpecific < 1 {
 		return 0.0
 	}
 
-	return d.confidenceCalculator.Calculate(
-		float64(foundMarkers)/float64(len(cleanMarkers)),
+	specificRatio := float64(foundSpecific) / float64(len(cleanSpecificMarkers))
+	supportRatio := float64(foundSupport) / float64(len(cleanSupportMarkers))
+	combinedRatio := (specificRatio*0.7 + supportRatio*0.3)
+
+	baseScore := d.confidenceCalculator.Calculate(
+		combinedRatio,
 		len(scan.SourceFiles),
-		float64(foundMarkers)/float64(len(cleanMarkers)),
+		combinedRatio,
 	)
+
+	if foundSpecific >= 2 {
+		baseScore += 0.15
+	}
+	if foundSupport >= 2 {
+		baseScore += 0.1
+	}
+
+	return clamp(baseScore, 0.0, 1.0)
 }
 
 func (d *Detector) calculateModularScore(scan *ScanResult) float64 {
@@ -772,7 +796,12 @@ func splitPackage(pkg string) []string {
 }
 
 func isLayerName(name string) bool {
-	layers := []string{"controller", "service", "repository", "entity", "dto", "mapper", "model", "exception", "config"}
+	layers := []string{
+		"controller", "service", "repository", "entity", "dto", "mapper", "model", "exception", "config",
+		"domain", "application", "infrastructure", "adapter", "port",
+		"usecase", "gateway", "presenter", "interactor",
+		"api", "internal", "module", "web", "persistence", "common",
+	}
 	for _, layer := range layers {
 		if name == layer {
 			return true
