@@ -9,6 +9,7 @@ type ProjectProfile struct {
 	Architecture   ArchitectureType `yaml:"architecture"`
 	ArchConfidence float64          `yaml:"arch_confidence"`
 	ArchLocked     bool             `yaml:"arch_locked"`
+	FeatureStyle   FeatureStyle     `yaml:"feature_style"`
 
 	BasePackage string `yaml:"base_package"`
 	SourceRoot  string `yaml:"source_root"`
@@ -162,6 +163,12 @@ func (p *ProjectProfile) computePackagePath(resourceName, layerName string) stri
 
 	switch p.Architecture {
 	case ArchFeature:
+		if p.FeatureStyle == FeatureStyleFlat {
+			if layerName == "dto" {
+				return p.BasePackage + "." + resourceLower + ".dto"
+			}
+			return p.BasePackage + "." + resourceLower
+		}
 		return p.BasePackage + "." + resourceLower + "." + layerName
 	case ArchHexagonal:
 		return p.getHexagonalPackage(resourceLower, layerName)

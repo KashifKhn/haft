@@ -67,6 +67,7 @@ generates code that matches your existing conventions:
 	cmd.Flags().Bool("no-interactive", false, "Skip interactive wizard")
 	cmd.Flags().Bool("skip-entity", false, "Skip entity generation")
 	cmd.Flags().Bool("skip-repository", false, "Skip repository generation")
+	cmd.Flags().Bool("skip-tests", false, "Skip test generation")
 	cmd.Flags().Bool("legacy", false, "Use legacy layered generation (ignores architecture detection)")
 
 	return cmd
@@ -114,8 +115,9 @@ func runResource(cmd *cobra.Command, args []string) error {
 
 	skipEntity, _ := cmd.Flags().GetBool("skip-entity")
 	skipRepository, _ := cmd.Flags().GetBool("skip-repository")
+	skipTests, _ := cmd.Flags().GetBool("skip-tests")
 
-	return generateResourceWithProfile(resourceName, profile, skipEntity, skipRepository)
+	return generateResourceWithProfile(resourceName, profile, skipEntity, skipRepository, skipTests)
 }
 
 func runResourceNameWizard(currentName string) (string, error) {
@@ -155,7 +157,7 @@ func runResourceNameWizard(currentName string) (string, error) {
 	return ToPascalCase(wiz.StringValue("name")), nil
 }
 
-func generateResourceWithProfile(name string, profile *detector.ProjectProfile, skipEntity, skipRepository bool) error {
+func generateResourceWithProfile(name string, profile *detector.ProjectProfile, skipEntity, skipRepository, skipTests bool) error {
 	log := logger.Default()
 	fs := afero.NewOsFs()
 	engine := generator.NewEngine(fs)
@@ -219,6 +221,16 @@ func generateResourceWithProfile(name string, profile *detector.ProjectProfile, 
 		generatedCount++
 	}
 
+	if !skipTests {
+		testCount, testSkipped, err := generateTestsWithProfile(name, profile, ctx, skipEntity, skipRepository)
+		if err != nil {
+			log.Warning("Failed to generate tests", "error", err.Error())
+		} else {
+			generatedCount += testCount
+			skippedCount += testSkipped
+		}
+	}
+
 	if generatedCount > 0 {
 		log.Success(fmt.Sprintf("Generated %d files for %s resource", generatedCount, name))
 	}
@@ -227,6 +239,55 @@ func generateResourceWithProfile(name string, profile *detector.ProjectProfile, 
 	}
 
 	return nil
+}
+
+func generateTestsWithProfile(name string, profile *detector.ProjectProfile, ctx TemplateContext, skipEntity, skipRepository bool) (int, int, error) {
+	log := logger.Default()
+	fs := afero.NewOsFs()
+	engine := generator.NewEngine(fs)
+
+	cwd, err := os.Getwd()
+	if err != nil {
+		return 0, 0, err
+	}
+
+	testPath := FindTestPath(cwd)
+	if testPath == "" {
+		return 0, 0, fmt.Errorf("could not find src/test/java directory")
+	}
+
+	testTemplateDir := GetTestTemplateDir(profile)
+	data := ctx.ToMap()
+
+	log.Debug("Generating tests", "template_dir", testTemplateDir)
+
+	testTemplates := buildTestTemplateList(name, profile, testTemplateDir, ctx, skipEntity, skipRepository)
+
+	generatedCount := 0
+	skippedCount := 0
+
+	for _, t := range testTemplates {
+		if t.skip {
+			continue
+		}
+
+		outputPath := computeTestOutputPath(testPath, profile, name, t.subPackage, t.fileName)
+
+		if engine.FileExists(outputPath) {
+			log.Warning("Test file exists, skipping", "file", FormatRelativePath(cwd, outputPath))
+			skippedCount++
+			continue
+		}
+
+		if err := engine.RenderAndWrite(t.template, outputPath, data); err != nil {
+			return generatedCount, skippedCount, fmt.Errorf("failed to generate %s: %w", t.fileName, err)
+		}
+
+		log.Info("Created test", "file", FormatRelativePath(cwd, outputPath))
+		generatedCount++
+	}
+
+	return generatedCount, skippedCount, nil
 }
 
 type templateSpec struct {
@@ -263,11 +324,26 @@ func computeOutputPath(srcPath string, profile *detector.ProjectProfile, resourc
 	var packagePath string
 	switch profile.Architecture {
 	case detector.ArchFeature:
-		packagePath = filepath.Join(
-			strings.ReplaceAll(profile.BasePackage, ".", string(os.PathSeparator)),
-			resourceLower,
-			subPackage,
-		)
+		if profile.FeatureStyle == detector.FeatureStyleFlat {
+			if subPackage == "dto" {
+				packagePath = filepath.Join(
+					strings.ReplaceAll(profile.BasePackage, ".", string(os.PathSeparator)),
+					resourceLower,
+					"dto",
+				)
+			} else {
+				packagePath = filepath.Join(
+					strings.ReplaceAll(profile.BasePackage, ".", string(os.PathSeparator)),
+					resourceLower,
+				)
+			}
+		} else {
+			packagePath = filepath.Join(
+				strings.ReplaceAll(profile.BasePackage, ".", string(os.PathSeparator)),
+				resourceLower,
+				subPackage,
+			)
+		}
 	case detector.ArchHexagonal, detector.ArchClean:
 		packagePath = filepath.Join(
 			strings.ReplaceAll(profile.BasePackage, ".", string(os.PathSeparator)),
@@ -282,6 +358,61 @@ func computeOutputPath(srcPath string, profile *detector.ProjectProfile, resourc
 	}
 
 	return filepath.Join(srcPath, packagePath, fileName)
+}
+
+func buildTestTemplateList(name string, profile *detector.ProjectProfile, testTemplateDir string, ctx TemplateContext, skipEntity, skipRepository bool) []templateSpec {
+	hasJpa := ctx.HasJpa
+
+	templates := []templateSpec{
+		{testTemplateDir + "/ServiceTest.java.tmpl", "service", name + "ServiceTest.java", false},
+		{testTemplateDir + "/ControllerTest.java.tmpl", "controller", name + "ControllerTest.java", false},
+		{testTemplateDir + "/RepositoryTest.java.tmpl", "repository", name + "RepositoryTest.java", skipRepository || !hasJpa},
+		{testTemplateDir + "/EntityTest.java.tmpl", "entity", name + "Test.java", skipEntity || !hasJpa},
+	}
+
+	return templates
+}
+
+func computeTestOutputPath(testPath string, profile *detector.ProjectProfile, resourceName, subPackage, fileName string) string {
+	resourceLower := strings.ToLower(resourceName)
+
+	var packagePath string
+	switch profile.Architecture {
+	case detector.ArchFeature:
+		if profile.FeatureStyle == detector.FeatureStyleFlat {
+			if subPackage == "dto" {
+				packagePath = filepath.Join(
+					strings.ReplaceAll(profile.BasePackage, ".", string(os.PathSeparator)),
+					resourceLower,
+					"dto",
+				)
+			} else {
+				packagePath = filepath.Join(
+					strings.ReplaceAll(profile.BasePackage, ".", string(os.PathSeparator)),
+					resourceLower,
+				)
+			}
+		} else {
+			packagePath = filepath.Join(
+				strings.ReplaceAll(profile.BasePackage, ".", string(os.PathSeparator)),
+				resourceLower,
+				subPackage,
+			)
+		}
+	case detector.ArchHexagonal, detector.ArchClean:
+		packagePath = filepath.Join(
+			strings.ReplaceAll(profile.BasePackage, ".", string(os.PathSeparator)),
+			resourceLower,
+			subPackage,
+		)
+	default:
+		packagePath = filepath.Join(
+			strings.ReplaceAll(profile.BasePackage, ".", string(os.PathSeparator)),
+			subPackage,
+		)
+	}
+
+	return filepath.Join(testPath, packagePath, fileName)
 }
 
 func runLegacyResource(cmd *cobra.Command, args []string) error {

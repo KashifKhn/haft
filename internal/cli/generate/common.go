@@ -307,6 +307,7 @@ type TemplateContext struct {
 
 	BasePackage    string
 	FeaturePackage string
+	TestPackage    string
 
 	Architecture string
 
@@ -316,8 +317,9 @@ type TemplateContext struct {
 	HasSwagger    bool
 	HasMapStruct  bool
 
-	IDType   string
-	IDImport string
+	IDType      string
+	IDImport    string
+	TestIdValue string
 
 	ControllerSuffix string
 	RequestSuffix    string
@@ -343,8 +345,15 @@ func BuildTemplateContextFromProfile(name string, profile *detector.ProjectProfi
 	nameLower := strings.ToLower(name)
 
 	featurePackage := profile.BasePackage
+	testPackage := profile.BasePackage
 	if profile.Architecture == detector.ArchFeature {
 		featurePackage = profile.BasePackage + "." + nameLower
+		testPackage = profile.BasePackage + "." + nameLower
+	}
+
+	testIdValue := "1L"
+	if profile.IDType == "UUID" {
+		testIdValue = "UUID.randomUUID()"
 	}
 
 	ctx := TemplateContext{
@@ -354,6 +363,7 @@ func BuildTemplateContextFromProfile(name string, profile *detector.ProjectProfi
 
 		BasePackage:    profile.BasePackage,
 		FeaturePackage: featurePackage,
+		TestPackage:    testPackage,
 
 		Architecture: string(profile.Architecture),
 
@@ -363,8 +373,9 @@ func BuildTemplateContextFromProfile(name string, profile *detector.ProjectProfi
 		HasSwagger:    profile.HasSwagger,
 		HasMapStruct:  profile.Mapper == detector.MapperMapStruct,
 
-		IDType:   profile.IDType,
-		IDImport: profile.GetIDImport(),
+		IDType:      profile.IDType,
+		IDImport:    profile.GetIDImport(),
+		TestIdValue: testIdValue,
 
 		ControllerSuffix: profile.ControllerSuffix,
 		RequestSuffix:    name + profile.GetDTORequestSuffix(),
@@ -409,6 +420,7 @@ func (ctx TemplateContext) ToMap() map[string]any {
 		"NameCamel":             ctx.NameCamel,
 		"BasePackage":           ctx.BasePackage,
 		"FeaturePackage":        ctx.FeaturePackage,
+		"TestPackage":           ctx.TestPackage,
 		"Architecture":          ctx.Architecture,
 		"HasLombok":             ctx.HasLombok,
 		"HasJpa":                ctx.HasJpa,
@@ -417,6 +429,7 @@ func (ctx TemplateContext) ToMap() map[string]any {
 		"HasMapStruct":          ctx.HasMapStruct,
 		"IDType":                ctx.IDType,
 		"IDImport":              ctx.IDImport,
+		"TestIdValue":           ctx.TestIdValue,
 		"ControllerSuffix":      ctx.ControllerSuffix,
 		"RequestSuffix":         ctx.RequestSuffix,
 		"ResponseSuffix":        ctx.ResponseSuffix,
@@ -444,4 +457,32 @@ func GetTemplateDir(profile *detector.ProjectProfile) string {
 	default:
 		return "resource/layered"
 	}
+}
+
+func GetTestTemplateDir(profile *detector.ProjectProfile) string {
+	switch profile.Architecture {
+	case detector.ArchFeature:
+		return "test/feature"
+	case detector.ArchHexagonal:
+		return "test/feature"
+	case detector.ArchClean:
+		return "test/feature"
+	default:
+		return "test/layered"
+	}
+}
+
+func FindTestPath(startDir string) string {
+	candidates := []string{
+		filepath.Join(startDir, "src", "test", "java"),
+		filepath.Join(startDir, "app", "src", "test", "java"),
+	}
+
+	for _, path := range candidates {
+		if info, err := os.Stat(path); err == nil && info.IsDir() {
+			return path
+		}
+	}
+
+	return ""
 }

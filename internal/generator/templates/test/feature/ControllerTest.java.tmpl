@@ -1,0 +1,119 @@
+package {{.TestPackage}}.controller;
+
+import com.fasterxml.jackson.databind.ObjectMapper;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.DisplayName;
+import org.junit.jupiter.api.Test;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest;
+import org.springframework.boot.test.mock.mockito.MockBean;
+import org.springframework.http.MediaType;
+import org.springframework.test.web.servlet.MockMvc;
+
+import {{.FeaturePackage}}.controller.{{.Name}}{{.ControllerSuffix}};
+import {{.FeaturePackage}}.service.{{.Name}}Service;
+import {{.FeaturePackage}}.dto.{{.RequestSuffix}};
+{{if ne .RequestSuffix .ResponseSuffix}}
+import {{.FeaturePackage}}.dto.{{.ResponseSuffix}};
+{{end}}
+{{if ne .IDImport ""}}
+import {{.IDImport}};
+{{end}}
+
+import java.util.List;
+
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.eq;
+import static org.mockito.BDDMockito.given;
+import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.doNothing;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.*;
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.*;
+
+@WebMvcTest({{.Name}}{{.ControllerSuffix}}.class)
+@DisplayName("{{.Name}}Controller Integration Tests")
+class {{.Name}}ControllerTest {
+
+    @Autowired
+    private MockMvc mockMvc;
+
+    @Autowired
+    private ObjectMapper objectMapper;
+
+    @MockBean
+    private {{.Name}}Service {{.NameCamel}}Service;
+
+    private {{.RequestSuffix}} request;
+    private {{.ResponseSuffix}} response;
+    private {{.IDType}} testId;
+
+    @BeforeEach
+    void setUp() {
+        testId = {{.TestIdValue}};
+        request = new {{.RequestSuffix}}();
+        response = new {{.ResponseSuffix}}();
+    }
+
+    @Test
+    @DisplayName("GET /api/{{plural .NameLower}} - Should return all {{plural .NameLower}}")
+    void shouldGetAll() throws Exception {
+        given({{.NameCamel}}Service.findAll()).willReturn(List.of(response));
+
+        mockMvc.perform(get("/api/{{plural .NameLower}}"))
+                .andExpect(status().isOk())
+                .andExpect(content().contentType(MediaType.APPLICATION_JSON));
+
+        verify({{.NameCamel}}Service).findAll();
+    }
+
+    @Test
+    @DisplayName("GET /api/{{plural .NameLower}}/{id} - Should return {{.NameLower}} by ID")
+    void shouldGetById() throws Exception {
+        given({{.NameCamel}}Service.findById(testId)).willReturn(response);
+
+        mockMvc.perform(get("/api/{{plural .NameLower}}/{id}", testId))
+                .andExpect(status().isOk())
+                .andExpect(content().contentType(MediaType.APPLICATION_JSON));
+
+        verify({{.NameCamel}}Service).findById(testId);
+    }
+
+    @Test
+    @DisplayName("POST /api/{{plural .NameLower}} - Should create new {{.NameLower}}")
+    void shouldCreate() throws Exception {
+        given({{.NameCamel}}Service.create(any({{.RequestSuffix}}.class))).willReturn(response);
+
+        mockMvc.perform(post("/api/{{plural .NameLower}}")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(objectMapper.writeValueAsString(request)))
+                .andExpect(status().isOk())
+                .andExpect(content().contentType(MediaType.APPLICATION_JSON));
+
+        verify({{.NameCamel}}Service).create(any({{.RequestSuffix}}.class));
+    }
+
+    @Test
+    @DisplayName("PUT /api/{{plural .NameLower}}/{id} - Should update {{.NameLower}}")
+    void shouldUpdate() throws Exception {
+        given({{.NameCamel}}Service.update(eq(testId), any({{.RequestSuffix}}.class))).willReturn(response);
+
+        mockMvc.perform(put("/api/{{plural .NameLower}}/{id}", testId)
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(objectMapper.writeValueAsString(request)))
+                .andExpect(status().isOk())
+                .andExpect(content().contentType(MediaType.APPLICATION_JSON));
+
+        verify({{.NameCamel}}Service).update(eq(testId), any({{.RequestSuffix}}.class));
+    }
+
+    @Test
+    @DisplayName("DELETE /api/{{plural .NameLower}}/{id} - Should delete {{.NameLower}}")
+    void shouldDelete() throws Exception {
+        doNothing().when({{.NameCamel}}Service).delete(testId);
+
+        mockMvc.perform(delete("/api/{{plural .NameLower}}/{id}", testId))
+                .andExpect(status().isNoContent());
+
+        verify({{.NameCamel}}Service).delete(testId);
+    }
+}

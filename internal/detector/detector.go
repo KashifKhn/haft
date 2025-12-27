@@ -63,6 +63,7 @@ func (d *Detector) Detect() (*ProjectProfile, error) {
 	profile.TestRoot = scanResult.TestRoot
 
 	d.detectArchitecture(scanResult, profile)
+	d.detectFeatureStyle(scanResult, profile)
 	d.detectBaseClasses(scanResult, profile)
 	d.detectNamingConventions(scanResult, profile)
 	d.detectIDType(scanResult, profile)
@@ -317,6 +318,43 @@ func (d *Detector) calculateFlatScore(scan *ScanResult) float64 {
 	}
 
 	return 0.0
+}
+
+func (d *Detector) detectFeatureStyle(scan *ScanResult, profile *ProjectProfile) {
+	if profile.Architecture != ArchFeature {
+		profile.FeatureStyle = ""
+		return
+	}
+
+	if len(profile.FeatureModules) == 0 {
+		profile.FeatureStyle = FeatureStyleNested
+		return
+	}
+
+	flatCount := 0
+	nestedCount := 0
+
+	for _, module := range profile.FeatureModules {
+		modulePrefix := profile.BasePackage + "." + module
+
+		for _, file := range scan.SourceFiles {
+			if !hasPackagePrefix(file.Package, modulePrefix) {
+				continue
+			}
+
+			if file.Package == modulePrefix {
+				flatCount++
+			} else {
+				nestedCount++
+			}
+		}
+	}
+
+	if flatCount > nestedCount {
+		profile.FeatureStyle = FeatureStyleFlat
+	} else {
+		profile.FeatureStyle = FeatureStyleNested
+	}
 }
 
 func (d *Detector) extractFeatureModules(scan *ScanResult, basePackage string) []string {

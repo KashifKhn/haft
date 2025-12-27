@@ -1122,3 +1122,214 @@ func TestResourceCommandHasLegacyFlag(t *testing.T) {
 	legacyFlag := cmd.Flags().Lookup("legacy")
 	assert.NotNil(t, legacyFlag, "resource command should have --legacy flag")
 }
+
+func TestResourceCommandHasSkipTestsFlag(t *testing.T) {
+	cmd := newResourceCommand()
+	skipTestsFlag := cmd.Flags().Lookup("skip-tests")
+	assert.NotNil(t, skipTestsFlag, "resource command should have --skip-tests flag")
+}
+
+func TestFindTestPathRealFS(t *testing.T) {
+	tempDir, err := os.MkdirTemp("", "haft-test")
+	require.NoError(t, err)
+	defer os.RemoveAll(tempDir)
+
+	testPath := filepath.Join(tempDir, "src", "test", "java")
+	require.NoError(t, os.MkdirAll(testPath, 0755))
+
+	result := FindTestPath(tempDir)
+
+	assert.Equal(t, testPath, result)
+}
+
+func TestFindTestPathNotFound(t *testing.T) {
+	tempDir, err := os.MkdirTemp("", "haft-test-empty")
+	require.NoError(t, err)
+	defer os.RemoveAll(tempDir)
+
+	result := FindTestPath(tempDir)
+
+	assert.Empty(t, result)
+}
+
+func TestFindTestPathWithAppDir(t *testing.T) {
+	tempDir, err := os.MkdirTemp("", "haft-test-app")
+	require.NoError(t, err)
+	defer os.RemoveAll(tempDir)
+
+	testPath := filepath.Join(tempDir, "app", "src", "test", "java")
+	require.NoError(t, os.MkdirAll(testPath, 0755))
+
+	result := FindTestPath(tempDir)
+
+	assert.Equal(t, testPath, result)
+}
+
+func TestGetTestTemplateDir(t *testing.T) {
+	tests := []struct {
+		name     string
+		arch     detector.ArchitectureType
+		expected string
+	}{
+		{"feature", detector.ArchFeature, "test/feature"},
+		{"hexagonal", detector.ArchHexagonal, "test/feature"},
+		{"clean", detector.ArchClean, "test/feature"},
+		{"layered", detector.ArchLayered, "test/layered"},
+		{"modular", detector.ArchModular, "test/layered"},
+		{"flat", detector.ArchFlat, "test/layered"},
+		{"unknown", detector.ArchUnknown, "test/layered"},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			profile := &detector.ProjectProfile{Architecture: tt.arch}
+			result := GetTestTemplateDir(profile)
+			assert.Equal(t, tt.expected, result)
+		})
+	}
+}
+
+func TestBuildTestTemplateList(t *testing.T) {
+	profile := &detector.ProjectProfile{
+		Architecture: detector.ArchFeature,
+		BasePackage:  "com.example.app",
+		Database:     detector.DatabaseJPA,
+	}
+
+	ctx := TemplateContext{
+		HasJpa: true,
+	}
+
+	templates := buildTestTemplateList("User", profile, "test/feature", ctx, false, false)
+
+	assert.Len(t, templates, 4)
+
+	expectedFiles := []string{"UserServiceTest.java", "UserControllerTest.java", "UserRepositoryTest.java", "UserTest.java"}
+	for i, tmpl := range templates {
+		assert.Equal(t, expectedFiles[i], tmpl.fileName)
+	}
+}
+
+func TestBuildTestTemplateListWithSkips(t *testing.T) {
+	profile := &detector.ProjectProfile{
+		Architecture: detector.ArchFeature,
+		BasePackage:  "com.example.app",
+		Database:     detector.DatabaseJPA,
+	}
+
+	ctx := TemplateContext{
+		HasJpa: true,
+	}
+
+	templates := buildTestTemplateList("User", profile, "test/feature", ctx, true, true)
+
+	var skippedCount int
+	for _, t := range templates {
+		if t.skip {
+			skippedCount++
+		}
+	}
+	assert.Equal(t, 2, skippedCount, "Should skip entity and repository tests")
+}
+
+func TestBuildTestTemplateListWithoutJpa(t *testing.T) {
+	profile := &detector.ProjectProfile{
+		Architecture: detector.ArchFeature,
+		BasePackage:  "com.example.app",
+		Database:     detector.DatabaseUnknown,
+	}
+
+	ctx := TemplateContext{
+		HasJpa: false,
+	}
+
+	templates := buildTestTemplateList("User", profile, "test/feature", ctx, false, false)
+
+	var skippedCount int
+	for _, t := range templates {
+		if t.skip {
+			skippedCount++
+		}
+	}
+	assert.Equal(t, 2, skippedCount, "Should skip entity and repository tests when no JPA")
+}
+
+func TestComputeTestOutputPath(t *testing.T) {
+	tests := []struct {
+		name         string
+		arch         detector.ArchitectureType
+		resourceName string
+		subPackage   string
+		fileName     string
+		wantContains string
+	}{
+		{
+			name:         "feature architecture",
+			arch:         detector.ArchFeature,
+			resourceName: "User",
+			subPackage:   "service",
+			fileName:     "UserServiceTest.java",
+			wantContains: "user/service/UserServiceTest.java",
+		},
+		{
+			name:         "layered architecture",
+			arch:         detector.ArchLayered,
+			resourceName: "User",
+			subPackage:   "service",
+			fileName:     "UserServiceTest.java",
+			wantContains: "service/UserServiceTest.java",
+		},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			profile := &detector.ProjectProfile{
+				Architecture: tt.arch,
+				BasePackage:  "com.example.app",
+			}
+
+			result := computeTestOutputPath("/src/test/java", profile, tt.resourceName, tt.subPackage, tt.fileName)
+			assert.Contains(t, result, tt.wantContains)
+		})
+	}
+}
+
+func TestBuildTemplateContextHasTestFields(t *testing.T) {
+	profile := &detector.ProjectProfile{
+		Architecture: detector.ArchFeature,
+		BasePackage:  "com.example.app",
+		IDType:       "UUID",
+		Database:     detector.DatabaseJPA,
+	}
+
+	ctx := BuildTemplateContextFromProfile("User", profile)
+
+	assert.Equal(t, "com.example.app.user", ctx.TestPackage)
+	assert.Equal(t, "UUID.randomUUID()", ctx.TestIdValue)
+}
+
+func TestBuildTemplateContextTestFieldsForLong(t *testing.T) {
+	profile := &detector.ProjectProfile{
+		Architecture: detector.ArchFeature,
+		BasePackage:  "com.example.app",
+		IDType:       "Long",
+		Database:     detector.DatabaseJPA,
+	}
+
+	ctx := BuildTemplateContextFromProfile("User", profile)
+
+	assert.Equal(t, "1L", ctx.TestIdValue)
+}
+
+func TestTemplateContextToMapHasTestFields(t *testing.T) {
+	ctx := TemplateContext{
+		Name:        "User",
+		TestPackage: "com.example.user",
+		TestIdValue: "UUID.randomUUID()",
+	}
+
+	data := ctx.ToMap()
+
+	assert.Equal(t, "com.example.user", data["TestPackage"])
+	assert.Equal(t, "UUID.randomUUID()", data["TestIdValue"])
+}

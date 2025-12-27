@@ -12,6 +12,13 @@ const (
 	ArchUnknown   ArchitectureType = "unknown"
 )
 
+type FeatureStyle string
+
+const (
+	FeatureStyleFlat   FeatureStyle = "flat"
+	FeatureStyleNested FeatureStyle = "nested"
+)
+
 type DTONamingStyle string
 
 const (
