@@ -1,10 +1,15 @@
 package generate
 
 import (
+	"os"
+	"path/filepath"
 	"testing"
 
 	"github.com/KashifKhn/haft/internal/detector"
+	"github.com/KashifKhn/haft/internal/tui/components"
+	tea "github.com/charmbracelet/bubbletea"
 	"github.com/stretchr/testify/assert"
+	"github.com/stretchr/testify/require"
 )
 
 func TestConfigCommand(t *testing.T) {
@@ -176,6 +181,22 @@ func TestBuildConfigTemplateData(t *testing.T) {
 	assert.Equal(t, "layered", data["Architecture"])
 }
 
+func TestBuildConfigTemplateDataNoLombok(t *testing.T) {
+	profile := &detector.ProjectProfile{
+		BasePackage:  "com.example.demo",
+		Architecture: detector.ArchFeature,
+		Lombok:       detector.LombokProfile{Detected: false},
+	}
+
+	data := buildConfigTemplateData(profile, "com.example.demo.common.config")
+
+	assert.Equal(t, "com.example.demo", data["BasePackage"])
+	assert.Equal(t, "com.example.demo.common.config", data["ConfigPackage"])
+	assert.Equal(t, "Demo", data["AppName"])
+	assert.Equal(t, false, data["HasLombok"])
+	assert.Equal(t, "feature", data["Architecture"])
+}
+
 func TestExtractAppName(t *testing.T) {
 	tests := []struct {
 		name        string
@@ -228,4 +249,209 @@ func TestConfigTemplateFiles(t *testing.T) {
 		assert.True(t, exists, "unexpected config key: %s", opt.Key)
 		assert.Equal(t, expected, opt.FileName)
 	}
+}
+
+func TestConfigMultiSelectWrapperInit(t *testing.T) {
+	items := []components.MultiSelectItem{
+		{Label: "Test", Value: "test", Selected: false},
+	}
+	model := components.NewMultiSelect(components.MultiSelectConfig{
+		Label: "Test",
+		Items: items,
+	})
+	wrapper := configMultiSelectWrapper{model: model}
+
+	cmd := wrapper.Init()
+	assert.Nil(t, cmd)
+}
+
+func TestConfigMultiSelectWrapperView(t *testing.T) {
+	items := []components.MultiSelectItem{
+		{Label: "Test", Value: "test", Selected: false},
+	}
+	model := components.NewMultiSelect(components.MultiSelectConfig{
+		Label: "Test Label",
+		Items: items,
+	})
+	wrapper := configMultiSelectWrapper{model: model}
+
+	view := wrapper.View()
+	assert.NotEmpty(t, view)
+}
+
+func TestConfigMultiSelectWrapperUpdateCtrlC(t *testing.T) {
+	items := []components.MultiSelectItem{
+		{Label: "Test", Value: "test", Selected: false},
+	}
+	model := components.NewMultiSelect(components.MultiSelectConfig{
+		Label: "Test",
+		Items: items,
+	})
+	wrapper := configMultiSelectWrapper{model: model}
+
+	newModel, cmd := wrapper.Update(tea.KeyMsg{Type: tea.KeyCtrlC})
+	assert.NotNil(t, newModel)
+	assert.NotNil(t, cmd)
+}
+
+func TestConfigMultiSelectWrapperUpdateRegularKey(t *testing.T) {
+	items := []components.MultiSelectItem{
+		{Label: "Test", Value: "test", Selected: false},
+	}
+	model := components.NewMultiSelect(components.MultiSelectConfig{
+		Label: "Test",
+		Items: items,
+	})
+	wrapper := configMultiSelectWrapper{model: model}
+
+	newModel, _ := wrapper.Update(tea.KeyMsg{Type: tea.KeyDown})
+	assert.NotNil(t, newModel)
+}
+
+func TestConfigSelectionStruct(t *testing.T) {
+	selection := configSelection{
+		BasePackage: "com.example.app",
+		Selected:    []string{"cors", "jackson"},
+	}
+
+	assert.Equal(t, "com.example.app", selection.BasePackage)
+	assert.Len(t, selection.Selected, 2)
+	assert.Contains(t, selection.Selected, "cors")
+	assert.Contains(t, selection.Selected, "jackson")
+}
+
+func TestConfigOptionStruct(t *testing.T) {
+	opt := configOption{
+		Name:        "CORS",
+		FileName:    "CorsConfig.java",
+		Key:         "cors",
+		Description: "Cross-origin resource sharing",
+	}
+
+	assert.Equal(t, "CORS", opt.Name)
+	assert.Equal(t, "CorsConfig.java", opt.FileName)
+	assert.Equal(t, "cors", opt.Key)
+	assert.Equal(t, "Cross-origin resource sharing", opt.Description)
+}
+
+func TestGenerateConfigsNoSourcePath(t *testing.T) {
+	originalCwd, _ := os.Getwd()
+	defer func() { _ = os.Chdir(originalCwd) }()
+
+	tmpDir, err := os.MkdirTemp("", "test-config-nosrc-*")
+	require.NoError(t, err)
+	defer os.RemoveAll(tmpDir)
+
+	require.NoError(t, os.Chdir(tmpDir))
+
+	profile := &detector.ProjectProfile{
+		BasePackage:  "com.example.demo",
+		Architecture: detector.ArchLayered,
+	}
+
+	selection := configSelection{
+		Selected: []string{"cors"},
+	}
+
+	err = generateConfigs(profile, selection)
+	assert.Error(t, err)
+	assert.Contains(t, err.Error(), "could not find src/main/java directory")
+}
+
+func TestGenerateConfigsIntegration(t *testing.T) {
+	originalCwd, _ := os.Getwd()
+	defer func() { _ = os.Chdir(originalCwd) }()
+
+	tmpDir, err := os.MkdirTemp("", "test-config-integration-*")
+	require.NoError(t, err)
+	defer os.RemoveAll(tmpDir)
+
+	srcPath := filepath.Join(tmpDir, "src", "main", "java", "com", "example", "demo")
+	require.NoError(t, os.MkdirAll(srcPath, 0755))
+
+	require.NoError(t, os.Chdir(tmpDir))
+
+	profile := &detector.ProjectProfile{
+		BasePackage:  "com.example.demo",
+		Architecture: detector.ArchLayered,
+		Lombok:       detector.LombokProfile{Detected: true},
+	}
+
+	selection := configSelection{
+		Selected: []string{"cors", "jackson"},
+	}
+
+	err = generateConfigs(profile, selection)
+	require.NoError(t, err)
+
+	configPath := filepath.Join(tmpDir, "src", "main", "java", "com", "example", "demo", "config")
+	assert.DirExists(t, configPath)
+
+	corsFile := filepath.Join(configPath, "CorsConfig.java")
+	assert.FileExists(t, corsFile)
+
+	jacksonFile := filepath.Join(configPath, "JacksonConfig.java")
+	assert.FileExists(t, jacksonFile)
+
+	openApiFile := filepath.Join(configPath, "OpenApiConfig.java")
+	assert.NoFileExists(t, openApiFile)
+}
+
+func TestGenerateConfigsSkipsExisting(t *testing.T) {
+	originalCwd, _ := os.Getwd()
+	defer func() { _ = os.Chdir(originalCwd) }()
+
+	tmpDir, err := os.MkdirTemp("", "test-config-skip-*")
+	require.NoError(t, err)
+	defer os.RemoveAll(tmpDir)
+
+	srcPath := filepath.Join(tmpDir, "src", "main", "java", "com", "example", "demo", "config")
+	require.NoError(t, os.MkdirAll(srcPath, 0755))
+
+	existingFile := filepath.Join(srcPath, "CorsConfig.java")
+	require.NoError(t, os.WriteFile(existingFile, []byte("existing content"), 0644))
+
+	require.NoError(t, os.Chdir(tmpDir))
+
+	profile := &detector.ProjectProfile{
+		BasePackage:  "com.example.demo",
+		Architecture: detector.ArchLayered,
+	}
+
+	selection := configSelection{
+		Selected: []string{"cors"},
+	}
+
+	err = generateConfigs(profile, selection)
+	require.NoError(t, err)
+
+	content, err := os.ReadFile(existingFile)
+	require.NoError(t, err)
+	assert.Equal(t, "existing content", string(content))
+}
+
+func TestRunConfigNoInteractiveWithoutAll(t *testing.T) {
+	cmd := newConfigCommand()
+	cmd.SetArgs([]string{"--no-interactive", "--package", "com.example.app"})
+
+	err := cmd.Execute()
+	assert.Error(t, err)
+	assert.Contains(t, err.Error(), "use --all flag")
+}
+
+func TestRunConfigMissingPackage(t *testing.T) {
+	originalCwd, _ := os.Getwd()
+	defer func() { _ = os.Chdir(originalCwd) }()
+
+	tmpDir, err := os.MkdirTemp("", "test-config-nopkg-*")
+	require.NoError(t, err)
+	defer os.RemoveAll(tmpDir)
+
+	require.NoError(t, os.Chdir(tmpDir))
+
+	cmd := newConfigCommand()
+	cmd.SetArgs([]string{"--no-interactive", "--all"})
+
+	err = cmd.Execute()
+	assert.Error(t, err)
 }

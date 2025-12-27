@@ -395,3 +395,196 @@ func TestMultiSelectWrapperMethods(t *testing.T) {
 		_ = items
 	})
 }
+
+func TestOptionalExceptionStruct(t *testing.T) {
+	opt := optionalException{
+		Name:        "Conflict (409)",
+		FileName:    "ConflictException.java",
+		TemplateKey: "HasConflict",
+		Description: "Resource already exists",
+	}
+
+	assert.Equal(t, "Conflict (409)", opt.Name)
+	assert.Equal(t, "ConflictException.java", opt.FileName)
+	assert.Equal(t, "HasConflict", opt.TemplateKey)
+	assert.Equal(t, "Resource already exists", opt.Description)
+}
+
+func TestOptionalExceptionsCount(t *testing.T) {
+	assert.Len(t, optionalExceptions, 9)
+
+	expectedKeys := []string{
+		"HasConflict", "HasMethodNotAllowed", "HasGone", "HasUnsupportedMediaType",
+		"HasUnprocessableEntity", "HasTooManyRequests", "HasInternalServerError",
+		"HasServiceUnavailable", "HasGatewayTimeout",
+	}
+
+	for i, key := range expectedKeys {
+		assert.Equal(t, key, optionalExceptions[i].TemplateKey)
+		assert.NotEmpty(t, optionalExceptions[i].Name)
+		assert.NotEmpty(t, optionalExceptions[i].FileName)
+		assert.NotEmpty(t, optionalExceptions[i].Description)
+	}
+}
+
+func TestGenerateExceptionHandlerNoSourcePath(t *testing.T) {
+	originalCwd, _ := os.Getwd()
+	defer func() { _ = os.Chdir(originalCwd) }()
+
+	tmpDir, err := os.MkdirTemp("", "test-exception-nosrc-*")
+	require.NoError(t, err)
+	defer os.RemoveAll(tmpDir)
+
+	require.NoError(t, os.Chdir(tmpDir))
+
+	profile := &detector.ProjectProfile{
+		BasePackage:  "com.example.demo",
+		Architecture: detector.ArchLayered,
+	}
+
+	cfg := exceptionConfig{
+		SelectedOptional: []string{},
+	}
+
+	err = generateExceptionHandler(profile, cfg)
+	assert.Error(t, err)
+	assert.Contains(t, err.Error(), "could not find src/main/java directory")
+}
+
+func TestGenerateExceptionHandlerIntegrationWithOptions(t *testing.T) {
+	originalCwd, _ := os.Getwd()
+	defer func() { _ = os.Chdir(originalCwd) }()
+
+	tmpDir, err := os.MkdirTemp("", "test-exception-opts-*")
+	require.NoError(t, err)
+	defer os.RemoveAll(tmpDir)
+
+	srcPath := filepath.Join(tmpDir, "src", "main", "java", "com", "example", "demo")
+	require.NoError(t, os.MkdirAll(srcPath, 0755))
+
+	require.NoError(t, os.Chdir(tmpDir))
+
+	profile := &detector.ProjectProfile{
+		BasePackage:     "com.example.demo",
+		Architecture:    detector.ArchLayered,
+		HasValidation:   true,
+		ValidationStyle: detector.ValidationJakarta,
+		Lombok:          detector.LombokProfile{Detected: true},
+	}
+
+	cfg := exceptionConfig{
+		SelectedOptional: []string{"HasConflict", "HasGone"},
+	}
+
+	err = generateExceptionHandler(profile, cfg)
+	require.NoError(t, err)
+
+	exceptionPath := filepath.Join(tmpDir, "src", "main", "java", "com", "example", "demo", "exception")
+	assert.DirExists(t, exceptionPath)
+
+	assert.FileExists(t, filepath.Join(exceptionPath, "GlobalExceptionHandler.java"))
+	assert.FileExists(t, filepath.Join(exceptionPath, "ErrorResponse.java"))
+	assert.FileExists(t, filepath.Join(exceptionPath, "ResourceNotFoundException.java"))
+	assert.FileExists(t, filepath.Join(exceptionPath, "BadRequestException.java"))
+	assert.FileExists(t, filepath.Join(exceptionPath, "ConflictException.java"))
+	assert.FileExists(t, filepath.Join(exceptionPath, "GoneException.java"))
+
+	assert.NoFileExists(t, filepath.Join(exceptionPath, "TooManyRequestsException.java"))
+	assert.NoFileExists(t, filepath.Join(exceptionPath, "ServiceUnavailableException.java"))
+}
+
+func TestGenerateExceptionHandlerSkipsExisting(t *testing.T) {
+	originalCwd, _ := os.Getwd()
+	defer func() { _ = os.Chdir(originalCwd) }()
+
+	tmpDir, err := os.MkdirTemp("", "test-exception-skip-*")
+	require.NoError(t, err)
+	defer os.RemoveAll(tmpDir)
+
+	srcPath := filepath.Join(tmpDir, "src", "main", "java", "com", "example", "demo", "exception")
+	require.NoError(t, os.MkdirAll(srcPath, 0755))
+
+	existingFile := filepath.Join(srcPath, "GlobalExceptionHandler.java")
+	require.NoError(t, os.WriteFile(existingFile, []byte("existing content"), 0644))
+
+	require.NoError(t, os.Chdir(tmpDir))
+
+	profile := &detector.ProjectProfile{
+		BasePackage:  "com.example.demo",
+		Architecture: detector.ArchLayered,
+	}
+
+	cfg := exceptionConfig{
+		SelectedOptional: []string{},
+	}
+
+	err = generateExceptionHandler(profile, cfg)
+	require.NoError(t, err)
+
+	content, err := os.ReadFile(existingFile)
+	require.NoError(t, err)
+	assert.Equal(t, "existing content", string(content))
+}
+
+func TestRunExceptionNoInteractiveWithoutPackage(t *testing.T) {
+	originalCwd, _ := os.Getwd()
+	defer func() { _ = os.Chdir(originalCwd) }()
+
+	tmpDir, err := os.MkdirTemp("", "test-exception-nopkg-*")
+	require.NoError(t, err)
+	defer os.RemoveAll(tmpDir)
+
+	require.NoError(t, os.Chdir(tmpDir))
+
+	cmd := newExceptionCommand()
+	cmd.SetArgs([]string{"--no-interactive"})
+
+	err = cmd.Execute()
+	assert.Error(t, err)
+}
+
+func TestGetExceptionTemplateDir(t *testing.T) {
+	profile := &detector.ProjectProfile{
+		Architecture: detector.ArchLayered,
+	}
+
+	dir := getExceptionTemplateDir(profile)
+	assert.Equal(t, "exception", dir)
+}
+
+func TestBuildExceptionTemplateDataValidationStyles(t *testing.T) {
+	tests := []struct {
+		name            string
+		validationStyle detector.ValidationStyle
+		expectedImport  string
+	}{
+		{
+			name:            "jakarta validation",
+			validationStyle: detector.ValidationJakarta,
+			expectedImport:  "jakarta.validation",
+		},
+		{
+			name:            "javax validation",
+			validationStyle: detector.ValidationJavax,
+			expectedImport:  "javax.validation",
+		},
+		{
+			name:            "no validation style defaults to jakarta",
+			validationStyle: detector.ValidationNone,
+			expectedImport:  "jakarta.validation",
+		},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			profile := &detector.ProjectProfile{
+				BasePackage:     "com.example.app",
+				Architecture:    detector.ArchLayered,
+				HasValidation:   true,
+				ValidationStyle: tt.validationStyle,
+			}
+			data := buildExceptionTemplateData(profile, "com.example.app.exception", map[string]bool{})
+			assert.Equal(t, tt.expectedImport, data["ValidationImport"])
+		})
+	}
+}
