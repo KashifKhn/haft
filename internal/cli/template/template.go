@@ -17,7 +17,18 @@ Haft supports custom templates at two levels:
 
 When generating code, Haft checks for custom templates in this order.
 This allows you to customize generated code for company standards,
-custom annotations, or different patterns.`,
+custom annotations, or different patterns.
+
+Templates support a simple placeholder syntax:
+  ${Name}           - Resource name (PascalCase)
+  ${name}           - Resource name (lowercase)
+  ${nameCamel}      - Resource name (camelCase)
+  ${BasePackage}    - Base package path
+
+And comment-based conditionals:
+  // @if HasLombok
+  @Data
+  // @endif`,
 		Example: `  # Initialize custom templates in your project
   haft template init
 
@@ -27,12 +38,16 @@ custom annotations, or different patterns.`,
   # List all available templates and their sources
   haft template list
 
-  # List only custom (overridden) templates
-  haft template list --custom`,
+  # Validate custom templates
+  haft template validate
+
+  # Show available template variables
+  haft template validate --vars`,
 	}
 
 	cmd.AddCommand(newInitCommand())
 	cmd.AddCommand(newListCommand())
+	cmd.AddCommand(newValidateCommand())
 
 	return cmd
 }

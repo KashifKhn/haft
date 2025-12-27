@@ -9,6 +9,8 @@ import (
 	"github.com/charmbracelet/lipgloss"
 	"github.com/spf13/afero"
 	"github.com/spf13/cobra"
+	"golang.org/x/text/cases"
+	"golang.org/x/text/language"
 )
 
 var (
@@ -93,10 +95,11 @@ func runList(customOnly bool, category string, showPaths bool) error {
 
 	grouped := groupByCategory(templates)
 
+	titleCaser := cases.Title(language.English)
 	for _, cat := range []string{"resource", "test", "project"} {
 		if items, ok := grouped[cat]; ok {
 			fmt.Println()
-			fmt.Printf("  %s\n", headerStyle.Render(strings.Title(cat)))
+			fmt.Printf("  %s\n", headerStyle.Render(titleCaser.String(cat)))
 
 			for _, info := range items {
 				printTemplateInfo(info, showPaths)
@@ -107,7 +110,7 @@ func runList(customOnly bool, category string, showPaths bool) error {
 	for cat, items := range grouped {
 		if cat != "resource" && cat != "test" && cat != "project" {
 			fmt.Println()
-			fmt.Printf("  %s\n", headerStyle.Render(strings.Title(cat)))
+			fmt.Printf("  %s\n", headerStyle.Render(titleCaser.String(cat)))
 
 			for _, info := range items {
 				printTemplateInfo(info, showPaths)

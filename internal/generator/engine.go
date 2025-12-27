@@ -83,7 +83,9 @@ func (e *Engine) RenderTemplate(name string, data any) (string, error) {
 		}
 	}
 
-	tmpl, err := template.New(name).Funcs(e.funcMap).Parse(string(content))
+	preprocessed := PreprocessTemplate(string(content))
+
+	tmpl, err := template.New(name).Funcs(e.funcMap).Parse(preprocessed)
 	if err != nil {
 		return "", err
 	}
@@ -97,7 +99,9 @@ func (e *Engine) RenderTemplate(name string, data any) (string, error) {
 }
 
 func (e *Engine) RenderString(content string, data any) (string, error) {
-	tmpl, err := template.New("inline").Funcs(e.funcMap).Parse(content)
+	preprocessed := PreprocessTemplate(content)
+
+	tmpl, err := template.New("inline").Funcs(e.funcMap).Parse(preprocessed)
 	if err != nil {
 		return "", err
 	}

@@ -15,12 +15,98 @@ This allows you to:
 - Set global defaults in your home directory for consistent personal preferences
 - Fall back to Haft's built-in templates for anything you haven't customized
 
-## Initializing Custom Templates
+## Simple Template Syntax
 
-To start customizing templates, use the `haft template init` command:
+Haft provides a user-friendly template syntax that's easy to learn:
+
+### Variables
+
+Use `${VariableName}` for simple variable substitution:
+
+```java
+package ${BasePackage}.controller;
+
+public class ${Name}Controller {
+    private final ${Name}Service ${nameCamel}Service;
+    
+    @GetMapping("/api/${namePlural}")
+    public List<${Name}> getAll() {
+        return ${nameCamel}Service.findAll();
+    }
+}
+```
+
+### Available Variables
+
+| Variable | Description | Example |
+|----------|-------------|---------|
+| `${Name}` | Resource name (PascalCase) | `User` |
+| `${name}` | Resource name (lowercase) | `user` |
+| `${nameCamel}` | Resource name (camelCase) | `user` |
+| `${nameSnake}` | Resource name (snake_case) | `user_name` |
+| `${nameKebab}` | Resource name (kebab-case) | `user-name` |
+| `${namePlural}` | Pluralized lowercase name | `users` |
+| `${NamePlural}` | Pluralized PascalCase name | `Users` |
+| `${BasePackage}` | Base package path | `com.example.app` |
+| `${Package}` | Full package path | `com.example.app.controller` |
+| `${IDType}` | Entity ID type | `Long` or `UUID` |
+| `${TableName}` | Database table name | `users` |
+
+Run `haft template validate --vars` to see all available variables.
+
+### Conditionals
+
+Use comment-based conditionals with `// @if`, `// @else`, and `// @endif`:
+
+```java
+package ${BasePackage}.entity;
+
+// @if HasLombok
+import lombok.Data;
+import lombok.Builder;
+// @else
+// Manual getters/setters required
+// @endif
+
+// @if HasLombok
+@Data
+@Builder
+// @endif
+public class ${Name} {
+    
+    // @if UsesUUID
+    private UUID id;
+    // @else
+    private Long id;
+    // @endif
+    
+    private String name;
+}
+```
+
+### Available Conditions
+
+| Condition | Description |
+|-----------|-------------|
+| `HasLombok` | True if Lombok is available |
+| `HasJpa` | True if Spring Data JPA is available |
+| `HasValidation` | True if Bean Validation is available |
+| `HasMapStruct` | True if MapStruct is available |
+| `HasSwagger` | True if Swagger/OpenAPI is available |
+| `HasBaseEntity` | True if project has a base entity class |
+| `UsesUUID` | True if entity uses UUID as ID type |
+| `UsesLong` | True if entity uses Long as ID type |
+
+Run `haft template validate --conditions` to see all available conditions.
+
+## Managing Templates
+
+### Initialize Custom Templates
+
+Copy built-in templates to your project for customization:
 
 ```bash
-# Initialize all templates for customization
+# Initialize all templates
 haft template init
 
 # Initialize only resource templates
@@ -29,46 +115,61 @@ haft template init --category resource
 # Initialize only test templates
 haft template init --category test
 
-# Initialize templates globally (user-level)
+# Initialize templates globally
 haft template init --global
 
 # Overwrite existing templates
 haft template init --force
 ```
 
-This copies the built-in templates to your project's `.haft/templates/` directory, where you can modify them.
+### List Templates
 
-## Listing Templates
-
-To see all available templates and where they come from:
+View all available templates and their sources:
 
 ```bash
 # List all templates
 haft template list
 
-# List only custom (overridden) templates
+# List only custom templates
 haft template list --custom
 
-# List templates in a specific category
+# List specific category
 haft template list --category resource
 
 # Show full paths
 haft template list --paths
 ```
 
-## Template Categories
+### Validate Templates
 
-Templates are organized into categories:
+Check templates for errors before using them:
 
-| Category | Description |
-|----------|-------------|
-| `resource` | Resource generation templates (Controller, Service, Entity, etc.) |
-| `test` | Test file templates |
-| `project` | Project scaffolding templates (for `haft init`) |
+```bash
+# Validate all project templates
+haft template validate
+
+# Validate a specific template
+haft template validate .haft/templates/resource/layered/Controller.java.tmpl
+
+# Validate a directory
+haft template validate .haft/templates/resource/
+
+# Show available variables
+haft template validate --vars
+
+# Show available conditions
+haft template validate --conditions
+```
+
+Validation checks for:
+- Unclosed placeholders (missing `}`)
+- Unmatched `@if`/`@endif` directives
+- Unknown variables (warnings)
+- Template syntax errors
 
 ## Template Structure
 
-Templates follow this directory structure:
+Templates are organized by category:
 
 ```
 .haft/templates/
@@ -97,99 +198,93 @@ Templates follow this directory structure:
     └── ...
 ```
 
-## Template Variables
+## Advanced: Go Template Syntax
 
-Templates use Go's `text/template` syntax. The following variables are available:
+For complex logic, you can also use Go's `text/template` syntax directly:
 
-### Common Variables
+```java
+package {{.BasePackage}}.controller;
 
-| Variable | Description | Example |
-|----------|-------------|---------|
-| `{{.Name}}` | Resource name (PascalCase) | `User` |
-| `{{.NameLower}}` | Resource name (lowercase) | `user` |
-| `{{.NameCamel}}` | Resource name (camelCase) | `user` |
-| `{{.BasePackage}}` | Base package path | `com.example.app` |
-| `{{.Package}}` | Full package path | `com.example.app.controller` |
-| `{{.HasLombok}}` | Whether Lombok is available | `true` |
-| `{{.HasJpa}}` | Whether JPA is available | `true` |
-| `{{.HasValidation}}` | Whether validation is available | `true` |
+{{if .HasValidation}}
+import jakarta.validation.Valid;
+{{end}}
 
-### Template Functions
+public class {{.Name}}Controller {
+    {{range .Fields}}
+    private {{.Type}} {{.Name}};
+    {{end}}
+}
+```
 
-| Function | Description | Example |
-|----------|-------------|---------|
-| `lower` | Convert to lowercase | `{{.Name \| lower}}` |
-| `upper` | Convert to uppercase | `{{.Name \| upper}}` |
-| `title` | Convert to title case | `{{.Name \| title}}` |
-| `camelCase` | Convert to camelCase | `{{.Name \| camelCase}}` |
-| `pascalCase` | Convert to PascalCase | `{{.Name \| pascalCase}}` |
-| `snakeCase` | Convert to snake_case | `{{.Name \| snakeCase}}` |
-| `kebabCase` | Convert to kebab-case | `{{.Name \| kebabCase}}` |
-| `plural` | Pluralize a word | `{{.Name \| plural}}` |
-| `singular` | Singularize a word | `{{.Name \| singular}}` |
+The simple `${var}` syntax and Go template syntax can be mixed in the same file.
 
 ## Common Customizations
 
 ### Adding Copyright Headers
 
-Add a copyright header to all generated files:
-
 ```java
 /*
- * Copyright (c) {{.Year}} MyCompany Inc.
+ * Copyright (c) 2024 MyCompany Inc.
  * All rights reserved.
  */
-package {{.Package}};
-// ... rest of template
+package ${BasePackage}.controller;
 ```
 
-### Adding Custom Annotations
-
-Add project-specific annotations:
+### Custom Annotations
 
 ```java
+// @if HasLombok
+@Data
+@Builder
+@NoArgsConstructor
+@AllArgsConstructor
+// @endif
 @Audited
 @Cacheable
-@RestController
-@RequestMapping("/api/{{.NameLower | plural}}")
-public class {{.Name}}Controller {
-    // ...
-}
+public class ${Name} {
 ```
 
-### Using Java Records for DTOs
-
-Replace class-based DTOs with records:
+### Using Records for DTOs
 
 ```java
-package {{.Package}};
+package ${BasePackage}.dto;
 
-public record {{.Name}}Request(
-    {{if .HasValidation}}@NotBlank {{end}}String name,
-    {{if .HasValidation}}@Email {{end}}String email
+// @if HasValidation
+import jakarta.validation.constraints.*;
+// @endif
+
+public record ${Name}Request(
+    // @if HasValidation
+    @NotBlank
+    // @endif
+    String name,
+    
+    // @if HasValidation
+    @Email
+    // @endif
+    String email
 ) {}
 ```
 
 ### Custom Repository Methods
 
-Add common repository methods:
-
 ```java
 @Repository
-public interface {{.Name}}Repository extends JpaRepository<{{.Name}}, {{.IDType}}> {
+public interface ${Name}Repository extends JpaRepository<${Name}, ${IDType}> {
     
-    Optional<{{.Name}}> findByEmail(String email);
+    Optional<${Name}> findByEmail(String email);
     
-    List<{{.Name}}> findByActiveTrue();
+    List<${Name}> findByActiveTrue();
     
-    @Query("SELECT e FROM {{.Name}} e WHERE e.createdAt > :date")
-    List<{{.Name}}> findRecentlyCreated(@Param("date") LocalDateTime date);
+    @Query("SELECT e FROM ${Name} e WHERE e.createdAt > :date")
+    List<${Name}> findRecentlyCreated(@Param("date") LocalDateTime date);
 }
 ```
 
 ## Tips
 
-1. **Start Small**: Begin by customizing just one template to understand the process
-2. **Test Changes**: After modifying a template, generate a test resource to verify
+1. **Validate First**: Always run `haft template validate` after modifying templates
+2. **Start Small**: Begin by customizing just one template to understand the process
 3. **Use Version Control**: Track your custom templates in `.haft/templates/` with git
-4. **Share Templates**: Copy your project templates to `~/.haft/templates/` for use across projects
+4. **Share Templates**: Copy project templates to `~/.haft/templates/` for use across projects
+5. **Check Variables**: Use `haft template validate --vars` to see what's available

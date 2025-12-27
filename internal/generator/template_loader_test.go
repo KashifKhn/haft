@@ -2,6 +2,7 @@ package generator
 
 import (
 	"path/filepath"
+	"strings"
 	"testing"
 
 	"github.com/spf13/afero"
@@ -289,13 +290,13 @@ func TestListAllEmbeddedTemplates(t *testing.T) {
 	hasProjectTemplate := false
 
 	for _, tmpl := range templates {
-		if filepath.HasPrefix(tmpl, "resource/") {
+		if strings.HasPrefix(tmpl, "resource/") {
 			hasResourceTemplate = true
 		}
-		if filepath.HasPrefix(tmpl, "test/") {
+		if strings.HasPrefix(tmpl, "test/") {
 			hasTestTemplate = true
 		}
-		if filepath.HasPrefix(tmpl, "project/") {
+		if strings.HasPrefix(tmpl, "project/") {
 			hasProjectTemplate = true
 		}
 	}
