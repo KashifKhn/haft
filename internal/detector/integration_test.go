@@ -483,7 +483,7 @@ public class Product {
 	}
 
 	for path, content := range files {
-		dir := path[:len(path)-len(path[len(path)-len(getFileName(path)):len(path)])-1]
+		dir := path[:len(path)-len(path[len(path)-len(getFileName(path)):])-1]
 		require.NoError(t, fs.MkdirAll(dir, 0755))
 		require.NoError(t, afero.WriteFile(fs, path, []byte(content), 0644))
 	}
@@ -549,7 +549,7 @@ public class Order extends BaseEntity {
 	}
 
 	for path, content := range files {
-		dir := path[:len(path)-len(path[len(path)-len(getFileName(path)):len(path)])-1]
+		dir := path[:len(path)-len(path[len(path)-len(getFileName(path)):])-1]
 		require.NoError(t, fs.MkdirAll(dir, 0755))
 		require.NoError(t, afero.WriteFile(fs, path, []byte(content), 0644))
 	}
@@ -579,7 +579,7 @@ func TestProjectWithMixedDTONaming(t *testing.T) {
 	}
 
 	for path, content := range files {
-		dir := path[:len(path)-len(path[len(path)-len(getFileName(path)):len(path)])-1]
+		dir := path[:len(path)-len(path[len(path)-len(getFileName(path)):])-1]
 		require.NoError(t, fs.MkdirAll(dir, 0755))
 		require.NoError(t, afero.WriteFile(fs, path, []byte(content), 0644))
 	}
@@ -620,7 +620,7 @@ public interface UserRepository extends MongoRepository<User, String> {
 	}
 
 	for path, content := range files {
-		dir := path[:len(path)-len(path[len(path)-len(getFileName(path)):len(path)])-1]
+		dir := path[:len(path)-len(path[len(path)-len(getFileName(path)):])-1]
 		require.NoError(t, fs.MkdirAll(dir, 0755))
 		require.NoError(t, afero.WriteFile(fs, path, []byte(content), 0644))
 	}
@@ -668,7 +668,7 @@ public class UserService {
 	}
 
 	for path, content := range files {
-		dir := path[:len(path)-len(path[len(path)-len(getFileName(path)):len(path)])-1]
+		dir := path[:len(path)-len(path[len(path)-len(getFileName(path)):])-1]
 		require.NoError(t, fs.MkdirAll(dir, 0755))
 		require.NoError(t, afero.WriteFile(fs, path, []byte(content), 0644))
 	}
@@ -741,7 +741,7 @@ public class UserJpaGateway implements UserGateway {
 	}
 
 	for path, content := range files {
-		dir := path[:len(path)-len(path[len(path)-len(getFileName(path)):len(path)])-1]
+		dir := path[:len(path)-len(path[len(path)-len(getFileName(path)):])-1]
 		require.NoError(t, fs.MkdirAll(dir, 0755))
 		require.NoError(t, afero.WriteFile(fs, path, []byte(content), 0644))
 	}
