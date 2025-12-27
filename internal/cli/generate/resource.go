@@ -58,7 +58,10 @@ generates code that matches your existing conventions:
   haft g r product
 
   # Non-interactive with package override
-  haft generate resource user --package com.example.myapp --no-interactive`,
+  haft generate resource user --package com.example.myapp --no-interactive
+
+  # Force re-detection of project profile
+  haft generate resource user --refresh`,
 		Args: cobra.MaximumNArgs(1),
 		RunE: runResource,
 	}
@@ -69,6 +72,7 @@ generates code that matches your existing conventions:
 	cmd.Flags().Bool("skip-repository", false, "Skip repository generation")
 	cmd.Flags().Bool("skip-tests", false, "Skip test generation")
 	cmd.Flags().Bool("legacy", false, "Use legacy layered generation (ignores architecture detection)")
+	cmd.Flags().Bool("refresh", false, "Force re-detection of project profile (ignore cache)")
 
 	return cmd
 }
@@ -76,13 +80,14 @@ generates code that matches your existing conventions:
 func runResource(cmd *cobra.Command, args []string) error {
 	noInteractive, _ := cmd.Flags().GetBool("no-interactive")
 	useLegacy, _ := cmd.Flags().GetBool("legacy")
+	forceRefresh, _ := cmd.Flags().GetBool("refresh")
 	log := logger.Default()
 
 	if useLegacy {
 		return runLegacyResource(cmd, args)
 	}
 
-	profile, err := DetectProjectProfile()
+	profile, err := DetectProjectProfileWithRefresh(forceRefresh)
 	if err != nil {
 		log.Warning("Could not detect project profile, falling back to legacy mode")
 		return runLegacyResource(cmd, args)

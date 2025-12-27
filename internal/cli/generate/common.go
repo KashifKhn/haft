@@ -291,13 +291,40 @@ func IsUpper(r rune) bool {
 }
 
 func DetectProjectProfile() (*detector.ProjectProfile, error) {
+	return DetectProjectProfileWithRefresh(false)
+}
+
+func DetectProjectProfileWithRefresh(forceRefresh bool) (*detector.ProjectProfile, error) {
 	cwd, err := os.Getwd()
 	if err != nil {
 		return nil, err
 	}
 
+	log := logger.Default()
+	cache := detector.NewProfileCache(cwd)
+
+	if !forceRefresh && cache.IsValid() {
+		profile, err := cache.Load()
+		if err == nil && profile != nil {
+			log.Debug("Using cached profile from .haft/profile.yaml")
+			return profile, nil
+		}
+	}
+
+	log.Debug("Scanning project to detect architecture...")
 	d := detector.NewDetector(cwd)
-	return d.Detect()
+	profile, err := d.Detect()
+	if err != nil {
+		return nil, err
+	}
+
+	if err := cache.Save(profile); err != nil {
+		log.Debug("Failed to cache profile", "error", err.Error())
+	} else {
+		log.Debug("Profile cached to .haft/profile.yaml")
+	}
+
+	return profile, nil
 }
 
 type TemplateContext struct {
