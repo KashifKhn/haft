@@ -7,8 +7,10 @@ import (
 	completioncmd "github.com/KashifKhn/haft/internal/cli/completion"
 	devcmd "github.com/KashifKhn/haft/internal/cli/dev"
 	generatecmd "github.com/KashifKhn/haft/internal/cli/generate"
+	infocmd "github.com/KashifKhn/haft/internal/cli/info"
 	initcmd "github.com/KashifKhn/haft/internal/cli/init"
 	removecmd "github.com/KashifKhn/haft/internal/cli/remove"
+	routescmd "github.com/KashifKhn/haft/internal/cli/routes"
 	"github.com/KashifKhn/haft/internal/logger"
 	"github.com/spf13/cobra"
 )
@@ -54,7 +56,11 @@ Features:
   # Development workflow
   haft dev serve          # Start with hot-reload
   haft dev build          # Build project
-  haft dev test           # Run tests`,
+  haft dev test           # Run tests
+
+  # Project analysis
+  haft info               # Show project info
+  haft routes             # List REST endpoints`,
 	PersistentPreRun: func(cmd *cobra.Command, args []string) {
 		initLogger()
 	},
@@ -86,6 +92,8 @@ func init() {
 	rootCmd.AddCommand(removecmd.NewCommand())
 	rootCmd.AddCommand(completioncmd.NewCommand())
 	rootCmd.AddCommand(devcmd.NewCommand())
+	rootCmd.AddCommand(infocmd.NewCommand())
+	rootCmd.AddCommand(routescmd.NewCommand())
 }
 
 var versionCmd = &cobra.Command{
