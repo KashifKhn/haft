@@ -351,6 +351,67 @@ public class OrderController {
 	assert.Contains(t, routeMap, "POST /api/orders/create")
 }
 
+func TestParseFileForRoutes_NestedGenerics(t *testing.T) {
+	content := `package com.example.demo.controller;
+
+import org.springframework.http.ResponseEntity;
+import org.springframework.web.bind.annotation.*;
+
+import java.util.List;
+
+@RestController
+@RequestMapping("/api/users")
+public class UserController {
+
+    @GetMapping
+    public ResponseEntity<List<UserResponse>> getAll() {
+        return ResponseEntity.ok(userService.findAll());
+    }
+
+    @GetMapping("/{id}")
+    public ResponseEntity<UserResponse> getById(@PathVariable Long id) {
+        return ResponseEntity.ok(userService.findById(id));
+    }
+
+    @PostMapping
+    public ResponseEntity<UserResponse> create(@RequestBody UserRequest request) {
+        return ResponseEntity.ok(userService.create(request));
+    }
+
+    @DeleteMapping("/{id}")
+    public ResponseEntity<Void> delete(@PathVariable Long id) {
+        userService.delete(id);
+        return ResponseEntity.noContent().build();
+    }
+}
+`
+	tmpDir := t.TempDir()
+	filePath := filepath.Join(tmpDir, "UserController.java")
+	err := os.WriteFile(filePath, []byte(content), 0644)
+	require.NoError(t, err)
+
+	routes, err := parseFileForRoutes(filePath)
+	require.NoError(t, err)
+
+	assert.Len(t, routes, 4)
+
+	routeMap := make(map[string]Route)
+	for _, r := range routes {
+		key := r.Method + " " + r.Path
+		routeMap[key] = r
+	}
+
+	assert.Contains(t, routeMap, "GET /api/users")
+	assert.Contains(t, routeMap, "GET /api/users/{id}")
+	assert.Contains(t, routeMap, "POST /api/users")
+	assert.Contains(t, routeMap, "DELETE /api/users/{id}")
+
+	assert.Equal(t, "getAll", routeMap["GET /api/users"].Handler)
+	assert.Equal(t, "getById", routeMap["GET /api/users/{id}"].Handler)
+	assert.Equal(t, "create", routeMap["POST /api/users"].Handler)
+	assert.Equal(t, "delete", routeMap["DELETE /api/users/{id}"].Handler)
+}
+
 func TestParseFileForRoutes_HandlerNames(t *testing.T) {
 	content := `package com.example.demo.controller;
 

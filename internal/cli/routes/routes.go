@@ -157,7 +157,7 @@ func parseFileForRoutes(filePath string) ([]Route, error) {
 	patchMappingRe := regexp.MustCompile(`@PatchMapping\s*(?:\(\s*(?:value\s*=\s*)?["']?([^"'\)]*?)["']?\s*\))?`)
 	deleteMappingRe := regexp.MustCompile(`@DeleteMapping\s*(?:\(\s*(?:value\s*=\s*)?["']?([^"'\)]*?)["']?\s*\))?`)
 
-	methodRe := regexp.MustCompile(`(?:public|private|protected)?\s*(?:\w+(?:<[^>]+>)?)\s+(\w+)\s*\(`)
+	methodRe := regexp.MustCompile(`(?:public|private|protected)\s+\S+\s+(\w+)\s*\(`)
 
 	var pendingMethod string
 	var pendingPath string
