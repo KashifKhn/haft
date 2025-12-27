@@ -6,7 +6,7 @@ description: Understanding and customizing Haft templates
 
 # Templates
 
-Haft uses Go templates to generate code. This page explains how templates work and how they might be customized in the future.
+Haft uses Go templates to generate code. This page explains how templates work and how to customize them.
 
 ## Built-in Templates
 
@@ -152,19 +152,126 @@ public class {{.Name}}Controller {
 }
 ```
 
-## Custom Templates (Future)
+## Custom Templates
 
-:::info Planned Feature
-Custom template support is planned for a future release. You'll be able to override built-in templates or add your own.
-:::
+Haft supports custom templates at two levels:
 
-Planned features:
-- Local template directory (`~/.haft/templates/`)
-- Project-level templates (`.haft/templates/`)
-- Template inheritance
-- Custom template functions
+| Location | Priority | Scope |
+|----------|----------|-------|
+| `.haft/templates/` | Highest | Project-specific |
+| `~/.haft/templates/` | Medium | User-global |
+| Built-in (embedded) | Lowest | Default fallback |
+
+When generating code, Haft checks each location in priority order and uses the first template found.
+
+### Setting Up Custom Templates
+
+```bash
+# Copy all embedded templates to your project
+haft template init
+
+# Copy only resource templates
+haft template init --category resource
+
+# Copy to global location (~/.haft/templates/)
+haft template init --global
+
+# Overwrite existing templates
+haft template init --force
+```
+
+### Listing Templates
+
+```bash
+# List all templates with their sources
+haft template list
+
+# Show only custom (non-embedded) templates
+haft template list --custom
+
+# Filter by category
+haft template list --category resource
+
+# Show full file paths
+haft template list --paths
+```
+
+### User-Friendly Syntax
+
+Haft supports a simplified template syntax alongside standard Go templates:
+
+#### Simple Placeholders
+
+| Placeholder | Go Template Equivalent | Example Output |
+|-------------|----------------------|----------------|
+| `${Name}` | `{{.Name}}` | `User` |
+| `${name}` | `{{.NameLower}}` | `user` |
+| `${nameCamel}` | `{{.NameCamel}}` | `user` |
+| `${nameSnake}` | `{{.NameSnake}}` | `user` |
+| `${nameKebab}` | `{{.NameKebab}}` | `user` |
+| `${namePlural}` | `{{plural .NameLower}}` | `users` |
+| `${NamePlural}` | `{{plural .Name}}` | `Users` |
+| `${BasePackage}` | `{{.BasePackage}}` | `com.example.app` |
+| `${Package}` | `{{.Package}}` | `com.example.app.user` |
+| `${IDType}` | `{{.IDType}}` | `Long` or `UUID` |
+| `${TableName}` | `{{.TableName}}` | `users` |
+
+#### Comment-Based Conditionals
+
+```java
+// @if HasLombok
+@Data
+@Builder
+// @else
+// Manual getters/setters here
+// @endif
+```
+
+Available conditions: `HasLombok`, `HasJpa`, `HasValidation`, `HasMapStruct`, `HasSwagger`, `HasBaseEntity`, `UsesUUID`, `UsesLong`
+
+### Validating Templates
+
+```bash
+# Validate all project templates
+haft template validate
+
+# Show available placeholder variables
+haft template validate --vars
+
+# Show available conditions
+haft template validate --conditions
+```
+
+### Example Custom Template
+
+```java
+package ${BasePackage}.controller;
+
+import org.springframework.web.bind.annotation.*;
+// @if HasSwagger
+import io.swagger.v3.oas.annotations.tags.Tag;
+// @endif
+
+// @if HasSwagger
+@Tag(name = "${Name}", description = "${Name} management endpoints")
+// @endif
+@RestController
+@RequestMapping("/api/${namePlural}")
+public class ${Name}Controller {
+
+    private final ${Name}Service ${nameCamel}Service;
+
+    public ${Name}Controller(${Name}Service ${nameCamel}Service) {
+        this.${nameCamel}Service = ${nameCamel}Service;
+    }
+}
+```
+
+For complete command documentation, see [haft template](/docs/commands/template).
 
 ## See Also
 
+- [haft template](/docs/commands/template) — Template management commands
+- [Custom Templates Guide](/docs/guides/custom-templates) — Detailed customization guide
 - [Project Structure](/docs/guides/project-structure) — Generated file locations
 - [haft generate](/docs/commands/generate) — Generation commands

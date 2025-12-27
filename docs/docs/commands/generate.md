@@ -128,6 +128,7 @@ haft g r Product
 | `--skip-entity` | | Skip entity generation |
 | `--skip-repository` | | Skip repository generation |
 | `--skip-tests` | | Skip test file generation |
+| `--legacy` | | Use legacy layered generation (ignores architecture detection) |
 | `--refresh` | | Force re-scan project (ignore cached profile) |
 
 ### Examples
@@ -150,6 +151,9 @@ haft generate resource Order --skip-tests
 
 # Force re-scan project profile
 haft generate resource Customer --refresh
+
+# Use legacy layered generation (ignores detected architecture)
+haft generate resource Invoice --legacy
 ```
 
 ---
