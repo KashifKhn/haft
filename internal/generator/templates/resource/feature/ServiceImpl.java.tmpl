@@ -1,0 +1,110 @@
+package {{.FeaturePackage}}.service.impl;
+
+import org.springframework.stereotype.Service;
+{{if .HasLombok}}
+import lombok.RequiredArgsConstructor;
+{{if .Lombok.UseSlf4j}}
+import lombok.extern.slf4j.Slf4j;
+{{end}}
+{{end}}
+{{if .HasJpa}}
+import org.springframework.transaction.annotation.Transactional;
+{{end}}
+import {{.FeaturePackage}}.service.{{.Name}}Service;
+import {{.FeaturePackage}}.dto.{{.RequestSuffix}};
+import {{.FeaturePackage}}.dto.{{.ResponseSuffix}};
+import {{.FeaturePackage}}.mapper.{{.Name}}Mapper;
+{{if .HasJpa}}
+import {{.FeaturePackage}}.repository.{{.Name}}Repository;
+import {{.FeaturePackage}}.entity.{{.Name}};
+{{end}}
+{{if .HasGlobalException}}
+import {{.ExceptionPackage}}.ResourceNotFoundException;
+{{end}}
+
+import java.util.List;
+
+@Service
+{{if .HasJpa}}@Transactional{{end}}
+{{if .HasLombok}}
+@RequiredArgsConstructor
+{{if .Lombok.UseSlf4j}}
+@Slf4j
+{{end}}
+{{end}}
+public class {{.Name}}ServiceImpl implements {{.Name}}Service {
+{{if .HasJpa}}
+    private final {{.Name}}Repository {{.NameCamel}}Repository;
+    private final {{.Name}}Mapper {{.NameCamel}}Mapper;
+{{if not .HasLombok}}
+    public {{.Name}}ServiceImpl({{.Name}}Repository {{.NameCamel}}Repository, {{.Name}}Mapper {{.NameCamel}}Mapper) {
+        this.{{.NameCamel}}Repository = {{.NameCamel}}Repository;
+        this.{{.NameCamel}}Mapper = {{.NameCamel}}Mapper;
+    }
+{{end}}
+    @Override
+    @Transactional(readOnly = true)
+    public List<{{.ResponseSuffix}}> findAll() {
+        return {{.NameCamel}}Repository.findAll().stream()
+                .map({{.NameCamel}}Mapper::toResponse)
+                .toList();
+    }
+
+    @Override
+    @Transactional(readOnly = true)
+    public {{.ResponseSuffix}} findById({{.IDType}} id) {
+        return {{.NameCamel}}Repository.findById(id)
+                .map({{.NameCamel}}Mapper::toResponse)
+                .orElseThrow(() -> new {{if .HasGlobalException}}ResourceNotFoundException{{else}}RuntimeException{{end}}("{{.Name}} not found with id: " + id));
+    }
+
+    @Override
+    public {{.ResponseSuffix}} create({{.RequestSuffix}} request) {
+        {{.Name}} {{.NameCamel}} = {{.NameCamel}}Mapper.toEntity(request);
+        {{.Name}} saved = {{.NameCamel}}Repository.save({{.NameCamel}});
+        return {{.NameCamel}}Mapper.toResponse(saved);
+    }
+
+    @Override
+    public {{.ResponseSuffix}} update({{.IDType}} id, {{.RequestSuffix}} request) {
+        {{.Name}} {{.NameCamel}} = {{.NameCamel}}Repository.findById(id)
+                .orElseThrow(() -> new {{if .HasGlobalException}}ResourceNotFoundException{{else}}RuntimeException{{end}}("{{.Name}} not found with id: " + id));
+        {{.NameCamel}}Mapper.updateEntity({{.NameCamel}}, request);
+        {{.Name}} updated = {{.NameCamel}}Repository.save({{.NameCamel}});
+        return {{.NameCamel}}Mapper.toResponse(updated);
+    }
+
+    @Override
+    public void delete({{.IDType}} id) {
+        if (!{{.NameCamel}}Repository.existsById(id)) {
+            throw new {{if .HasGlobalException}}ResourceNotFoundException{{else}}RuntimeException{{end}}("{{.Name}} not found with id: " + id);
+        }
+        {{.NameCamel}}Repository.deleteById(id);
+    }
+{{else}}
+    @Override
+    public List<{{.ResponseSuffix}}> findAll() {
+        throw new UnsupportedOperationException("Not implemented");
+    }
+
+    @Override
+    public {{.ResponseSuffix}} findById({{.IDType}} id) {
+        throw new UnsupportedOperationException("Not implemented");
+    }
+
+    @Override
+    public {{.ResponseSuffix}} create({{.RequestSuffix}} request) {
+        throw new UnsupportedOperationException("Not implemented");
+    }
+
+    @Override
+    public {{.ResponseSuffix}} update({{.IDType}} id, {{.RequestSuffix}} request) {
+        throw new UnsupportedOperationException("Not implemented");
+    }
+
+    @Override
+    public void delete({{.IDType}} id) {
+        throw new UnsupportedOperationException("Not implemented");
+    }
+{{end}}
+}

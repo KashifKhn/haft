@@ -1,0 +1,61 @@
+package {{.FeaturePackage}}.mapper;
+
+{{if .HasMapStruct}}
+import org.mapstruct.*;
+{{else}}
+import org.springframework.stereotype.Component;
+{{end}}
+
+import {{.FeaturePackage}}.entity.{{.Name}};
+import {{.FeaturePackage}}.dto.{{.RequestSuffix}};
+import {{.FeaturePackage}}.dto.{{.ResponseSuffix}};
+{{if .HasMapStruct}}
+@Mapper(componentModel = "spring", unmappedTargetPolicy = ReportingPolicy.IGNORE)
+public interface {{.Name}}Mapper {
+
+    {{.ResponseSuffix}} toResponse({{.Name}} entity);
+
+    {{.Name}} toEntity({{.RequestSuffix}} request);
+
+    @BeanMapping(nullValuePropertyMappingStrategy = NullValuePropertyMappingStrategy.IGNORE)
+    void updateEntity(@MappingTarget {{.Name}} entity, {{.RequestSuffix}} request);
+}
+{{else}}
+@Component
+public class {{.Name}}Mapper {
+
+    public {{.ResponseSuffix}} toResponse({{.Name}} entity) {
+        if (entity == null) {
+            return null;
+        }
+        {{if .HasLombok}}
+        return {{.ResponseSuffix}}.builder()
+                .id(entity.getId())
+                .build();
+        {{else}}
+        {{.ResponseSuffix}} response = new {{.ResponseSuffix}}();
+        response.setId(entity.getId());
+        return response;
+        {{end}}
+    }
+
+    public {{.Name}} toEntity({{.RequestSuffix}} request) {
+        if (request == null) {
+            return null;
+        }
+        {{if .HasLombok}}
+        return {{.Name}}.builder()
+                .build();
+        {{else}}
+        {{.Name}} entity = new {{.Name}}();
+        return entity;
+        {{end}}
+    }
+
+    public void updateEntity({{.Name}} entity, {{.RequestSuffix}} request) {
+        if (entity == null || request == null) {
+            return;
+        }
+    }
+}
+{{end}}

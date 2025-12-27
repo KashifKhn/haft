@@ -1,0 +1,32 @@
+package {{.FeaturePackage}}.dto;
+
+{{if .HasLombok}}
+import lombok.*;
+{{end}}
+{{if .HasValidation}}
+import {{.ValidationImport}}.constraints.*;
+{{end}}
+
+{{if .HasLombok}}
+{{if .Lombok.UseData}}
+@Data
+{{else}}
+@Getter
+@Setter
+{{end}}
+{{if .Lombok.UseNoArgs}}
+@NoArgsConstructor
+{{end}}
+{{if .Lombok.UseAllArgs}}
+@AllArgsConstructor
+{{end}}
+{{if .Lombok.UseBuilder}}
+@Builder
+{{end}}
+{{end}}
+public class {{.RequestSuffix}} {
+{{if not .HasLombok}}
+    public {{.RequestSuffix}}() {
+    }
+{{end}}
+}

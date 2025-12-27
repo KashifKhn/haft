@@ -1,0 +1,19 @@
+package {{.FeaturePackage}}.service;
+
+import {{.FeaturePackage}}.dto.{{.RequestSuffix}};
+import {{.FeaturePackage}}.dto.{{.ResponseSuffix}};
+
+import java.util.List;
+
+public interface {{.Name}}Service {
+
+    List<{{.ResponseSuffix}}> findAll();
+
+    {{.ResponseSuffix}} findById({{.IDType}} id);
+
+    {{.ResponseSuffix}} create({{.RequestSuffix}} request);
+
+    {{.ResponseSuffix}} update({{.IDType}} id, {{.RequestSuffix}} request);
+
+    void delete({{.IDType}} id);
+}

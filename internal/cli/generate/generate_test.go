@@ -6,6 +6,7 @@ import (
 	"strings"
 	"testing"
 
+	"github.com/KashifKhn/haft/internal/detector"
 	"github.com/spf13/afero"
 	"github.com/spf13/cobra"
 	"github.com/stretchr/testify/assert"
@@ -912,4 +913,212 @@ func TestGenerateCommandHasNoRunE(t *testing.T) {
 	cmd := NewCommand()
 	assert.Nil(t, cmd.RunE, "Parent generate command should not have RunE")
 	assert.Nil(t, cmd.Run, "Parent generate command should not have Run")
+}
+
+func TestBuildTemplateContextFromProfile(t *testing.T) {
+	profile := &detector.ProjectProfile{
+		Architecture:     detector.ArchFeature,
+		BasePackage:      "com.example.app",
+		ControllerSuffix: "Controller",
+		DTONaming:        detector.DTONamingRequestResponse,
+		IDType:           "UUID",
+		Mapper:           detector.MapperMapStruct,
+		HasSwagger:       true,
+		HasValidation:    true,
+		ValidationStyle:  detector.ValidationJakarta,
+		Database:         detector.DatabaseJPA,
+		Lombok: detector.LombokProfile{
+			Detected:   true,
+			UseData:    true,
+			UseBuilder: true,
+			UseSlf4j:   true,
+		},
+	}
+
+	ctx := BuildTemplateContextFromProfile("User", profile)
+
+	assert.Equal(t, "User", ctx.Name)
+	assert.Equal(t, "user", ctx.NameLower)
+	assert.Equal(t, "user", ctx.NameCamel)
+	assert.Equal(t, "com.example.app", ctx.BasePackage)
+	assert.Equal(t, "com.example.app.user", ctx.FeaturePackage)
+	assert.Equal(t, "feature", ctx.Architecture)
+	assert.True(t, ctx.HasLombok)
+	assert.True(t, ctx.HasJpa)
+	assert.True(t, ctx.HasValidation)
+	assert.True(t, ctx.HasSwagger)
+	assert.True(t, ctx.HasMapStruct)
+	assert.Equal(t, "UUID", ctx.IDType)
+	assert.Equal(t, "java.util.UUID", ctx.IDImport)
+	assert.Equal(t, "Controller", ctx.ControllerSuffix)
+	assert.Equal(t, "UserRequest", ctx.RequestSuffix)
+	assert.Equal(t, "UserResponse", ctx.ResponseSuffix)
+	assert.Equal(t, "jakarta.validation", ctx.ValidationImport)
+}
+
+func TestBuildTemplateContextLayered(t *testing.T) {
+	profile := &detector.ProjectProfile{
+		Architecture:     detector.ArchLayered,
+		BasePackage:      "com.example.demo",
+		ControllerSuffix: "Controller",
+		DTONaming:        detector.DTONamingDTOUpper,
+		IDType:           "Long",
+		Database:         detector.DatabaseJPA,
+	}
+
+	ctx := BuildTemplateContextFromProfile("Product", profile)
+
+	assert.Equal(t, "com.example.demo", ctx.FeaturePackage)
+	assert.Equal(t, "layered", ctx.Architecture)
+	assert.Equal(t, "ProductDTO", ctx.RequestSuffix)
+	assert.Equal(t, "ProductDTO", ctx.ResponseSuffix)
+	assert.Empty(t, ctx.IDImport)
+}
+
+func TestBuildTemplateContextWithBaseEntity(t *testing.T) {
+	profile := &detector.ProjectProfile{
+		Architecture: detector.ArchFeature,
+		BasePackage:  "com.example.app",
+		BaseEntity: &detector.BaseClassInfo{
+			Name:    "BaseEntity",
+			Package: "com.example.app.common.entity",
+		},
+		Database: detector.DatabaseJPA,
+	}
+
+	ctx := BuildTemplateContextFromProfile("Order", profile)
+
+	assert.True(t, ctx.HasBaseEntity)
+	assert.Equal(t, "BaseEntity", ctx.BaseEntityName)
+	assert.Equal(t, "com.example.app.common.entity.BaseEntity", ctx.BaseEntityImport)
+}
+
+func TestBuildTemplateContextWithResponseWrapper(t *testing.T) {
+	profile := &detector.ProjectProfile{
+		Architecture: detector.ArchFeature,
+		BasePackage:  "com.example.app",
+		ResponseWrapper: &detector.WrapperInfo{
+			Name:    "ApiResponse",
+			Package: "com.example.app.common.dto",
+		},
+		Database: detector.DatabaseJPA,
+	}
+
+	ctx := BuildTemplateContextFromProfile("Payment", profile)
+
+	assert.True(t, ctx.HasResponseWrapper)
+	assert.Equal(t, "ApiResponse", ctx.ResponseWrapperName)
+	assert.Equal(t, "com.example.app.common.dto.ApiResponse", ctx.ResponseWrapperImport)
+}
+
+func TestBuildTemplateContextWithExceptionHandler(t *testing.T) {
+	profile := &detector.ProjectProfile{
+		Architecture: detector.ArchFeature,
+		BasePackage:  "com.example.app",
+		Database:     detector.DatabaseJPA,
+		Exceptions: detector.ExceptionProfile{
+			HasGlobalHandler: true,
+		},
+	}
+
+	ctx := BuildTemplateContextFromProfile("Invoice", profile)
+
+	assert.True(t, ctx.HasGlobalException)
+	assert.Equal(t, "com.example.app.common.exception", ctx.ExceptionPackage)
+}
+
+func TestTemplateContextToMap(t *testing.T) {
+	ctx := TemplateContext{
+		Name:             "User",
+		NameLower:        "user",
+		NameCamel:        "user",
+		BasePackage:      "com.example",
+		FeaturePackage:   "com.example.user",
+		Architecture:     "feature",
+		HasLombok:        true,
+		HasJpa:           true,
+		HasValidation:    true,
+		IDType:           "UUID",
+		ControllerSuffix: "Controller",
+		RequestSuffix:    "UserRequest",
+		ResponseSuffix:   "UserResponse",
+	}
+
+	data := ctx.ToMap()
+
+	assert.Equal(t, "User", data["Name"])
+	assert.Equal(t, "user", data["NameLower"])
+	assert.Equal(t, "com.example.user", data["FeaturePackage"])
+	assert.Equal(t, true, data["HasLombok"])
+	assert.Equal(t, "UUID", data["IDType"])
+}
+
+func TestGetTemplateDir(t *testing.T) {
+	tests := []struct {
+		name     string
+		arch     detector.ArchitectureType
+		expected string
+	}{
+		{"feature", detector.ArchFeature, "resource/feature"},
+		{"hexagonal", detector.ArchHexagonal, "resource/feature"},
+		{"clean", detector.ArchClean, "resource/feature"},
+		{"layered", detector.ArchLayered, "resource/layered"},
+		{"modular", detector.ArchModular, "resource/layered"},
+		{"flat", detector.ArchFlat, "resource/layered"},
+		{"unknown", detector.ArchUnknown, "resource/layered"},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			profile := &detector.ProjectProfile{Architecture: tt.arch}
+			result := GetTemplateDir(profile)
+			assert.Equal(t, tt.expected, result)
+		})
+	}
+}
+
+func TestComputeOutputPath(t *testing.T) {
+	tests := []struct {
+		name         string
+		arch         detector.ArchitectureType
+		resourceName string
+		subPackage   string
+		fileName     string
+		wantContains string
+	}{
+		{
+			name:         "feature architecture",
+			arch:         detector.ArchFeature,
+			resourceName: "User",
+			subPackage:   "controller",
+			fileName:     "UserController.java",
+			wantContains: "user/controller/UserController.java",
+		},
+		{
+			name:         "layered architecture",
+			arch:         detector.ArchLayered,
+			resourceName: "User",
+			subPackage:   "controller",
+			fileName:     "UserController.java",
+			wantContains: "controller/UserController.java",
+		},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			profile := &detector.ProjectProfile{
+				Architecture: tt.arch,
+				BasePackage:  "com.example.app",
+			}
+
+			result := computeOutputPath("/src/main/java", profile, tt.resourceName, tt.subPackage, tt.fileName)
+			assert.Contains(t, result, tt.wantContains)
+		})
+	}
+}
+
+func TestResourceCommandHasLegacyFlag(t *testing.T) {
+	cmd := newResourceCommand()
+	legacyFlag := cmd.Flags().Lookup("legacy")
+	assert.NotNil(t, legacyFlag, "resource command should have --legacy flag")
 }

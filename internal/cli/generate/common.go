@@ -8,6 +8,7 @@ import (
 	"strings"
 
 	"github.com/KashifKhn/haft/internal/buildtool"
+	"github.com/KashifKhn/haft/internal/detector"
 	"github.com/KashifKhn/haft/internal/generator"
 	_ "github.com/KashifKhn/haft/internal/gradle"
 	"github.com/KashifKhn/haft/internal/logger"
@@ -287,4 +288,160 @@ func SplitWords(s string) []string {
 
 func IsUpper(r rune) bool {
 	return r >= 'A' && r <= 'Z'
+}
+
+func DetectProjectProfile() (*detector.ProjectProfile, error) {
+	cwd, err := os.Getwd()
+	if err != nil {
+		return nil, err
+	}
+
+	d := detector.NewDetector(cwd)
+	return d.Detect()
+}
+
+type TemplateContext struct {
+	Name      string
+	NameLower string
+	NameCamel string
+
+	BasePackage    string
+	FeaturePackage string
+
+	Architecture string
+
+	HasLombok     bool
+	HasJpa        bool
+	HasValidation bool
+	HasSwagger    bool
+	HasMapStruct  bool
+
+	IDType   string
+	IDImport string
+
+	ControllerSuffix string
+	RequestSuffix    string
+	ResponseSuffix   string
+
+	HasBaseEntity    bool
+	BaseEntityName   string
+	BaseEntityImport string
+
+	HasResponseWrapper    bool
+	ResponseWrapperName   string
+	ResponseWrapperImport string
+
+	HasGlobalException bool
+	ExceptionPackage   string
+
+	ValidationImport string
+
+	Lombok detector.LombokProfile
+}
+
+func BuildTemplateContextFromProfile(name string, profile *detector.ProjectProfile) TemplateContext {
+	nameLower := strings.ToLower(name)
+
+	featurePackage := profile.BasePackage
+	if profile.Architecture == detector.ArchFeature {
+		featurePackage = profile.BasePackage + "." + nameLower
+	}
+
+	ctx := TemplateContext{
+		Name:      name,
+		NameLower: nameLower,
+		NameCamel: ToCamelCase(name),
+
+		BasePackage:    profile.BasePackage,
+		FeaturePackage: featurePackage,
+
+		Architecture: string(profile.Architecture),
+
+		HasLombok:     profile.Lombok.Detected,
+		HasJpa:        profile.Database == detector.DatabaseJPA || profile.Database == detector.DatabaseMulti,
+		HasValidation: profile.HasValidation,
+		HasSwagger:    profile.HasSwagger,
+		HasMapStruct:  profile.Mapper == detector.MapperMapStruct,
+
+		IDType:   profile.IDType,
+		IDImport: profile.GetIDImport(),
+
+		ControllerSuffix: profile.ControllerSuffix,
+		RequestSuffix:    name + profile.GetDTORequestSuffix(),
+		ResponseSuffix:   name + profile.GetDTOResponseSuffix(),
+
+		Lombok: profile.Lombok,
+	}
+
+	if profile.BaseEntity != nil {
+		ctx.HasBaseEntity = true
+		ctx.BaseEntityName = profile.BaseEntity.Name
+		ctx.BaseEntityImport = profile.GetBaseEntityImport()
+	}
+
+	if profile.ResponseWrapper != nil {
+		ctx.HasResponseWrapper = true
+		ctx.ResponseWrapperName = profile.ResponseWrapper.Name
+		ctx.ResponseWrapperImport = profile.GetResponseWrapperImport()
+	}
+
+	if profile.Exceptions.HasGlobalHandler {
+		ctx.HasGlobalException = true
+		ctx.ExceptionPackage = profile.BasePackage + ".exception"
+		if profile.Architecture == detector.ArchFeature {
+			ctx.ExceptionPackage = profile.BasePackage + ".common.exception"
+		}
+	}
+
+	if profile.ValidationStyle == detector.ValidationJakarta {
+		ctx.ValidationImport = "jakarta.validation"
+	} else if profile.ValidationStyle == detector.ValidationJavax {
+		ctx.ValidationImport = "javax.validation"
+	}
+
+	return ctx
+}
+
+func (ctx TemplateContext) ToMap() map[string]any {
+	return map[string]any{
+		"Name":                  ctx.Name,
+		"NameLower":             ctx.NameLower,
+		"NameCamel":             ctx.NameCamel,
+		"BasePackage":           ctx.BasePackage,
+		"FeaturePackage":        ctx.FeaturePackage,
+		"Architecture":          ctx.Architecture,
+		"HasLombok":             ctx.HasLombok,
+		"HasJpa":                ctx.HasJpa,
+		"HasValidation":         ctx.HasValidation,
+		"HasSwagger":            ctx.HasSwagger,
+		"HasMapStruct":          ctx.HasMapStruct,
+		"IDType":                ctx.IDType,
+		"IDImport":              ctx.IDImport,
+		"ControllerSuffix":      ctx.ControllerSuffix,
+		"RequestSuffix":         ctx.RequestSuffix,
+		"ResponseSuffix":        ctx.ResponseSuffix,
+		"HasBaseEntity":         ctx.HasBaseEntity,
+		"BaseEntityName":        ctx.BaseEntityName,
+		"BaseEntityImport":      ctx.BaseEntityImport,
+		"HasResponseWrapper":    ctx.HasResponseWrapper,
+		"ResponseWrapperName":   ctx.ResponseWrapperName,
+		"ResponseWrapperImport": ctx.ResponseWrapperImport,
+		"HasGlobalException":    ctx.HasGlobalException,
+		"ExceptionPackage":      ctx.ExceptionPackage,
+		"ValidationImport":      ctx.ValidationImport,
+		"Lombok":                ctx.Lombok,
+	}
+}
+
+func GetTemplateDir(profile *detector.ProjectProfile) string {
+	switch profile.Architecture {
+	case detector.ArchFeature:
+		return "resource/feature"
+	case detector.ArchHexagonal:
+		return "resource/feature"
+	case detector.ArchClean:
+		return "resource/feature"
+	default:
+		return "resource/layered"
+	}
 }
