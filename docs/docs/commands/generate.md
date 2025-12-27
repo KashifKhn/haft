@@ -26,6 +26,7 @@ haft g <subcommand> [name] [flags]  # alias
 | `haft generate entity` | `haft g e` | Generate JPA entity class |
 | `haft generate dto` | - | Generate Request and Response DTOs |
 | `haft generate exception` | `haft g ex` | Generate global exception handler |
+| `haft generate config` | `haft g cfg` | Generate configuration classes |
 
 ## Smart Detection
 
@@ -671,6 +672,207 @@ public class UserServiceImpl implements UserService {
 
 ---
 
+## haft generate config
+
+Generate common Spring Boot configuration classes.
+
+```bash
+# Interactive mode with configuration picker
+haft generate config
+haft g cfg
+
+# Generate all configurations
+haft generate config --all
+
+# Non-interactive mode (requires --all)
+haft generate config --all --no-interactive
+
+# Override base package
+haft generate config --package com.example.app
+```
+
+### Available Configurations
+
+| File | Description |
+|------|-------------|
+| `CorsConfig.java` | Cross-origin resource sharing setup |
+| `OpenApiConfig.java` | Swagger/OpenAPI 3.0 documentation |
+| `JacksonConfig.java` | JSON serialization settings |
+| `AsyncConfig.java` | Async/thread pool configuration |
+| `CacheConfig.java` | Spring Cache configuration |
+| `AuditingConfig.java` | JPA auditing (@CreatedDate, @LastModifiedDate) |
+| `WebMvcConfig.java` | Web MVC customization (resource handlers) |
+
+### Flags
+
+| Flag | Short | Description |
+|------|-------|-------------|
+| `--package` | `-p` | Override base package |
+| `--no-interactive` | | Skip interactive wizard (requires --all) |
+| `--all` | | Generate all configuration classes |
+| `--refresh` | | Force re-scan project (ignore cached profile) |
+
+### File Placement by Architecture
+
+| Architecture | Package Location |
+|--------------|------------------|
+| **Layered** | `com.example.config` |
+| **Feature** | `com.example.common.config` |
+| **Hexagonal** | `com.example.infrastructure.config` |
+| **Clean** | `com.example.infrastructure.config` |
+
+### Example Output (CorsConfig.java)
+
+```java
+package com.example.demo.config;
+
+import org.springframework.context.annotation.Bean;
+import org.springframework.context.annotation.Configuration;
+import org.springframework.web.cors.CorsConfiguration;
+import org.springframework.web.cors.UrlBasedCorsConfigurationSource;
+import org.springframework.web.filter.CorsFilter;
+
+import java.util.Arrays;
+import java.util.List;
+
+@Configuration
+public class CorsConfig {
+
+    @Bean
+    public CorsFilter corsFilter() {
+        CorsConfiguration config = new CorsConfiguration();
+        config.setAllowCredentials(true);
+        config.setAllowedOrigins(List.of("http://localhost:3000", "http://localhost:4200"));
+        config.setAllowedHeaders(Arrays.asList(
+                "Origin", "Content-Type", "Accept", "Authorization",
+                "X-Requested-With", "Access-Control-Request-Method",
+                "Access-Control-Request-Headers"
+        ));
+        config.setAllowedMethods(Arrays.asList("GET", "POST", "PUT", "DELETE", "PATCH", "OPTIONS"));
+
+        UrlBasedCorsConfigurationSource source = new UrlBasedCorsConfigurationSource();
+        source.registerCorsConfiguration("/**", config);
+        return new CorsFilter(source);
+    }
+}
+```
+
+### Example Output (OpenApiConfig.java)
+
+```java
+package com.example.demo.config;
+
+import io.swagger.v3.oas.models.OpenAPI;
+import io.swagger.v3.oas.models.info.Contact;
+import io.swagger.v3.oas.models.info.Info;
+import io.swagger.v3.oas.models.info.License;
+import io.swagger.v3.oas.models.servers.Server;
+import org.springframework.beans.factory.annotation.Value;
+import org.springframework.context.annotation.Bean;
+import org.springframework.context.annotation.Configuration;
+
+import java.util.List;
+
+@Configuration
+public class OpenApiConfig {
+
+    @Value("${spring.application.name:Demo}")
+    private String applicationName;
+
+    @Bean
+    public OpenAPI customOpenAPI() {
+        Server devServer = new Server();
+        devServer.setUrl("http://localhost:8080");
+        devServer.setDescription("Development server");
+
+        Info info = new Info()
+                .title(applicationName + " API")
+                .version("1.0.0")
+                .description("API documentation for " + applicationName);
+
+        return new OpenAPI()
+                .info(info)
+                .servers(List.of(devServer));
+    }
+}
+```
+
+### Example Output (AsyncConfig.java)
+
+```java
+package com.example.demo.config;
+
+import org.springframework.context.annotation.Bean;
+import org.springframework.context.annotation.Configuration;
+import org.springframework.scheduling.annotation.EnableAsync;
+import org.springframework.scheduling.concurrent.ThreadPoolTaskExecutor;
+
+import java.util.concurrent.Executor;
+
+@Configuration
+@EnableAsync
+public class AsyncConfig {
+
+    @Bean(name = "taskExecutor")
+    public Executor taskExecutor() {
+        ThreadPoolTaskExecutor executor = new ThreadPoolTaskExecutor();
+        executor.setCorePoolSize(5);
+        executor.setMaxPoolSize(10);
+        executor.setQueueCapacity(25);
+        executor.setThreadNamePrefix("Async-");
+        executor.setWaitForTasksToCompleteOnShutdown(true);
+        executor.setAwaitTerminationSeconds(60);
+        executor.initialize();
+        return executor;
+    }
+}
+```
+
+### Example Output (AuditingConfig.java)
+
+```java
+package com.example.demo.config;
+
+import org.springframework.context.annotation.Bean;
+import org.springframework.context.annotation.Configuration;
+import org.springframework.data.domain.AuditorAware;
+import org.springframework.data.jpa.repository.config.EnableJpaAuditing;
+
+import java.util.Optional;
+
+@Configuration
+@EnableJpaAuditing(auditorAwareRef = "auditorProvider")
+public class AuditingConfig {
+
+    @Bean
+    public AuditorAware<String> auditorProvider() {
+        // TODO: Return current user from SecurityContext
+        return () -> Optional.of("system");
+    }
+}
+```
+
+:::tip
+Use `AuditingConfig` with `@CreatedDate`, `@LastModifiedDate`, `@CreatedBy`, and `@LastModifiedBy` annotations on your entities:
+
+```java
+@Entity
+@EntityListeners(AuditingEntityListener.class)
+public class User {
+    @CreatedDate
+    private LocalDateTime createdAt;
+    
+    @LastModifiedDate
+    private LocalDateTime updatedAt;
+    
+    @CreatedBy
+    private String createdBy;
+}
+```
+:::
+
+---
+
 ## File Safety
 
 Haft never overwrites existing files. If a file already exists, it will be skipped with a warning:
@@ -697,4 +899,5 @@ Names are automatically converted to PascalCase:
 
 - [haft init](/docs/commands/init) - Initialize a new project
 - [haft add](/docs/commands/add) - Add dependencies
+- [haft template](/docs/commands/template) - Customize templates
 - [Project Structure](/docs/guides/project-structure) - Where files are generated
