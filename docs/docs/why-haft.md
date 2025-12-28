@@ -113,6 +113,7 @@ haft init my-app --group com.example --deps web,jpa --no-interactive
 | Interactive TUI | ❌ | ✅ |
 | Resource generation | ❌ | ✅ |
 | Test generation | ❌ | ✅ |
+| Security generation | ❌ | ✅ |
 | Dependency management | ❌ | ✅ |
 | Smart detection | ❌ | ✅ |
 | Architecture detection | ❌ | ✅ |
@@ -144,6 +145,14 @@ haft add security
 ```
 
 Adds Spring Security with proper configuration.
+
+### Adding Security Configuration
+
+```bash
+haft generate security --jwt
+```
+
+Generates complete JWT authentication setup with token generation, validation, and auth endpoints.
 
 ### CI/CD Pipelines
 

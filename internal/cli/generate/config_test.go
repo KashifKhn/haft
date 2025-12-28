@@ -353,7 +353,7 @@ func TestGenerateConfigsNoSourcePath(t *testing.T) {
 		Selected: []string{"cors"},
 	}
 
-	err = generateConfigs(profile, selection)
+	err = generateConfigs(profile, selection, false)
 	assert.Error(t, err)
 	assert.Contains(t, err.Error(), "could not find src/main/java directory")
 }
@@ -381,7 +381,7 @@ func TestGenerateConfigsIntegration(t *testing.T) {
 		Selected: []string{"cors", "jackson"},
 	}
 
-	err = generateConfigs(profile, selection)
+	err = generateConfigs(profile, selection, false)
 	require.NoError(t, err)
 
 	configPath := filepath.Join(tmpDir, "src", "main", "java", "com", "example", "demo", "config")
@@ -422,7 +422,7 @@ func TestGenerateConfigsSkipsExisting(t *testing.T) {
 		Selected: []string{"cors"},
 	}
 
-	err = generateConfigs(profile, selection)
+	err = generateConfigs(profile, selection, false)
 	require.NoError(t, err)
 
 	content, err := os.ReadFile(existingFile)

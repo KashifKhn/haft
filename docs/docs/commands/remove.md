@@ -54,6 +54,13 @@ The picker shows:
 - Version (if specified)
 - Scope (if not compile)
 
+## Flags
+
+| Flag | Description |
+|------|-------------|
+| `--json` | Output result as JSON |
+| `--no-interactive` | Skip interactive picker (requires dependency argument) |
+
 ## Examples
 
 ### Remove by Artifact Name

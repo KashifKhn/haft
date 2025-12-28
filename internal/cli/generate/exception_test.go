@@ -446,7 +446,7 @@ func TestGenerateExceptionHandlerNoSourcePath(t *testing.T) {
 		SelectedOptional: []string{},
 	}
 
-	err = generateExceptionHandler(profile, cfg)
+	err = generateExceptionHandler(profile, cfg, false)
 	assert.Error(t, err)
 	assert.Contains(t, err.Error(), "could not find src/main/java directory")
 }
@@ -476,7 +476,7 @@ func TestGenerateExceptionHandlerIntegrationWithOptions(t *testing.T) {
 		SelectedOptional: []string{"HasConflict", "HasGone"},
 	}
 
-	err = generateExceptionHandler(profile, cfg)
+	err = generateExceptionHandler(profile, cfg, false)
 	require.NoError(t, err)
 
 	exceptionPath := filepath.Join(tmpDir, "src", "main", "java", "com", "example", "demo", "exception")
@@ -518,7 +518,7 @@ func TestGenerateExceptionHandlerSkipsExisting(t *testing.T) {
 		SelectedOptional: []string{},
 	}
 
-	err = generateExceptionHandler(profile, cfg)
+	err = generateExceptionHandler(profile, cfg, false)
 	require.NoError(t, err)
 
 	content, err := os.ReadFile(existingFile)

@@ -6,7 +6,7 @@ description: Available Spring Boot dependencies and shortcuts
 
 # Dependencies
 
-Haft provides access to all official Spring Boot starters plus 330+ additional dependency shortcuts for popular libraries.
+Haft provides access to all official Spring Boot starters plus 330+ additional dependency shortcuts for popular libraries across 35 categories.
 
 ## Build Tool Support
 
@@ -577,6 +577,58 @@ Beyond Spring Initializr starters, `haft add` supports 330+ shortcuts for popula
 | `modbus` | Modbus industrial protocol |
 | `pi4j` | Pi4J Raspberry Pi control |
 
+### Ops
+
+| Shortcut | Description |
+|----------|-------------|
+| `actuator` | Spring Boot Actuator for monitoring |
+| `micrometer` | Micrometer Prometheus metrics exporter |
+
+### Template Engines
+
+| Shortcut | Description |
+|----------|-------------|
+| `thymeleaf` | Thymeleaf server-side HTML templating |
+| `freemarker` | FreeMarker template engine |
+| `mustache` | Mustache template engine |
+
+### Content
+
+| Shortcut | Description |
+|----------|-------------|
+| `rome` | Rome RSS and Atom feed parser |
+| `htmlunit` | HtmlUnit headless browser |
+| `bliki` | Bliki Wikipedia syntax parser |
+| `emoji-java` | Emoji Java string handling |
+
+### Networking
+
+| Shortcut | Description |
+|----------|-------------|
+| `netty` | Netty async event-driven network framework |
+| `pcap4j` | Pcap4J packet capture library |
+| `dns-java` | dnsjava DNS protocol implementation |
+
+### Integration
+
+| Shortcut | Description |
+|----------|-------------|
+| `spring-integration` | Spring Integration EIP patterns |
+| `apache-camel` | Apache Camel integration framework |
+| `spring-cloud-data-flow` | Spring Cloud Data Flow orchestration |
+| `spring-cloud-task` | Spring Cloud Task short-lived microservices |
+
+### API
+
+| Shortcut | Description |
+|----------|-------------|
+| `springdoc` | SpringDoc OpenAPI 3 generation |
+| `asyncapi` | AsyncAPI event-driven documentation |
+| `netflix-dgs` | Netflix DGS GraphQL framework |
+| `avro-serializer` | Avro serialization for Kafka schemas |
+| `json-schema` | JSON Schema validation |
+| `graphql-kickstart` | GraphQL Kickstart starter |
+
 ---
 
 ## Using Dependencies
@@ -596,14 +648,47 @@ haft add lombok jpa validation
 # Add multiple at once
 haft add jwt openapi mapstruct
 
-# Add by Maven coordinates (auto-verified)
+# Add by Maven coordinates (auto-verified against Maven Central)
 haft add org.mapstruct:mapstruct
 
 # Add with specific version
 haft add io.jsonwebtoken:jjwt-api:0.12.5
 
+# Add with scope override
+haft add h2 --scope test
+
 # List all shortcuts
 haft add --list
+```
+
+### Adding Any Maven Central Dependency
+
+You can add **any dependency from Maven Central** using Maven coordinates format:
+
+```bash
+# Format: groupId:artifactId
+haft add org.apache.commons:commons-collections4
+
+# Format: groupId:artifactId:version
+haft add com.google.code.gson:gson:2.10.1
+
+# Multiple coordinates
+haft add org.modelmapper:modelmapper io.github.cdimascio:dotenv-java
+```
+
+Haft automatically:
+- Verifies the dependency exists on Maven Central
+- Fetches the latest version if not specified
+- Adds to your `pom.xml` or `build.gradle` with correct format
+
+```bash
+# This will fetch latest version automatically
+$ haft add org.mapstruct:mapstruct
+SUCCESS ✓ Added dependency=org.mapstruct:mapstruct:1.5.5.Final
+
+# Error if dependency doesn't exist
+$ haft add com.fake:nonexistent
+ERROR ✗ dependency 'com.fake:nonexistent' not found on Maven Central
 ```
 
 ### With `haft remove`

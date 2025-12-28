@@ -349,7 +349,25 @@ func TestValidateResourceConfig(t *testing.T) {
 			name:    "missing package",
 			cfg:     ResourceConfig{Name: "User"},
 			wantErr: true,
-			errMsg:  "base package is required",
+			errMsg:  "base package could not be detected",
+		},
+		{
+			name:    "invalid name starts with number",
+			cfg:     ResourceConfig{Name: "123User", BasePackage: "com.example"},
+			wantErr: true,
+			errMsg:  "must start with a letter",
+		},
+		{
+			name:    "invalid name too short",
+			cfg:     ResourceConfig{Name: "A", BasePackage: "com.example"},
+			wantErr: true,
+			errMsg:  "at least 2 characters",
+		},
+		{
+			name:    "invalid name with special chars",
+			cfg:     ResourceConfig{Name: "User@Name", BasePackage: "com.example"},
+			wantErr: true,
+			errMsg:  "must start with a letter",
 		},
 	}
 
@@ -388,7 +406,7 @@ func TestValidateComponentConfig(t *testing.T) {
 			name:    "missing package",
 			cfg:     ComponentConfig{Name: "User"},
 			wantErr: true,
-			errMsg:  "base package is required",
+			errMsg:  "base package could not be detected",
 		},
 	}
 
@@ -1000,7 +1018,7 @@ func TestResourceConfigToComponentConfig(t *testing.T) {
 
 func TestSubcommandCount(t *testing.T) {
 	cmd := NewCommand()
-	assert.Equal(t, 8, len(cmd.Commands()), "Should have 8 subcommands: resource, controller, service, repository, entity, dto, exception, config")
+	assert.Equal(t, 9, len(cmd.Commands()), "Should have 9 subcommands: resource, controller, service, repository, entity, dto, exception, config, security")
 }
 
 func TestGenerateCommandHasNoRunE(t *testing.T) {

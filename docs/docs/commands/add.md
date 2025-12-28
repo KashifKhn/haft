@@ -113,6 +113,8 @@ haft add --list
 | `--list` | | List available dependency shortcuts |
 | `--scope` | | Set dependency scope (compile, runtime, test, provided) |
 | `--version` | | Override default version |
+| `--json` | | Output result as JSON |
+| `--no-interactive` | | Skip interactive prompts |
 
 ## Available Shortcuts (330+)
 

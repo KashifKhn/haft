@@ -1,0 +1,58 @@
+package {{.SecurityPackage}};
+
+{{if .HasLombok}}
+import lombok.AllArgsConstructor;
+import lombok.Builder;
+import lombok.Data;
+import lombok.NoArgsConstructor;
+{{end}}
+{{if .HasValidation}}
+import {{.ValidationImport}}.constraints.Email;
+import {{.ValidationImport}}.constraints.NotBlank;
+{{end}}
+
+{{if .HasLombok}}
+@Data
+@Builder
+@AllArgsConstructor
+@NoArgsConstructor
+{{end}}
+public class AuthRequest {
+
+{{if .HasValidation}}
+    @NotBlank(message = "Email is required")
+    @Email(message = "Invalid email format")
+{{end}}
+    private String email;
+
+{{if .HasValidation}}
+    @NotBlank(message = "Password is required")
+{{end}}
+    private String password;
+{{if not .HasLombok}}
+
+    public AuthRequest() {
+    }
+
+    public AuthRequest(String email, String password) {
+        this.email = email;
+        this.password = password;
+    }
+
+    public String getEmail() {
+        return email;
+    }
+
+    public void setEmail(String email) {
+        this.email = email;
+    }
+
+    public String getPassword() {
+        return password;
+    }
+
+    public void setPassword(String password) {
+        this.password = password;
+    }
+{{end}}
+}

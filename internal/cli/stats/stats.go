@@ -1,12 +1,12 @@
 package stats
 
 import (
-	"encoding/json"
 	"fmt"
 	"os"
 	"strings"
 
 	"github.com/KashifKhn/haft/internal/buildtool"
+	"github.com/KashifKhn/haft/internal/output"
 	"github.com/KashifKhn/haft/internal/stats"
 	"github.com/charmbracelet/lipgloss"
 	"github.com/spf13/afero"
@@ -56,16 +56,25 @@ func runStats(jsonOutput bool, showCocomo bool) error {
 	fs := afero.NewOsFs()
 	_, err := buildtool.DetectWithCwd(fs)
 	if err != nil {
+		if jsonOutput {
+			return output.Error("NOT_SPRING_PROJECT", "Not a Spring Boot project", err.Error())
+		}
 		return fmt.Errorf("not a Spring Boot project: %w", err)
 	}
 
 	cwd, err := os.Getwd()
 	if err != nil {
+		if jsonOutput {
+			return output.Error("DIRECTORY_ERROR", "Failed to get current directory", err.Error())
+		}
 		return fmt.Errorf("failed to get current directory: %w", err)
 	}
 
 	projectStats, err := stats.CountProject(cwd)
 	if err != nil {
+		if jsonOutput {
+			return output.Error("COUNT_ERROR", "Failed to count code", err.Error())
+		}
 		return fmt.Errorf("failed to count code: %w", err)
 	}
 
@@ -134,41 +143,9 @@ func printFormatted(s *stats.ProjectStats, showCocomo bool) error {
 }
 
 func printJSON(s *stats.ProjectStats, showCocomo bool) error {
-	type jsonLang struct {
-		Name       string `json:"name"`
-		Files      int64  `json:"files"`
-		Lines      int64  `json:"lines"`
-		Code       int64  `json:"code"`
-		Comments   int64  `json:"comments"`
-		Blanks     int64  `json:"blanks"`
-		Complexity int64  `json:"complexity,omitempty"`
-	}
-
-	type jsonOutput struct {
-		Languages       []jsonLang `json:"languages"`
-		TotalFiles      int64      `json:"totalFiles"`
-		TotalLines      int64      `json:"totalLines"`
-		TotalCode       int64      `json:"totalCode"`
-		TotalComments   int64      `json:"totalComments"`
-		TotalBlanks     int64      `json:"totalBlanks"`
-		TotalBytes      int64      `json:"totalBytes"`
-		EstimatedCost   float64    `json:"estimatedCost,omitempty"`
-		EstimatedMonths float64    `json:"estimatedMonths,omitempty"`
-		EstimatedPeople float64    `json:"estimatedPeople,omitempty"`
-	}
-
-	output := jsonOutput{
-		Languages:     make([]jsonLang, len(s.Languages)),
-		TotalFiles:    s.TotalFiles,
-		TotalLines:    s.TotalLines,
-		TotalCode:     s.TotalCode,
-		TotalComments: s.TotalComments,
-		TotalBlanks:   s.TotalBlanks,
-		TotalBytes:    s.TotalBytes,
-	}
-
+	languages := make([]output.LanguageStats, len(s.Languages))
 	for i, lang := range s.Languages {
-		output.Languages[i] = jsonLang{
+		languages[i] = output.LanguageStats{
 			Name:       lang.Name,
 			Files:      lang.Files,
 			Lines:      lang.Lines,
@@ -179,19 +156,25 @@ func printJSON(s *stats.ProjectStats, showCocomo bool) error {
 		}
 	}
 
+	summary := output.CodeStatsInfo{
+		TotalFiles:  s.TotalFiles,
+		LinesOfCode: s.TotalCode,
+		Comments:    s.TotalComments,
+		BlankLines:  s.TotalBlanks,
+		TotalBytes:  s.TotalBytes,
+		TotalLines:  s.TotalLines,
+	}
+
 	if showCocomo {
-		output.EstimatedCost = s.EstimatedCost
-		output.EstimatedMonths = s.EstimatedMonths
-		output.EstimatedPeople = s.EstimatedPeople
+		summary.EstimatedCost = s.EstimatedCost
+		summary.EstimatedMonths = s.EstimatedMonths
+		summary.EstimatedPeople = s.EstimatedPeople
 	}
 
-	data, err := json.MarshalIndent(output, "", "  ")
-	if err != nil {
-		return err
-	}
-
-	fmt.Println(string(data))
-	return nil
+	return output.Success(output.StatsOutput{
+		Languages: languages,
+		Summary:   summary,
+	})
 }
 
 func formatNumber(n int64) string {

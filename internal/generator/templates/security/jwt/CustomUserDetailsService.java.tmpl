@@ -1,0 +1,35 @@
+package {{.SecurityPackage}};
+
+import org.springframework.security.core.userdetails.UserDetails;
+import org.springframework.security.core.userdetails.UserDetailsService;
+import org.springframework.security.core.userdetails.UsernameNotFoundException;
+import org.springframework.stereotype.Service;
+{{if .HasLombok}}
+import lombok.RequiredArgsConstructor;
+{{end}}
+
+import {{.UserEntityPackage}}.{{.UserEntityName}};
+import {{.UserRepositoryPackage}}.{{.UserEntityName}}Repository;
+
+@Service
+{{if .HasLombok}}
+@RequiredArgsConstructor
+{{end}}
+public class CustomUserDetailsService implements UserDetailsService {
+
+{{if .HasLombok}}
+    private final {{.UserEntityName}}Repository userRepository;
+{{else}}
+    private final {{.UserEntityName}}Repository userRepository;
+
+    public CustomUserDetailsService({{.UserEntityName}}Repository userRepository) {
+        this.userRepository = userRepository;
+    }
+{{end}}
+
+    @Override
+    public UserDetails loadUserByUsername(String username) throws UsernameNotFoundException {
+        return userRepository.findByEmail(username)
+                .orElseThrow(() -> new UsernameNotFoundException("User not found with email: " + username));
+    }
+}

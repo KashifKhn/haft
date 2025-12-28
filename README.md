@@ -293,6 +293,40 @@ haft generate entity Customer      # haft g e Customer
 haft generate dto Invoice          # Request + Response DTOs
 ```
 
+### Generate Security Configuration
+
+```bash
+# Interactive selection of security types
+haft generate security
+
+# Generate JWT authentication
+haft generate security --jwt
+
+# Generate session-based authentication
+haft generate security --session
+
+# Generate OAuth2 authentication (Google, GitHub, Facebook)
+haft generate security --oauth2
+
+# Generate all security types
+haft generate security --all
+```
+
+**Generated files for JWT:**
+```
+security/
+├── SecurityConfig.java
+├── JwtUtil.java
+├── JwtAuthenticationFilter.java
+├── AuthenticationController.java
+├── CustomUserDetailsService.java
+└── dto/
+    ├── AuthRequest.java
+    ├── AuthResponse.java
+    ├── RegisterRequest.java
+    └── RefreshTokenRequest.java
+```
+
 ### Manage Dependencies
 
 ```bash
@@ -383,10 +417,11 @@ Haft automatically detects and generates code for:
 - [x] `haft dev` — Development commands
 - [x] `haft info` / `haft routes` / `haft stats` — Project analysis
 - [x] Shell completions (bash, zsh, fish, powershell)
+- [x] Security configuration (JWT, Session, OAuth2)
+- [x] Custom templates
 - [ ] Neovim integration
 - [ ] VS Code extension
 - [ ] IntelliJ plugin
-- [x] Custom templates
 
 ## Built With
 

@@ -1,0 +1,122 @@
+package {{.SecurityPackage}};
+
+import org.springframework.http.ResponseEntity;
+import org.springframework.security.authentication.AuthenticationManager;
+import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
+import org.springframework.security.core.userdetails.UserDetails;
+import org.springframework.security.core.userdetails.UserDetailsService;
+import org.springframework.security.crypto.password.PasswordEncoder;
+import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.RequestBody;
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RestController;
+{{if .HasValidation}}
+import {{.ValidationImport}}.Valid;
+{{end}}
+{{if .HasLombok}}
+import lombok.RequiredArgsConstructor;
+{{end}}
+
+import {{.UserEntityPackage}}.{{.UserEntityName}};
+import {{.UserRepositoryPackage}}.{{.UserEntityName}}Repository;
+
+@RestController
+@RequestMapping("/api/auth")
+{{if .HasLombok}}
+@RequiredArgsConstructor
+{{end}}
+public class AuthenticationController {
+
+{{if .HasLombok}}
+    private final AuthenticationManager authenticationManager;
+    private final UserDetailsService userDetailsService;
+    private final {{.UserEntityName}}Repository userRepository;
+    private final PasswordEncoder passwordEncoder;
+    private final JwtUtil jwtUtil;
+{{else}}
+    private final AuthenticationManager authenticationManager;
+    private final UserDetailsService userDetailsService;
+    private final {{.UserEntityName}}Repository userRepository;
+    private final PasswordEncoder passwordEncoder;
+    private final JwtUtil jwtUtil;
+
+    public AuthenticationController(
+            AuthenticationManager authenticationManager,
+            UserDetailsService userDetailsService,
+            {{.UserEntityName}}Repository userRepository,
+            PasswordEncoder passwordEncoder,
+            JwtUtil jwtUtil
+    ) {
+        this.authenticationManager = authenticationManager;
+        this.userDetailsService = userDetailsService;
+        this.userRepository = userRepository;
+        this.passwordEncoder = passwordEncoder;
+        this.jwtUtil = jwtUtil;
+    }
+{{end}}
+
+    @PostMapping("/login")
+    public ResponseEntity<AuthResponse> authenticate({{if .HasValidation}}@Valid {{end}}@RequestBody AuthRequest request) {
+        authenticationManager.authenticate(
+                new UsernamePasswordAuthenticationToken(request.getEmail(), request.getPassword())
+        );
+
+        UserDetails userDetails = userDetailsService.loadUserByUsername(request.getEmail());
+        String accessToken = jwtUtil.generateToken(userDetails);
+        String refreshToken = jwtUtil.generateRefreshToken(userDetails);
+
+        return ResponseEntity.ok(AuthResponse.builder()
+                .accessToken(accessToken)
+                .refreshToken(refreshToken)
+                .expiresIn(jwtUtil.getJwtExpiration())
+                .tokenType("Bearer")
+                .build());
+    }
+
+    @PostMapping("/register")
+    public ResponseEntity<AuthResponse> register({{if .HasValidation}}@Valid {{end}}@RequestBody RegisterRequest request) {
+        if (userRepository.existsByEmail(request.getEmail())) {
+            return ResponseEntity.badRequest().build();
+        }
+
+        {{.UserEntityName}} user = {{.UserEntityName}}.builder()
+                .email(request.getEmail())
+                .password(passwordEncoder.encode(request.getPassword()))
+                .firstName(request.getFirstName())
+                .lastName(request.getLastName())
+                .enabled(true)
+                .build();
+
+        userRepository.save(user);
+
+        UserDetails userDetails = userDetailsService.loadUserByUsername(request.getEmail());
+        String accessToken = jwtUtil.generateToken(userDetails);
+        String refreshToken = jwtUtil.generateRefreshToken(userDetails);
+
+        return ResponseEntity.ok(AuthResponse.builder()
+                .accessToken(accessToken)
+                .refreshToken(refreshToken)
+                .expiresIn(jwtUtil.getJwtExpiration())
+                .tokenType("Bearer")
+                .build());
+    }
+
+    @PostMapping("/refresh")
+    public ResponseEntity<AuthResponse> refreshToken(@RequestBody RefreshTokenRequest request) {
+        String username = jwtUtil.extractUsername(request.getRefreshToken());
+        UserDetails userDetails = userDetailsService.loadUserByUsername(username);
+
+        if (!jwtUtil.isTokenValid(request.getRefreshToken(), userDetails)) {
+            return ResponseEntity.badRequest().build();
+        }
+
+        String accessToken = jwtUtil.generateToken(userDetails);
+
+        return ResponseEntity.ok(AuthResponse.builder()
+                .accessToken(accessToken)
+                .refreshToken(request.getRefreshToken())
+                .expiresIn(jwtUtil.getJwtExpiration())
+                .tokenType("Bearer")
+                .build());
+    }
+}

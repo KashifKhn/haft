@@ -320,37 +320,37 @@ func TestPrintAvailableConditionsDoesNotPanic(t *testing.T) {
 }
 
 func TestRunListNoError(t *testing.T) {
-	err := runList(false, "", false)
+	err := runList(false, "", false, false)
 	assert.NoError(t, err)
 }
 
 func TestRunListWithCustomOnly(t *testing.T) {
-	err := runList(true, "", false)
+	err := runList(true, "", false, false)
 	assert.NoError(t, err)
 }
 
 func TestRunListWithCategory(t *testing.T) {
-	err := runList(false, "resource", false)
+	err := runList(false, "resource", false, false)
 	assert.NoError(t, err)
 }
 
 func TestRunListWithCategoryAndPaths(t *testing.T) {
-	err := runList(false, "resource", true)
+	err := runList(false, "resource", true, false)
 	assert.NoError(t, err)
 }
 
 func TestRunListWithAllOptions(t *testing.T) {
-	err := runList(true, "test", true)
+	err := runList(true, "test", true, false)
 	assert.NoError(t, err)
 }
 
 func TestRunValidateNoTemplates(t *testing.T) {
-	err := runValidate(nil)
+	err := runValidate(nil, false)
 	assert.NoError(t, err)
 }
 
 func TestRunValidateNonexistentPath(t *testing.T) {
-	err := runValidate([]string{"/nonexistent/path/to/template.tmpl"})
+	err := runValidate([]string{"/nonexistent/path/to/template.tmpl"}, false)
 	assert.Error(t, err)
 	assert.Contains(t, err.Error(), "path not found")
 }
@@ -372,7 +372,7 @@ func TestValidateCommandConditionsFlag(t *testing.T) {
 }
 
 func TestInitCommandInvalidCategory(t *testing.T) {
-	err := runInit("nonexistent_category", false, false)
+	err := runInit("nonexistent_category", false, false, false)
 	assert.Error(t, err)
 	assert.Contains(t, err.Error(), "invalid category")
 }
@@ -394,7 +394,7 @@ public class ${Name}Controller {
 	err = os.WriteFile(templatePath, []byte(validTemplate), 0644)
 	require.NoError(t, err)
 
-	err = runValidate([]string{templatePath})
+	err = runValidate([]string{templatePath}, false)
 	assert.NoError(t, err)
 }
 
@@ -413,7 +413,7 @@ func TestRunValidateWithInvalidTemplate(t *testing.T) {
 	err = os.WriteFile(templatePath, []byte(invalidTemplate), 0644)
 	require.NoError(t, err)
 
-	err = runValidate([]string{templatePath})
+	err = runValidate([]string{templatePath}, false)
 	assert.Error(t, err)
 	assert.Contains(t, err.Error(), "validation failed")
 }
@@ -432,7 +432,7 @@ public class ${Name}Service {
 	err = os.WriteFile(templatePath, []byte(validTemplate), 0644)
 	require.NoError(t, err)
 
-	err = runValidate([]string{tmpDir})
+	err = runValidate([]string{tmpDir}, false)
 	assert.NoError(t, err)
 }
 
@@ -441,7 +441,7 @@ func TestRunValidateEmptyDirectory(t *testing.T) {
 	require.NoError(t, err)
 	defer os.RemoveAll(tmpDir)
 
-	err = runValidate([]string{tmpDir})
+	err = runValidate([]string{tmpDir}, false)
 	assert.NoError(t, err)
 }
 
@@ -460,7 +460,7 @@ public class ${Name}Service {
 	err = os.WriteFile(templatePath, []byte(templateWithUnknown), 0644)
 	require.NoError(t, err)
 
-	err = runValidate([]string{templatePath})
+	err = runValidate([]string{templatePath}, false)
 	assert.NoError(t, err)
 }
 
@@ -546,7 +546,7 @@ func TestInitCommandCategoryResource(t *testing.T) {
 	err = os.Chdir(tmpDir)
 	require.NoError(t, err)
 
-	err = runInit("resource", false, false)
+	err = runInit("resource", false, false, false)
 	assert.NoError(t, err)
 }
 
@@ -560,7 +560,7 @@ func TestInitCommandAllTemplates(t *testing.T) {
 	err = os.Chdir(tmpDir)
 	require.NoError(t, err)
 
-	err = runInit("", false, false)
+	err = runInit("", false, false, false)
 	assert.NoError(t, err)
 }
 
@@ -574,10 +574,10 @@ func TestInitCommandForce(t *testing.T) {
 	err = os.Chdir(tmpDir)
 	require.NoError(t, err)
 
-	err = runInit("resource", false, false)
+	err = runInit("resource", false, false, false)
 	require.NoError(t, err)
 
-	err = runInit("resource", false, true)
+	err = runInit("resource", false, true, false)
 	assert.NoError(t, err)
 }
 
@@ -591,9 +591,9 @@ func TestInitCommandSkipExisting(t *testing.T) {
 	err = os.Chdir(tmpDir)
 	require.NoError(t, err)
 
-	err = runInit("resource", false, false)
+	err = runInit("resource", false, false, false)
 	require.NoError(t, err)
 
-	err = runInit("resource", false, false)
+	err = runInit("resource", false, false, false)
 	assert.NoError(t, err)
 }

@@ -61,6 +61,7 @@ haft template init --force
 | `--category` | `-c` | Template category to copy: `resource`, `test`, `project` |
 | `--global` | `-g` | Copy to global directory (`~/.haft/templates/`) instead of project |
 | `--force` | `-f` | Overwrite existing templates |
+| `--json` | | Output result as JSON |
 
 ### Examples
 
@@ -116,6 +117,7 @@ haft template list --paths
 | `--custom` | | Show only custom (non-embedded) templates |
 | `--category` | `-c` | Filter by category: `resource`, `test`, `project` |
 | `--paths` | | Show full template file paths |
+| `--json` | | Output result as JSON |
 
 ### Example Output
 
@@ -163,6 +165,7 @@ haft template validate --conditions
 |------|-------------|
 | `--vars` | Display all available placeholder variables |
 | `--conditions` | Display all available conditions for `@if` directives |
+| `--json` | Output result as JSON |
 
 ### Example: Show Variables
 

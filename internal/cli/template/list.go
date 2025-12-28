@@ -6,6 +6,7 @@ import (
 	"strings"
 
 	"github.com/KashifKhn/haft/internal/generator"
+	"github.com/KashifKhn/haft/internal/output"
 	"github.com/charmbracelet/lipgloss"
 	"github.com/spf13/afero"
 	"github.com/spf13/cobra"
@@ -25,6 +26,7 @@ func newListCommand() *cobra.Command {
 	var customOnly bool
 	var category string
 	var showPaths bool
+	var jsonOutput bool
 
 	cmd := &cobra.Command{
 		Use:   "list",
@@ -48,24 +50,31 @@ priority source is used during code generation.`,
   haft template list --category resource
 
   # Show full paths
-  haft template list --paths`,
+  haft template list --paths
+
+  # Output as JSON
+  haft template list --json`,
 		RunE: func(cmd *cobra.Command, args []string) error {
-			return runList(customOnly, category, showPaths)
+			return runList(customOnly, category, showPaths, jsonOutput)
 		},
 	}
 
 	cmd.Flags().BoolVar(&customOnly, "custom", false, "Show only custom (non-embedded) templates")
 	cmd.Flags().StringVarP(&category, "category", "c", "", "Filter by category (resource, test, project)")
 	cmd.Flags().BoolVar(&showPaths, "paths", false, "Show full template paths")
+	cmd.Flags().BoolVar(&jsonOutput, "json", false, "Output result as JSON")
 
 	return cmd
 }
 
-func runList(customOnly bool, category string, showPaths bool) error {
+func runList(customOnly bool, category string, showPaths bool, jsonOutput bool) error {
 	fs := afero.NewOsFs()
 
 	cwd, err := os.Getwd()
 	if err != nil {
+		if jsonOutput {
+			return output.Error("CWD_ERROR", "could not determine current directory", err.Error())
+		}
 		return fmt.Errorf("could not determine current directory: %w", err)
 	}
 
@@ -73,6 +82,9 @@ func runList(customOnly bool, category string, showPaths bool) error {
 
 	templates, err := loader.ListAllTemplatesWithSource()
 	if err != nil {
+		if jsonOutput {
+			return output.Error("LIST_ERROR", "could not list templates", err.Error())
+		}
 		return fmt.Errorf("could not list templates: %w", err)
 	}
 
@@ -85,8 +97,55 @@ func runList(customOnly bool, category string, showPaths bool) error {
 	}
 
 	if len(templates) == 0 {
+		if jsonOutput {
+			return output.Success(output.TemplateListOutput{
+				Templates:     []output.TemplateInfo{},
+				Total:         0,
+				ProjectCount:  0,
+				GlobalCount:   0,
+				EmbeddedCount: 0,
+			})
+		}
 		fmt.Println("No templates found matching criteria")
 		return nil
+	}
+
+	projectCount := countBySource(templates, generator.SourceProject)
+	globalCount := countBySource(templates, generator.SourceGlobal)
+	embeddedCount := countBySource(templates, generator.SourceEmbedded)
+
+	if jsonOutput {
+		var outputTemplates []output.TemplateInfo
+		for _, t := range templates {
+			sourceStr := "embedded"
+			switch t.Source {
+			case generator.SourceProject:
+				sourceStr = "project"
+			case generator.SourceGlobal:
+				sourceStr = "global"
+			}
+
+			parts := strings.Split(t.Name, "/")
+			cat := "other"
+			if len(parts) > 0 {
+				cat = parts[0]
+			}
+
+			outputTemplates = append(outputTemplates, output.TemplateInfo{
+				Name:     t.Name,
+				Category: cat,
+				Source:   sourceStr,
+				Path:     t.Path,
+			})
+		}
+
+		return output.Success(output.TemplateListOutput{
+			Templates:     outputTemplates,
+			Total:         len(templates),
+			ProjectCount:  projectCount,
+			GlobalCount:   globalCount,
+			EmbeddedCount: embeddedCount,
+		})
 	}
 
 	fmt.Println()
@@ -119,10 +178,6 @@ func runList(customOnly bool, category string, showPaths bool) error {
 	}
 
 	fmt.Println()
-
-	projectCount := countBySource(templates, generator.SourceProject)
-	globalCount := countBySource(templates, generator.SourceGlobal)
-	embeddedCount := countBySource(templates, generator.SourceEmbedded)
 
 	fmt.Printf("  %s %d total", sourceStyle.Render("Templates:"), len(templates))
 	if projectCount > 0 {

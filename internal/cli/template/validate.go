@@ -8,6 +8,7 @@ import (
 
 	"github.com/KashifKhn/haft/internal/generator"
 	"github.com/KashifKhn/haft/internal/logger"
+	"github.com/KashifKhn/haft/internal/output"
 	"github.com/charmbracelet/lipgloss"
 	"github.com/spf13/afero"
 	"github.com/spf13/cobra"
@@ -24,6 +25,7 @@ var (
 func newValidateCommand() *cobra.Command {
 	var showVars bool
 	var showConditions bool
+	var jsonOutput bool
 
 	cmd := &cobra.Command{
 		Use:   "validate [template-path]",
@@ -50,7 +52,10 @@ You can validate a single template file or all templates in a directory.`,
   haft template validate --vars
 
   # Show available conditions
-  haft template validate --conditions`,
+  haft template validate --conditions
+
+  # Output as JSON
+  haft template validate --json`,
 		RunE: func(cmd *cobra.Command, args []string) error {
 			if showVars {
 				printAvailableVariables()
@@ -60,22 +65,26 @@ You can validate a single template file or all templates in a directory.`,
 				printAvailableConditions()
 				return nil
 			}
-			return runValidate(args)
+			return runValidate(args, jsonOutput)
 		},
 	}
 
 	cmd.Flags().BoolVar(&showVars, "vars", false, "Show available template variables")
 	cmd.Flags().BoolVar(&showConditions, "conditions", false, "Show available conditions for @if directives")
+	cmd.Flags().BoolVar(&jsonOutput, "json", false, "Output result as JSON")
 
 	return cmd
 }
 
-func runValidate(args []string) error {
+func runValidate(args []string, jsonOutput bool) error {
 	log := logger.Default()
 	fs := afero.NewOsFs()
 
 	cwd, err := os.Getwd()
 	if err != nil {
+		if jsonOutput {
+			return output.Error("CWD_ERROR", "could not determine current directory", err.Error())
+		}
 		return fmt.Errorf("could not determine current directory: %w", err)
 	}
 
@@ -84,6 +93,15 @@ func runValidate(args []string) error {
 	if len(args) == 0 {
 		loader := generator.NewTemplateLoader(fs, cwd)
 		if !loader.ProjectTemplatesExist() {
+			if jsonOutput {
+				return output.Success(output.TemplateValidateOutput{
+					Results:      []output.TemplateValidationResult{},
+					TotalFiles:   0,
+					ValidCount:   0,
+					ErrorCount:   0,
+					WarningCount: 0,
+				})
+			}
 			log.Info("No custom templates found in .haft/templates/")
 			log.Info("Use 'haft template init' to create custom templates")
 			return nil
@@ -91,6 +109,9 @@ func runValidate(args []string) error {
 
 		projectTemplates, err := loader.ListProjectTemplates()
 		if err != nil {
+			if jsonOutput {
+				return output.Error("LIST_ERROR", "could not list templates", err.Error())
+			}
 			return fmt.Errorf("could not list templates: %w", err)
 		}
 
@@ -107,6 +128,9 @@ func runValidate(args []string) error {
 
 			info, err := fs.Stat(path)
 			if err != nil {
+				if jsonOutput {
+					return output.Error("PATH_NOT_FOUND", fmt.Sprintf("path not found: %s", arg))
+				}
 				return fmt.Errorf("path not found: %s", arg)
 			}
 
@@ -121,6 +145,9 @@ func runValidate(args []string) error {
 					return nil
 				})
 				if err != nil {
+					if jsonOutput {
+						return output.Error("WALK_ERROR", "could not walk directory", err.Error())
+					}
 					return fmt.Errorf("could not walk directory: %w", err)
 				}
 			} else {
@@ -130,13 +157,25 @@ func runValidate(args []string) error {
 	}
 
 	if len(templatePaths) == 0 {
+		if jsonOutput {
+			return output.Success(output.TemplateValidateOutput{
+				Results:      []output.TemplateValidationResult{},
+				TotalFiles:   0,
+				ValidCount:   0,
+				ErrorCount:   0,
+				WarningCount: 0,
+			})
+		}
 		log.Info("No templates found to validate")
 		return nil
 	}
 
-	fmt.Println()
-	fmt.Printf("  Validating %d template(s)...\n\n", len(templatePaths))
+	if !jsonOutput {
+		fmt.Println()
+		fmt.Printf("  Validating %d template(s)...\n\n", len(templatePaths))
+	}
 
+	var results []output.TemplateValidationResult
 	totalErrors := 0
 	totalWarnings := 0
 	validCount := 0
@@ -144,7 +183,9 @@ func runValidate(args []string) error {
 	for _, templatePath := range templatePaths {
 		content, err := afero.ReadFile(fs, templatePath)
 		if err != nil {
-			log.Warning("Could not read template", "path", templatePath, "error", err.Error())
+			if !jsonOutput {
+				log.Warning("Could not read template", "path", templatePath, "error", err.Error())
+			}
 			continue
 		}
 
@@ -155,36 +196,75 @@ func runValidate(args []string) error {
 
 		result := generator.ValidateTemplate(string(content), filepath.Base(templatePath))
 
+		var validationErrors []output.TemplateValidationError
+		var validationWarnings []output.TemplateValidationError
+
+		for _, e := range result.Errors {
+			validationErrors = append(validationErrors, output.TemplateValidationError{
+				Line:    e.Line,
+				Message: e.Message,
+			})
+		}
+		for _, w := range result.Warnings {
+			validationWarnings = append(validationWarnings, output.TemplateValidationError{
+				Line:    w.Line,
+				Message: w.Message,
+			})
+		}
+
+		results = append(results, output.TemplateValidationResult{
+			Path:     relPath,
+			Valid:    result.Valid,
+			Errors:   validationErrors,
+			Warnings: validationWarnings,
+		})
+
 		if result.Valid && len(result.Warnings) == 0 {
-			fmt.Printf("  %s %s\n", successStyle.Render("✓"), relPath)
+			if !jsonOutput {
+				fmt.Printf("  %s %s\n", successStyle.Render("✓"), relPath)
+			}
 			validCount++
 		} else if result.Valid && len(result.Warnings) > 0 {
-			fmt.Printf("  %s %s\n", warningStyle.Render("⚠"), relPath)
-			for _, warn := range result.Warnings {
-				fmt.Printf("      %s line %d: %s\n",
-					warningStyle.Render("warning"),
-					warn.Line,
-					warn.Message)
+			if !jsonOutput {
+				fmt.Printf("  %s %s\n", warningStyle.Render("⚠"), relPath)
+				for _, warn := range result.Warnings {
+					fmt.Printf("      %s line %d: %s\n",
+						warningStyle.Render("warning"),
+						warn.Line,
+						warn.Message)
+				}
 			}
 			totalWarnings += len(result.Warnings)
 			validCount++
 		} else {
-			fmt.Printf("  %s %s\n", errorStyle.Render("✗"), relPath)
-			for _, err := range result.Errors {
-				fmt.Printf("      %s line %d: %s\n",
-					errorStyle.Render("error"),
-					err.Line,
-					err.Message)
-			}
-			for _, warn := range result.Warnings {
-				fmt.Printf("      %s line %d: %s\n",
-					warningStyle.Render("warning"),
-					warn.Line,
-					warn.Message)
+			if !jsonOutput {
+				fmt.Printf("  %s %s\n", errorStyle.Render("✗"), relPath)
+				for _, err := range result.Errors {
+					fmt.Printf("      %s line %d: %s\n",
+						errorStyle.Render("error"),
+						err.Line,
+						err.Message)
+				}
+				for _, warn := range result.Warnings {
+					fmt.Printf("      %s line %d: %s\n",
+						warningStyle.Render("warning"),
+						warn.Line,
+						warn.Message)
+				}
 			}
 			totalErrors += len(result.Errors)
 			totalWarnings += len(result.Warnings)
 		}
+	}
+
+	if jsonOutput {
+		return output.Success(output.TemplateValidateOutput{
+			Results:      results,
+			TotalFiles:   len(templatePaths),
+			ValidCount:   validCount,
+			ErrorCount:   totalErrors,
+			WarningCount: totalWarnings,
+		})
 	}
 
 	fmt.Println()

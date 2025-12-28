@@ -9,6 +9,7 @@ import (
 	"github.com/KashifKhn/haft/internal/detector"
 	"github.com/KashifKhn/haft/internal/generator"
 	"github.com/KashifKhn/haft/internal/logger"
+	"github.com/KashifKhn/haft/internal/output"
 	"github.com/KashifKhn/haft/internal/tui/components"
 	tea "github.com/charmbracelet/bubbletea"
 	"github.com/spf13/afero"
@@ -70,6 +71,7 @@ All configurations are optional; select which ones you need via the interactive 
 	cmd.Flags().Bool("no-interactive", false, "Skip interactive wizard")
 	cmd.Flags().Bool("all", false, "Generate all configuration classes")
 	cmd.Flags().Bool("refresh", false, "Force re-detection of project profile (ignore cache)")
+	cmd.Flags().Bool("json", false, "Output result as JSON")
 
 	return cmd
 }
@@ -78,11 +80,15 @@ func runConfig(cmd *cobra.Command, args []string) error {
 	noInteractive, _ := cmd.Flags().GetBool("no-interactive")
 	includeAll, _ := cmd.Flags().GetBool("all")
 	forceRefresh, _ := cmd.Flags().GetBool("refresh")
+	jsonOutput, _ := cmd.Flags().GetBool("json")
 	log := logger.Default()
 
 	profile, err := DetectProjectProfileWithRefresh(forceRefresh)
 	if err != nil {
 		if noInteractive {
+			if jsonOutput {
+				return output.Error("DETECTION_ERROR", "Could not detect project profile", err.Error())
+			}
 			return fmt.Errorf("could not detect project profile: %w", err)
 		}
 		log.Warning("Could not detect project profile, using defaults")
@@ -108,6 +114,9 @@ func runConfig(cmd *cobra.Command, args []string) error {
 	if !noInteractive {
 		wizardResult, err := runConfigWizard(profile.BasePackage, includeAll)
 		if err != nil {
+			if jsonOutput {
+				return output.Error("WIZARD_ERROR", "Wizard failed", err.Error())
+			}
 			return err
 		}
 		if wizardResult.BasePackage != "" {
@@ -119,19 +128,32 @@ func runConfig(cmd *cobra.Command, args []string) error {
 	}
 
 	if profile.BasePackage == "" {
-		return fmt.Errorf("base package is required")
+		if jsonOutput {
+			return output.Error("VALIDATION_ERROR", "Base package could not be detected", "Use --package flag to specify it")
+		}
+		return fmt.Errorf("base package could not be detected. Use --package flag to specify it (e.g., --package com.example.myapp)")
 	}
 
 	if len(selection.Selected) == 0 && !noInteractive {
+		if jsonOutput {
+			return output.Success(output.GenerateOutput{
+				Results:        []output.GenerateResult{},
+				TotalGenerated: 0,
+				TotalSkipped:   0,
+			})
+		}
 		log.Info("No configurations selected")
 		return nil
 	}
 
 	if len(selection.Selected) == 0 && noInteractive && !includeAll {
+		if jsonOutput {
+			return output.Error("VALIDATION_ERROR", "No configurations selected", "Use --all flag or run without --no-interactive to select configurations")
+		}
 		return fmt.Errorf("use --all flag or run without --no-interactive to select configurations")
 	}
 
-	return generateConfigs(profile, selection)
+	return generateConfigs(profile, selection, jsonOutput)
 }
 
 func runConfigWizard(currentPackage string, skipPicker bool) (configSelection, error) {
@@ -221,12 +243,15 @@ func (w configMultiSelectWrapper) View() string {
 	return w.model.View()
 }
 
-func generateConfigs(profile *detector.ProjectProfile, selection configSelection) error {
+func generateConfigs(profile *detector.ProjectProfile, selection configSelection, jsonOutput bool) error {
 	log := logger.Default()
 	fs := afero.NewOsFs()
 
 	cwd, err := os.Getwd()
 	if err != nil {
+		if jsonOutput {
+			return output.Error("DIRECTORY_ERROR", "Could not get current directory", err.Error())
+		}
 		return err
 	}
 
@@ -234,6 +259,9 @@ func generateConfigs(profile *detector.ProjectProfile, selection configSelection
 
 	srcPath := FindSourcePath(cwd)
 	if srcPath == "" {
+		if jsonOutput {
+			return output.Error("SOURCE_ERROR", "Could not find src/main/java directory")
+		}
 		return fmt.Errorf("could not find src/main/java directory")
 	}
 
@@ -244,10 +272,11 @@ func generateConfigs(profile *detector.ProjectProfile, selection configSelection
 	selectedMap := buildConfigSelectedMap(selection.Selected)
 	data := buildConfigTemplateData(profile, configPackage)
 
-	log.Info("Generating configuration classes", "package", configPackage)
+	tracker := NewGenerateTracker("config", "Configuration")
 
-	generatedCount := 0
-	skippedCount := 0
+	if !jsonOutput {
+		log.Info("Generating configuration classes", "package", configPackage)
+	}
 
 	for _, opt := range configOptions {
 		if !selectedMap[opt.Key] {
@@ -256,29 +285,40 @@ func generateConfigs(profile *detector.ProjectProfile, selection configSelection
 
 		templatePath := "config/" + opt.FileName + ".tmpl"
 		outputPath := filepath.Join(basePath, opt.FileName)
+		relPath := FormatRelativePath(cwd, outputPath)
 
 		if engine.FileExists(outputPath) {
-			log.Warning("File exists, skipping", "file", FormatRelativePath(cwd, outputPath))
-			skippedCount++
+			if !jsonOutput {
+				log.Warning("File exists, skipping", "file", relPath)
+			}
+			tracker.AddSkipped(relPath)
 			continue
 		}
 
 		if err := engine.RenderAndWrite(templatePath, outputPath, data); err != nil {
+			if jsonOutput {
+				tracker.AddError(fmt.Sprintf("failed to generate %s: %s", opt.FileName, err.Error()))
+				continue
+			}
 			return fmt.Errorf("failed to generate %s: %w", opt.FileName, err)
 		}
 
-		log.Info("Created", "file", FormatRelativePath(cwd, outputPath))
-		generatedCount++
+		if !jsonOutput {
+			log.Info("Created", "file", relPath)
+		}
+		tracker.AddGenerated(relPath)
 	}
 
-	if generatedCount > 0 {
-		log.Success(fmt.Sprintf("Generated %d configuration files", generatedCount))
-	}
-	if skippedCount > 0 {
-		log.Info(fmt.Sprintf("Skipped %d existing files", skippedCount))
+	if !jsonOutput {
+		if len(tracker.Generated) > 0 {
+			log.Success(fmt.Sprintf("Generated %d configuration files", len(tracker.Generated)))
+		}
+		if len(tracker.Skipped) > 0 {
+			log.Info(fmt.Sprintf("Skipped %d existing files", len(tracker.Skipped)))
+		}
 	}
 
-	return nil
+	return OutputGenerateResult(jsonOutput, tracker)
 }
 
 func buildConfigSelectedMap(selected []string) map[string]bool {

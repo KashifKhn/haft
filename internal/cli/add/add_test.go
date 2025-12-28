@@ -257,6 +257,10 @@ func TestNewCommandHasFlags(t *testing.T) {
 	browseFlag := cmd.Flag("browse")
 	assert.NotNil(t, browseFlag)
 	assert.Equal(t, "bool", browseFlag.Value.Type())
+
+	noInteractiveFlag := cmd.Flag("no-interactive")
+	assert.NotNil(t, noInteractiveFlag)
+	assert.Equal(t, "bool", noInteractiveFlag.Value.Type())
 }
 
 func TestNewMavenClient(t *testing.T) {

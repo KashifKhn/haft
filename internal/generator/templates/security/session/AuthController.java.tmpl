@@ -1,0 +1,86 @@
+package {{.SecurityPackage}};
+
+import org.springframework.security.crypto.password.PasswordEncoder;
+import org.springframework.stereotype.Controller;
+import org.springframework.ui.Model;
+import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.ModelAttribute;
+import org.springframework.web.servlet.mvc.support.RedirectAttributes;
+{{if .HasValidation}}
+import {{.ValidationImport}}.Valid;
+import org.springframework.validation.BindingResult;
+{{end}}
+{{if .HasLombok}}
+import lombok.RequiredArgsConstructor;
+{{end}}
+
+import {{.UserEntityPackage}}.{{.UserEntityName}};
+import {{.UserRepositoryPackage}}.{{.UserEntityName}}Repository;
+
+@Controller
+{{if .HasLombok}}
+@RequiredArgsConstructor
+{{end}}
+public class AuthController {
+
+{{if .HasLombok}}
+    private final {{.UserEntityName}}Repository userRepository;
+    private final PasswordEncoder passwordEncoder;
+{{else}}
+    private final {{.UserEntityName}}Repository userRepository;
+    private final PasswordEncoder passwordEncoder;
+
+    public AuthController({{.UserEntityName}}Repository userRepository, PasswordEncoder passwordEncoder) {
+        this.userRepository = userRepository;
+        this.passwordEncoder = passwordEncoder;
+    }
+{{end}}
+
+    @GetMapping("/login")
+    public String loginPage() {
+        return "login";
+    }
+
+    @GetMapping("/register")
+    public String registerPage(Model model) {
+        model.addAttribute("registerRequest", new RegisterRequest());
+        return "register";
+    }
+
+    @PostMapping("/register")
+    public String register(
+            {{if .HasValidation}}@Valid {{end}}@ModelAttribute RegisterRequest request,
+            {{if .HasValidation}}BindingResult bindingResult,{{end}}
+            RedirectAttributes redirectAttributes
+    ) {
+        {{if .HasValidation}}
+        if (bindingResult.hasErrors()) {
+            return "register";
+        }
+        {{end}}
+
+        if (userRepository.existsByEmail(request.getEmail())) {
+            redirectAttributes.addFlashAttribute("error", "Email already exists");
+            return "redirect:/register";
+        }
+
+        {{.UserEntityName}} user = {{.UserEntityName}}.builder()
+                .email(request.getEmail())
+                .password(passwordEncoder.encode(request.getPassword()))
+                .firstName(request.getFirstName())
+                .lastName(request.getLastName())
+                .enabled(true)
+                .build();
+
+        userRepository.save(user);
+
+        redirectAttributes.addFlashAttribute("success", "Registration successful. Please login.");
+        return "redirect:/login";
+    }
+
+    @GetMapping("/dashboard")
+    public String dashboard() {
+        return "dashboard";
+    }
+}

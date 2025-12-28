@@ -42,7 +42,11 @@ All generators auto-detect your project configuration from your build file (pom.
 
   # Generate configuration classes
   haft generate config
-  haft g cfg`,
+  haft g cfg
+
+  # Generate security configuration
+  haft generate security
+  haft g sec --jwt`,
 	}
 
 	cmd.AddCommand(newResourceCommand())
@@ -53,6 +57,7 @@ All generators auto-detect your project configuration from your build file (pom.
 	cmd.AddCommand(newDtoCommand())
 	cmd.AddCommand(newExceptionCommand())
 	cmd.AddCommand(newConfigCommand())
+	cmd.AddCommand(newSecurityCommand())
 
 	return cmd
 }

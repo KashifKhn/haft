@@ -151,7 +151,12 @@ We believe developers should stay in their editor. The first integration will be
 - [ ] **Additional Generators**
   - [x] Exception handler generation (`haft generate exception`)
   - [x] Configuration class generation (`haft generate config`)
-  - [ ] Security configuration
+  - [x] Security configuration (`haft generate security`)
+    - [x] JWT authentication
+    - [x] Session-based authentication
+    - [x] OAuth2 authentication (Google, GitHub, Facebook)
+    - [x] Intelligent dependency checking
+    - [x] User entity detection
 
 ## Contributing
 
@@ -167,7 +172,11 @@ See [Contributing](/docs/contributing) for guidelines.
 
 ### v0.4.0 (Current)
 
-- Feature: `haft generate config` — Generate configuration classes (CORS, OpenAPI, Jackson, Async, Cache, Auditing, WebMvc)
+- Feature: `haft generate security` - Generate security configuration with JWT, Session, and OAuth2 support
+- Feature: Intelligent dependency checking for security dependencies
+- Feature: User/Role entity detection and optional generation
+- Feature: Architecture-aware security file placement
+- Feature: `haft generate config` - Generate configuration classes (CORS, OpenAPI, Jackson, Async, Cache, Auditing, WebMvc)
 - Feature: `haft generate exception` — Generate global exception handler with @ControllerAdvice
 - Feature: **Custom templates** — Override built-in templates with project or global custom templates
 - Feature: `haft template init` — Copy embedded templates for customization

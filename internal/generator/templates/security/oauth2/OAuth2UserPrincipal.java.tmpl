@@ -1,0 +1,51 @@
+package {{.SecurityPackage}};
+
+import org.springframework.security.core.GrantedAuthority;
+import org.springframework.security.oauth2.core.user.OAuth2User;
+{{if .HasLombok}}
+import lombok.RequiredArgsConstructor;
+import lombok.Getter;
+{{end}}
+
+import {{.UserEntityPackage}}.{{.UserEntityName}};
+
+import java.util.Collection;
+import java.util.Map;
+
+{{if .HasLombok}}
+@RequiredArgsConstructor
+@Getter
+{{end}}
+public class OAuth2UserPrincipal implements OAuth2User {
+
+    private final {{.UserEntityName}} user;
+    private final Map<String, Object> attributes;
+{{if not .HasLombok}}
+
+    public OAuth2UserPrincipal({{.UserEntityName}} user, Map<String, Object> attributes) {
+        this.user = user;
+        this.attributes = attributes;
+    }
+{{end}}
+
+    @Override
+    public Map<String, Object> getAttributes() {
+        return attributes;
+    }
+
+    @Override
+    public Collection<? extends GrantedAuthority> getAuthorities() {
+        return user.getAuthorities();
+    }
+
+    @Override
+    public String getName() {
+        return user.getEmail();
+    }
+{{if not .HasLombok}}
+
+    public {{.UserEntityName}} getUser() {
+        return user;
+    }
+{{end}}
+}

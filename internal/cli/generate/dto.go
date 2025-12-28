@@ -4,6 +4,7 @@ import (
 	"fmt"
 
 	"github.com/KashifKhn/haft/internal/logger"
+	"github.com/KashifKhn/haft/internal/output"
 	"github.com/spf13/cobra"
 )
 
@@ -31,7 +32,10 @@ and checks for Lombok and Validation dependencies to add annotations.`,
 
   # Generate only request or response
   haft generate dto user --request-only
-  haft generate dto user --response-only`,
+  haft generate dto user --response-only
+
+  # Output as JSON
+  haft generate dto user --json --no-interactive`,
 		Args: cobra.MaximumNArgs(1),
 		RunE: runDto,
 	}
@@ -40,6 +44,7 @@ and checks for Lombok and Validation dependencies to add annotations.`,
 	cmd.Flags().Bool("no-interactive", false, "Skip interactive wizard")
 	cmd.Flags().Bool("request-only", false, "Generate only Request DTO")
 	cmd.Flags().Bool("response-only", false, "Generate only Response DTO")
+	cmd.Flags().Bool("json", false, "Output as JSON")
 
 	return cmd
 }
@@ -48,11 +53,15 @@ func runDto(cmd *cobra.Command, args []string) error {
 	noInteractive, _ := cmd.Flags().GetBool("no-interactive")
 	requestOnly, _ := cmd.Flags().GetBool("request-only")
 	responseOnly, _ := cmd.Flags().GetBool("response-only")
+	jsonOutput, _ := cmd.Flags().GetBool("json")
 	log := logger.Default()
 
 	cfg, err := DetectProjectConfig()
 	if err != nil {
 		if noInteractive {
+			if jsonOutput {
+				return output.Error("DETECTION_ERROR", "Could not detect project configuration", err.Error())
+			}
 			return fmt.Errorf("could not detect project configuration: %w", err)
 		}
 		log.Warning("Could not detect project config, using defaults")
@@ -69,29 +78,53 @@ func runDto(cmd *cobra.Command, args []string) error {
 	if !noInteractive {
 		cfg, err = RunComponentWizard("Generate DTO", cfg, "DTO")
 		if err != nil {
+			if jsonOutput {
+				return output.Error("WIZARD_ERROR", err.Error())
+			}
 			return err
 		}
 	}
 
 	if err := ValidateComponentConfig(cfg); err != nil {
+		if jsonOutput {
+			return output.Error("VALIDATION_ERROR", err.Error())
+		}
 		return err
 	}
 
-	log.Info("Generating DTO", "name", cfg.Name)
+	tracker := NewGenerateTracker("dto", cfg.Name)
+
+	if !jsonOutput {
+		log.Info("Generating DTO", "name", cfg.Name)
+	}
 
 	generateBoth := !requestOnly && !responseOnly
 
 	if generateBoth || requestOnly {
-		if _, err := GenerateComponent(cfg, "resource/Request.java.tmpl", "dto", "{Name}Request.java"); err != nil {
-			return err
+		if generated, err := GenerateComponent(cfg, "resource/layered/Request.java.tmpl", "dto", "{Name}Request.java"); err != nil {
+			tracker.AddError(err.Error())
+			if !jsonOutput {
+				return err
+			}
+		} else if generated {
+			tracker.AddGenerated(cfg.Name + "Request.java")
+		} else {
+			tracker.AddSkipped(cfg.Name + "Request.java")
 		}
 	}
 
 	if generateBoth || responseOnly {
-		if _, err := GenerateComponent(cfg, "resource/Response.java.tmpl", "dto", "{Name}Response.java"); err != nil {
-			return err
+		if generated, err := GenerateComponent(cfg, "resource/layered/Response.java.tmpl", "dto", "{Name}Response.java"); err != nil {
+			tracker.AddError(err.Error())
+			if !jsonOutput {
+				return err
+			}
+		} else if generated {
+			tracker.AddGenerated(cfg.Name + "Response.java")
+		} else {
+			tracker.AddSkipped(cfg.Name + "Response.java")
 		}
 	}
 
-	return nil
+	return OutputGenerateResult(jsonOutput, tracker)
 }

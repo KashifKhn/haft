@@ -24,6 +24,7 @@ The `info` command analyzes your Spring Boot project and displays comprehensive 
 |------|-------------|
 | `--json` | Output as JSON format |
 | `--loc` | Include lines of code summary |
+| `--deps` | Include full dependency list |
 
 ## Examples
 
@@ -37,8 +38,14 @@ haft info --json
 # Include lines of code summary
 haft info --loc
 
+# Include full dependency list
+haft info --deps
+
 # JSON output with code stats
 haft info --json --loc
+
+# Full project analysis as JSON (useful for editor plugins)
+haft info --json --loc --deps
 ```
 
 ## Output Sections
@@ -147,7 +154,7 @@ With `--json` flag:
 }
 ```
 
-With `--json --loc`:
+With `--json --loc --deps`:
 
 ```json
 {
@@ -167,7 +174,27 @@ With `--json --loc`:
     "linesOfCode": 915,
     "comments": 0,
     "blankLines": 225
-  }
+  },
+  "dependencies": [
+    {
+      "groupId": "org.springframework.boot",
+      "artifactId": "spring-boot-starter-web",
+      "version": "",
+      "scope": ""
+    },
+    {
+      "groupId": "org.springframework.boot",
+      "artifactId": "spring-boot-starter-data-jpa",
+      "version": "",
+      "scope": ""
+    },
+    {
+      "groupId": "org.projectlombok",
+      "artifactId": "lombok",
+      "version": "",
+      "scope": ""
+    }
+  ]
 }
 ```
 
