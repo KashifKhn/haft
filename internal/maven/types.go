@@ -5,8 +5,8 @@ import "encoding/xml"
 type MavenProject struct {
 	XMLName              xml.Name              `xml:"project"`
 	Xmlns                string                `xml:"xmlns,attr"`
-	XmlnsXsi             string                `xml:"xsi,attr"`
-	SchemaLocation       string                `xml:"schemaLocation,attr"`
+	XmlnsXsi             string                `xml:"xmlns:xsi,attr"`
+	SchemaLocation       string                `xml:"xsi:schemaLocation,attr"`
 	ModelVersion         string                `xml:"modelVersion"`
 	Parent               *Parent               `xml:"parent,omitempty"`
 	GroupId              string                `xml:"groupId"`
