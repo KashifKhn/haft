@@ -133,6 +133,7 @@ haft g r Product
 | `--skip-tests` | | Skip test file generation |
 | `--legacy` | | Use legacy layered generation (ignores architecture detection) |
 | `--refresh` | | Force re-scan project (ignore cached profile) |
+| `--json` | | Output result as JSON |
 
 ### Examples
 
@@ -186,6 +187,7 @@ controller/UserController.java
 |------|-------|-------------|
 | `--package` | `-p` | Override base package |
 | `--no-interactive` | | Skip interactive wizard |
+| `--json` | | Output result as JSON |
 
 ### Example Output
 
@@ -267,6 +269,7 @@ service/impl/UserServiceImpl.java
 |------|-------|-------------|
 | `--package` | `-p` | Override base package |
 | `--no-interactive` | | Skip interactive wizard |
+| `--json` | | Output result as JSON |
 
 ### Example Output (Interface)
 
@@ -365,6 +368,7 @@ repository/UserRepository.java
 |------|-------|-------------|
 | `--package` | `-p` | Override base package |
 | `--no-interactive` | | Skip interactive wizard |
+| `--json` | | Output result as JSON |
 
 ### Example Output
 
@@ -412,6 +416,7 @@ entity/User.java
 |------|-------|-------------|
 | `--package` | `-p` | Override base package |
 | `--no-interactive` | | Skip interactive wizard |
+| `--json` | | Output result as JSON |
 
 ### Example Output (with Lombok)
 
@@ -501,6 +506,7 @@ dto/UserResponse.java
 | `--no-interactive` | | Skip interactive wizard |
 | `--request-only` | | Generate only Request DTO |
 | `--response-only` | | Generate only Response DTO |
+| `--json` | | Output result as JSON |
 
 ### Example Output (Request DTO with Lombok + Validation)
 
@@ -593,6 +599,7 @@ haft generate exception --package com.example.app
 | `--no-interactive` | | Skip interactive wizard (default exceptions only) |
 | `--all` | | Include all optional exceptions |
 | `--refresh` | | Force re-scan project (ignore cached profile) |
+| `--json` | | Output result as JSON |
 
 ### File Placement by Architecture
 
@@ -712,6 +719,7 @@ haft generate config --package com.example.app
 | `--no-interactive` | | Skip interactive wizard (requires --all) |
 | `--all` | | Generate all configuration classes |
 | `--refresh` | | Force re-scan project (ignore cached profile) |
+| `--json` | | Output result as JSON |
 
 ### File Placement by Architecture
 
