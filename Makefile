@@ -28,16 +28,15 @@ test-unit:
 
 test-cover:
 	@echo "Running tests with coverage..."
-	@go test ./... -coverprofile=$(COVERAGE_FILE)
+	@GOTOOLCHAIN=go1.25.2+auto go test ./... -coverprofile=$(COVERAGE_FILE)
 	@go tool cover -func=$(COVERAGE_FILE)
 
 test-cover-html: test-cover
 	@go tool cover -html=$(COVERAGE_FILE)
 
 lint:
-	@echo "Running go vet..."
-	@go vet ./...
-	@echo "Linting complete (golangci-lint skipped - requires Go 1.25 support)"
+	@echo "Running golangci-lint..."
+	@golangci-lint run --timeout=5m
 
 fmt:
 	@echo "Formatting code..."
