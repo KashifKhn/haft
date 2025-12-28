@@ -291,12 +291,6 @@ func generateResourceWithProfile(name string, profile *detector.ProjectProfile, 
 	return nil
 }
 
-func generateTestsWithProfile(name string, profile *detector.ProjectProfile, ctx TemplateContext, skipEntity, skipRepository bool) (int, int, error) {
-	tracker := NewGenerateTracker("test", name)
-	count, skipped, err := generateTestsWithProfileTracked(name, profile, ctx, skipEntity, skipRepository, tracker, false)
-	return count, skipped, err
-}
-
 func generateTestsWithProfileTracked(name string, profile *detector.ProjectProfile, ctx TemplateContext, skipEntity, skipRepository bool, tracker *GenerateTracker, jsonOutput bool) (int, int, error) {
 	log := logger.Default()
 	fs := afero.NewOsFs()

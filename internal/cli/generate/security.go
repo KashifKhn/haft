@@ -622,44 +622,6 @@ func generateSecurity(profile *detector.ProjectProfile, cfg securityConfig, json
 	return OutputGenerateResult(jsonOutput, tracker)
 }
 
-func generateSecurityType(engine *generator.Engine, srcPath string, secType SecurityType, data map[string]any, cfg securityConfig, cwd string) (int, int, error) {
-	log := logger.Default()
-
-	securityPackage := data["SecurityPackage"].(string)
-	packagePath := strings.ReplaceAll(securityPackage, ".", string(os.PathSeparator))
-	basePath := filepath.Join(srcPath, packagePath)
-
-	templates := getSecurityTemplates(secType)
-
-	generatedCount := 0
-	skippedCount := 0
-
-	for _, t := range templates {
-		if t.conditional != "" {
-			if val, ok := data[t.conditional].(bool); !ok || !val {
-				continue
-			}
-		}
-
-		outputPath := filepath.Join(basePath, t.fileName)
-
-		if engine.FileExists(outputPath) {
-			log.Warning("File exists, skipping", "file", FormatRelativePath(cwd, outputPath))
-			skippedCount++
-			continue
-		}
-
-		if err := engine.RenderAndWrite(t.template, outputPath, data); err != nil {
-			return generatedCount, skippedCount, fmt.Errorf("failed to generate %s: %w", t.fileName, err)
-		}
-
-		log.Info("Created", "file", FormatRelativePath(cwd, outputPath))
-		generatedCount++
-	}
-
-	return generatedCount, skippedCount, nil
-}
-
 func generateSecurityTypeTracked(engine *generator.Engine, srcPath string, secType SecurityType, data map[string]any, cfg securityConfig, cwd string, tracker *GenerateTracker, jsonOutput bool) (int, int, error) {
 	log := logger.Default()
 
@@ -746,52 +708,6 @@ func getSecurityTemplates(secType SecurityType) []templateInfo {
 	default:
 		return nil
 	}
-}
-
-func generateSecurityEntities(engine *generator.Engine, srcPath string, data map[string]any, cwd string) (int, int, error) {
-	log := logger.Default()
-
-	userEntityPackage := data["UserEntityPackage"].(string)
-	userRepoPackage := data["UserRepositoryPackage"].(string)
-
-	entityPath := strings.ReplaceAll(userEntityPackage, ".", string(os.PathSeparator))
-	repoPath := strings.ReplaceAll(userRepoPackage, ".", string(os.PathSeparator))
-
-	entityBasePath := filepath.Join(srcPath, entityPath)
-	repoBasePath := filepath.Join(srcPath, repoPath)
-
-	templates := []struct {
-		template   string
-		fileName   string
-		outputPath string
-	}{
-		{"security/jwt/User.java.tmpl", data["UserEntityName"].(string) + ".java", entityBasePath},
-		{"security/jwt/Role.java.tmpl", "Role.java", entityBasePath},
-		{"security/jwt/UserRepository.java.tmpl", data["UserEntityName"].(string) + "Repository.java", repoBasePath},
-		{"security/jwt/RoleRepository.java.tmpl", "RoleRepository.java", repoBasePath},
-	}
-
-	generatedCount := 0
-	skippedCount := 0
-
-	for _, t := range templates {
-		outputPath := filepath.Join(t.outputPath, t.fileName)
-
-		if engine.FileExists(outputPath) {
-			log.Warning("File exists, skipping", "file", FormatRelativePath(cwd, outputPath))
-			skippedCount++
-			continue
-		}
-
-		if err := engine.RenderAndWrite(t.template, outputPath, data); err != nil {
-			return generatedCount, skippedCount, fmt.Errorf("failed to generate %s: %w", t.fileName, err)
-		}
-
-		log.Info("Created", "file", FormatRelativePath(cwd, outputPath))
-		generatedCount++
-	}
-
-	return generatedCount, skippedCount, nil
 }
 
 func generateSecurityEntitiesTracked(engine *generator.Engine, srcPath string, data map[string]any, cwd string, tracker *GenerateTracker, jsonOutput bool) (int, int, error) {
