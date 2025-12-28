@@ -351,6 +351,24 @@ func TestValidateResourceConfig(t *testing.T) {
 			wantErr: true,
 			errMsg:  "base package is required",
 		},
+		{
+			name:    "invalid name starts with number",
+			cfg:     ResourceConfig{Name: "123User", BasePackage: "com.example"},
+			wantErr: true,
+			errMsg:  "must start with a letter",
+		},
+		{
+			name:    "invalid name too short",
+			cfg:     ResourceConfig{Name: "A", BasePackage: "com.example"},
+			wantErr: true,
+			errMsg:  "at least 2 characters",
+		},
+		{
+			name:    "invalid name with special chars",
+			cfg:     ResourceConfig{Name: "User@Name", BasePackage: "com.example"},
+			wantErr: true,
+			errMsg:  "must start with a letter",
+		},
 	}
 
 	for _, tt := range tests {

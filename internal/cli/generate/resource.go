@@ -114,6 +114,10 @@ func runResource(cmd *cobra.Command, args []string) error {
 		return fmt.Errorf("resource name is required")
 	}
 
+	if err := ValidateComponentName(resourceName); err != nil {
+		return err
+	}
+
 	if profile.BasePackage == "" {
 		return fmt.Errorf("base package is required")
 	}
@@ -475,6 +479,9 @@ func runResourceWizard(cfg ResourceConfig) (ResourceConfig, error) {
 func validateResourceConfig(cfg ResourceConfig) error {
 	if cfg.Name == "" {
 		return fmt.Errorf("resource name is required")
+	}
+	if err := ValidateComponentName(cfg.Name); err != nil {
+		return err
 	}
 	if cfg.BasePackage == "" {
 		return fmt.Errorf("base package is required")
