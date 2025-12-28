@@ -1,0 +1,16 @@
+package {{.UserRepositoryPackage}};
+
+import org.springframework.data.jpa.repository.JpaRepository;
+import org.springframework.stereotype.Repository;
+
+import {{.UserEntityPackage}}.{{.UserEntityName}};
+
+import java.util.Optional;
+
+@Repository
+public interface {{.UserEntityName}}Repository extends JpaRepository<{{.UserEntityName}}, {{.IdType}}> {
+
+    Optional<{{.UserEntityName}}> findByEmail(String email);
+
+    boolean existsByEmail(String email);
+}

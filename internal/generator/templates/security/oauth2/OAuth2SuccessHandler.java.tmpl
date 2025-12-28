@@ -1,0 +1,40 @@
+package {{.SecurityPackage}};
+
+import jakarta.servlet.ServletException;
+import jakarta.servlet.http.HttpServletRequest;
+import jakarta.servlet.http.HttpServletResponse;
+import org.springframework.security.core.Authentication;
+import org.springframework.security.web.authentication.SimpleUrlAuthenticationSuccessHandler;
+import org.springframework.stereotype.Component;
+{{if .HasLombok}}
+import lombok.RequiredArgsConstructor;
+{{end}}
+
+import java.io.IOException;
+
+@Component
+{{if .HasLombok}}
+@RequiredArgsConstructor
+{{end}}
+public class OAuth2SuccessHandler extends SimpleUrlAuthenticationSuccessHandler {
+
+{{if not .HasLombok}}
+    public OAuth2SuccessHandler() {
+        super();
+    }
+{{end}}
+
+    @Override
+    public void onAuthenticationSuccess(
+            HttpServletRequest request,
+            HttpServletResponse response,
+            Authentication authentication
+    ) throws IOException, ServletException {
+        if (authentication.getPrincipal() instanceof OAuth2UserPrincipal principal) {
+            request.getSession().setAttribute("user", principal.getUser());
+        }
+        
+        setDefaultTargetUrl("/dashboard");
+        super.onAuthenticationSuccess(request, response, authentication);
+    }
+}

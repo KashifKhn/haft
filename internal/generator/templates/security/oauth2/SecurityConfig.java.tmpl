@@ -1,0 +1,69 @@
+package {{.SecurityPackage}};
+
+import org.springframework.context.annotation.Bean;
+import org.springframework.context.annotation.Configuration;
+import org.springframework.security.config.annotation.method.configuration.EnableMethodSecurity;
+import org.springframework.security.config.annotation.web.builders.HttpSecurity;
+import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
+import org.springframework.security.web.SecurityFilterChain;
+{{if .HasLombok}}
+import lombok.RequiredArgsConstructor;
+{{end}}
+
+@Configuration
+@EnableWebSecurity
+@EnableMethodSecurity
+{{if .HasLombok}}
+@RequiredArgsConstructor
+{{end}}
+public class SecurityConfig {
+
+{{if .HasLombok}}
+    private final OAuth2UserService oAuth2UserService;
+    private final OAuth2SuccessHandler oAuth2SuccessHandler;
+{{else}}
+    private final OAuth2UserService oAuth2UserService;
+    private final OAuth2SuccessHandler oAuth2SuccessHandler;
+
+    public SecurityConfig(OAuth2UserService oAuth2UserService, OAuth2SuccessHandler oAuth2SuccessHandler) {
+        this.oAuth2UserService = oAuth2UserService;
+        this.oAuth2SuccessHandler = oAuth2SuccessHandler;
+    }
+{{end}}
+
+    @Bean
+    public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
+        return http
+                .authorizeHttpRequests(auth -> auth
+                        .requestMatchers(
+                                "/",
+                                "/login",
+                                "/oauth2/**",
+                                "/css/**",
+                                "/js/**",
+                                "/images/**",
+                                "/swagger-ui/**",
+                                "/swagger-ui.html",
+                                "/v3/api-docs/**",
+                                "/actuator/**"
+                        ).permitAll()
+                        .anyRequest().authenticated()
+                )
+                .oauth2Login(oauth2 -> oauth2
+                        .loginPage("/login")
+                        .userInfoEndpoint(userInfo -> userInfo
+                                .userService(oAuth2UserService)
+                        )
+                        .successHandler(oAuth2SuccessHandler)
+                        .failureUrl("/login?error=true")
+                )
+                .logout(logout -> logout
+                        .logoutUrl("/logout")
+                        .logoutSuccessUrl("/")
+                        .invalidateHttpSession(true)
+                        .deleteCookies("JSESSIONID")
+                        .permitAll()
+                )
+                .build();
+    }
+}

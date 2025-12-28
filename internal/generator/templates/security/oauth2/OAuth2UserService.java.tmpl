@@ -1,0 +1,95 @@
+package {{.SecurityPackage}};
+
+import org.springframework.security.oauth2.client.userinfo.DefaultOAuth2UserService;
+import org.springframework.security.oauth2.client.userinfo.OAuth2UserRequest;
+import org.springframework.security.oauth2.core.OAuth2AuthenticationException;
+import org.springframework.security.oauth2.core.user.OAuth2User;
+import org.springframework.stereotype.Service;
+{{if .HasLombok}}
+import lombok.RequiredArgsConstructor;
+{{end}}
+
+import {{.UserEntityPackage}}.{{.UserEntityName}};
+import {{.UserRepositoryPackage}}.{{.UserEntityName}}Repository;
+
+import java.util.Map;
+
+@Service
+{{if .HasLombok}}
+@RequiredArgsConstructor
+{{end}}
+public class OAuth2UserService extends DefaultOAuth2UserService {
+
+{{if .HasLombok}}
+    private final {{.UserEntityName}}Repository userRepository;
+{{else}}
+    private final {{.UserEntityName}}Repository userRepository;
+
+    public OAuth2UserService({{.UserEntityName}}Repository userRepository) {
+        this.userRepository = userRepository;
+    }
+{{end}}
+
+    @Override
+    public OAuth2User loadUser(OAuth2UserRequest userRequest) throws OAuth2AuthenticationException {
+        OAuth2User oAuth2User = super.loadUser(userRequest);
+        
+        String registrationId = userRequest.getClientRegistration().getRegistrationId();
+        Map<String, Object> attributes = oAuth2User.getAttributes();
+        
+        String email = extractEmail(registrationId, attributes);
+        String firstName = extractFirstName(registrationId, attributes);
+        String lastName = extractLastName(registrationId, attributes);
+        
+        {{.UserEntityName}} user = userRepository.findByEmail(email)
+                .orElseGet(() -> createUser(email, firstName, lastName, registrationId));
+        
+        return new OAuth2UserPrincipal(user, attributes);
+    }
+    
+    private String extractEmail(String registrationId, Map<String, Object> attributes) {
+        return switch (registrationId) {
+            case "google" -> (String) attributes.get("email");
+            case "github" -> (String) attributes.get("email");
+            case "facebook" -> (String) attributes.get("email");
+            default -> (String) attributes.get("email");
+        };
+    }
+    
+    private String extractFirstName(String registrationId, Map<String, Object> attributes) {
+        return switch (registrationId) {
+            case "google" -> (String) attributes.get("given_name");
+            case "github" -> {
+                String name = (String) attributes.get("name");
+                yield name != null ? name.split(" ")[0] : "";
+            }
+            case "facebook" -> (String) attributes.get("first_name");
+            default -> "";
+        };
+    }
+    
+    private String extractLastName(String registrationId, Map<String, Object> attributes) {
+        return switch (registrationId) {
+            case "google" -> (String) attributes.get("family_name");
+            case "github" -> {
+                String name = (String) attributes.get("name");
+                String[] parts = name != null ? name.split(" ") : new String[]{};
+                yield parts.length > 1 ? parts[parts.length - 1] : "";
+            }
+            case "facebook" -> (String) attributes.get("last_name");
+            default -> "";
+        };
+    }
+    
+    private {{.UserEntityName}} createUser(String email, String firstName, String lastName, String provider) {
+        {{.UserEntityName}} user = {{.UserEntityName}}.builder()
+                .email(email)
+                .firstName(firstName)
+                .lastName(lastName)
+                .password("")
+                .enabled(true)
+                .build();
+        
+        return userRepository.save(user);
+    }
+}

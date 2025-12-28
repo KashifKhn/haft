@@ -1,0 +1,93 @@
+package {{.UserEntityPackage}};
+
+import jakarta.persistence.*;
+{{if .HasLombok}}
+import lombok.AllArgsConstructor;
+import lombok.Builder;
+import lombok.Data;
+import lombok.NoArgsConstructor;
+{{end}}
+
+@Entity
+@Table(name = "roles")
+{{if .HasLombok}}
+@Data
+@Builder
+@AllArgsConstructor
+@NoArgsConstructor
+{{end}}
+public class Role {
+
+    @Id
+    @GeneratedValue(strategy = GenerationType.{{.IdStrategy}})
+    private {{.IdType}} id;
+
+    @Column(nullable = false, unique = true)
+    private String name;
+
+    private String description;
+{{if not .HasLombok}}
+
+    public Role() {
+    }
+
+    public Role({{.IdType}} id, String name, String description) {
+        this.id = id;
+        this.name = name;
+        this.description = description;
+    }
+
+    public static RoleBuilder builder() {
+        return new RoleBuilder();
+    }
+
+    public {{.IdType}} getId() {
+        return id;
+    }
+
+    public void setId({{.IdType}} id) {
+        this.id = id;
+    }
+
+    public String getName() {
+        return name;
+    }
+
+    public void setName(String name) {
+        this.name = name;
+    }
+
+    public String getDescription() {
+        return description;
+    }
+
+    public void setDescription(String description) {
+        this.description = description;
+    }
+
+    public static class RoleBuilder {
+        private {{.IdType}} id;
+        private String name;
+        private String description;
+
+        public RoleBuilder id({{.IdType}} id) {
+            this.id = id;
+            return this;
+        }
+
+        public RoleBuilder name(String name) {
+            this.name = name;
+            return this;
+        }
+
+        public RoleBuilder description(String description) {
+            this.description = description;
+            return this;
+        }
+
+        public Role build() {
+            return new Role(id, name, description);
+        }
+    }
+{{end}}
+}

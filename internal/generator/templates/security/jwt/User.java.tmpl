@@ -1,0 +1,254 @@
+package {{.UserEntityPackage}};
+
+import jakarta.persistence.*;
+import org.springframework.security.core.GrantedAuthority;
+import org.springframework.security.core.authority.SimpleGrantedAuthority;
+import org.springframework.security.core.userdetails.UserDetails;
+{{if .HasLombok}}
+import lombok.AllArgsConstructor;
+import lombok.Builder;
+import lombok.Data;
+import lombok.NoArgsConstructor;
+{{end}}
+
+import java.util.Collection;
+import java.util.HashSet;
+import java.util.Set;
+import java.util.stream.Collectors;
+
+@Entity
+@Table(name = "users")
+{{if .HasLombok}}
+@Data
+@Builder
+@AllArgsConstructor
+@NoArgsConstructor
+{{end}}
+public class {{.UserEntityName}} implements UserDetails {
+
+    @Id
+    @GeneratedValue(strategy = GenerationType.{{.IdStrategy}})
+    private {{.IdType}} id;
+
+    @Column(nullable = false, unique = true)
+    private String email;
+
+    @Column(nullable = false)
+    private String password;
+
+    @Column(name = "first_name")
+    private String firstName;
+
+    @Column(name = "last_name")
+    private String lastName;
+
+    @Builder.Default
+    private boolean enabled = true;
+
+    @Builder.Default
+    private boolean accountNonExpired = true;
+
+    @Builder.Default
+    private boolean accountNonLocked = true;
+
+    @Builder.Default
+    private boolean credentialsNonExpired = true;
+
+    @ManyToMany(fetch = FetchType.EAGER)
+    @JoinTable(
+            name = "user_roles",
+            joinColumns = @JoinColumn(name = "user_id"),
+            inverseJoinColumns = @JoinColumn(name = "role_id")
+    )
+    @Builder.Default
+    private Set<Role> roles = new HashSet<>();
+
+    @Override
+    public Collection<? extends GrantedAuthority> getAuthorities() {
+        return roles.stream()
+                .map(role -> new SimpleGrantedAuthority(role.getName()))
+                .collect(Collectors.toList());
+    }
+
+    @Override
+    public String getUsername() {
+        return email;
+    }
+
+    @Override
+    public boolean isAccountNonExpired() {
+        return accountNonExpired;
+    }
+
+    @Override
+    public boolean isAccountNonLocked() {
+        return accountNonLocked;
+    }
+
+    @Override
+    public boolean isCredentialsNonExpired() {
+        return credentialsNonExpired;
+    }
+
+    @Override
+    public boolean isEnabled() {
+        return enabled;
+    }
+{{if not .HasLombok}}
+
+    public {{.UserEntityName}}() {
+    }
+
+    public {{.UserEntityName}}({{.IdType}} id, String email, String password, String firstName, String lastName,
+                     boolean enabled, boolean accountNonExpired, boolean accountNonLocked,
+                     boolean credentialsNonExpired, Set<Role> roles) {
+        this.id = id;
+        this.email = email;
+        this.password = password;
+        this.firstName = firstName;
+        this.lastName = lastName;
+        this.enabled = enabled;
+        this.accountNonExpired = accountNonExpired;
+        this.accountNonLocked = accountNonLocked;
+        this.credentialsNonExpired = credentialsNonExpired;
+        this.roles = roles != null ? roles : new HashSet<>();
+    }
+
+    public static {{.UserEntityName}}Builder builder() {
+        return new {{.UserEntityName}}Builder();
+    }
+
+    public {{.IdType}} getId() {
+        return id;
+    }
+
+    public void setId({{.IdType}} id) {
+        this.id = id;
+    }
+
+    public String getEmail() {
+        return email;
+    }
+
+    public void setEmail(String email) {
+        this.email = email;
+    }
+
+    @Override
+    public String getPassword() {
+        return password;
+    }
+
+    public void setPassword(String password) {
+        this.password = password;
+    }
+
+    public String getFirstName() {
+        return firstName;
+    }
+
+    public void setFirstName(String firstName) {
+        this.firstName = firstName;
+    }
+
+    public String getLastName() {
+        return lastName;
+    }
+
+    public void setLastName(String lastName) {
+        this.lastName = lastName;
+    }
+
+    public void setEnabled(boolean enabled) {
+        this.enabled = enabled;
+    }
+
+    public void setAccountNonExpired(boolean accountNonExpired) {
+        this.accountNonExpired = accountNonExpired;
+    }
+
+    public void setAccountNonLocked(boolean accountNonLocked) {
+        this.accountNonLocked = accountNonLocked;
+    }
+
+    public void setCredentialsNonExpired(boolean credentialsNonExpired) {
+        this.credentialsNonExpired = credentialsNonExpired;
+    }
+
+    public Set<Role> getRoles() {
+        return roles;
+    }
+
+    public void setRoles(Set<Role> roles) {
+        this.roles = roles;
+    }
+
+    public static class {{.UserEntityName}}Builder {
+        private {{.IdType}} id;
+        private String email;
+        private String password;
+        private String firstName;
+        private String lastName;
+        private boolean enabled = true;
+        private boolean accountNonExpired = true;
+        private boolean accountNonLocked = true;
+        private boolean credentialsNonExpired = true;
+        private Set<Role> roles = new HashSet<>();
+
+        public {{.UserEntityName}}Builder id({{.IdType}} id) {
+            this.id = id;
+            return this;
+        }
+
+        public {{.UserEntityName}}Builder email(String email) {
+            this.email = email;
+            return this;
+        }
+
+        public {{.UserEntityName}}Builder password(String password) {
+            this.password = password;
+            return this;
+        }
+
+        public {{.UserEntityName}}Builder firstName(String firstName) {
+            this.firstName = firstName;
+            return this;
+        }
+
+        public {{.UserEntityName}}Builder lastName(String lastName) {
+            this.lastName = lastName;
+            return this;
+        }
+
+        public {{.UserEntityName}}Builder enabled(boolean enabled) {
+            this.enabled = enabled;
+            return this;
+        }
+
+        public {{.UserEntityName}}Builder accountNonExpired(boolean accountNonExpired) {
+            this.accountNonExpired = accountNonExpired;
+            return this;
+        }
+
+        public {{.UserEntityName}}Builder accountNonLocked(boolean accountNonLocked) {
+            this.accountNonLocked = accountNonLocked;
+            return this;
+        }
+
+        public {{.UserEntityName}}Builder credentialsNonExpired(boolean credentialsNonExpired) {
+            this.credentialsNonExpired = credentialsNonExpired;
+            return this;
+        }
+
+        public {{.UserEntityName}}Builder roles(Set<Role> roles) {
+            this.roles = roles;
+            return this;
+        }
+
+        public {{.UserEntityName}} build() {
+            return new {{.UserEntityName}}(id, email, password, firstName, lastName, enabled,
+                    accountNonExpired, accountNonLocked, credentialsNonExpired, roles);
+        }
+    }
+{{end}}
+}

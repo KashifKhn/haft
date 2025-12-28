@@ -1000,7 +1000,7 @@ func TestResourceConfigToComponentConfig(t *testing.T) {
 
 func TestSubcommandCount(t *testing.T) {
 	cmd := NewCommand()
-	assert.Equal(t, 8, len(cmd.Commands()), "Should have 8 subcommands: resource, controller, service, repository, entity, dto, exception, config")
+	assert.Equal(t, 9, len(cmd.Commands()), "Should have 9 subcommands: resource, controller, service, repository, entity, dto, exception, config, security")
 }
 
 func TestGenerateCommandHasNoRunE(t *testing.T) {
