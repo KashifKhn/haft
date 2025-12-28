@@ -90,46 +90,46 @@ func printFormatted(s *stats.ProjectStats, showCocomo bool) error {
 	fmt.Println(headerStyle.Render("  Code Statistics"))
 	fmt.Println(strings.Repeat("─", 85))
 
-	fmt.Printf("  %-20s %10s %10s %10s %10s %10s\n",
-		labelStyle.Render("Language"),
-		labelStyle.Render("Files"),
-		labelStyle.Render("Lines"),
-		labelStyle.Render("Code"),
-		labelStyle.Render("Comments"),
-		labelStyle.Render("Blanks"))
+	fmt.Printf("  %s %s %s %s %s %s\n",
+		labelStyle.Render(padRight("Language", 20)),
+		labelStyle.Render(padLeft("Files", 10)),
+		labelStyle.Render(padLeft("Lines", 10)),
+		labelStyle.Render(padLeft("Code", 10)),
+		labelStyle.Render(padLeft("Comments", 10)),
+		labelStyle.Render(padLeft("Blanks", 10)))
 	fmt.Println(strings.Repeat("─", 85))
 
 	for _, lang := range s.Languages {
-		fmt.Printf("  %-20s %10s %10s %10s %10s %10s\n",
-			langStyle.Render(truncate(lang.Name, 20)),
-			numberStyle.Render(formatNumber(lang.Files)),
-			valueStyle.Render(formatNumber(lang.Lines)),
-			numberStyle.Render(formatNumber(lang.Code)),
-			valueStyle.Render(formatNumber(lang.Comments)),
-			valueStyle.Render(formatNumber(lang.Blanks)))
+		fmt.Printf("  %s %s %s %s %s %s\n",
+			langStyle.Render(padRight(truncate(lang.Name, 20), 20)),
+			numberStyle.Render(padLeft(formatNumber(lang.Files), 10)),
+			valueStyle.Render(padLeft(formatNumber(lang.Lines), 10)),
+			numberStyle.Render(padLeft(formatNumber(lang.Code), 10)),
+			valueStyle.Render(padLeft(formatNumber(lang.Comments), 10)),
+			valueStyle.Render(padLeft(formatNumber(lang.Blanks), 10)))
 	}
 
 	fmt.Println(strings.Repeat("─", 85))
-	fmt.Printf("  %-20s %10s %10s %10s %10s %10s\n",
-		headerStyle.Render("Total"),
-		numberStyle.Render(formatNumber(s.TotalFiles)),
-		valueStyle.Render(formatNumber(s.TotalLines)),
-		numberStyle.Render(formatNumber(s.TotalCode)),
-		valueStyle.Render(formatNumber(s.TotalComments)),
-		valueStyle.Render(formatNumber(s.TotalBlanks)))
+	fmt.Printf("  %s %s %s %s %s %s\n",
+		headerStyle.Render(padRight("Total", 20)),
+		numberStyle.Render(padLeft(formatNumber(s.TotalFiles), 10)),
+		valueStyle.Render(padLeft(formatNumber(s.TotalLines), 10)),
+		numberStyle.Render(padLeft(formatNumber(s.TotalCode), 10)),
+		valueStyle.Render(padLeft(formatNumber(s.TotalComments), 10)),
+		valueStyle.Render(padLeft(formatNumber(s.TotalBlanks), 10)))
 
 	if showCocomo && s.EstimatedCost > 0 {
 		fmt.Println()
 		fmt.Println(headerStyle.Render("  COCOMO Estimates"))
 		fmt.Println(strings.Repeat("─", 85))
 		fmt.Printf("  %s %s\n",
-			labelStyle.Render(fmt.Sprintf("%-18s", "Estimated Cost:")),
+			labelStyle.Render(padRight("Estimated Cost:", 18)),
 			cocomoStyle.Render(fmt.Sprintf("$%s", formatNumber(int64(s.EstimatedCost)))))
 		fmt.Printf("  %s %s\n",
-			labelStyle.Render(fmt.Sprintf("%-18s", "Schedule Effort:")),
+			labelStyle.Render(padRight("Schedule Effort:", 18)),
 			cocomoStyle.Render(fmt.Sprintf("%.2f months", s.EstimatedMonths)))
 		fmt.Printf("  %s %s\n",
-			labelStyle.Render(fmt.Sprintf("%-18s", "People Required:")),
+			labelStyle.Render(padRight("People Required:", 18)),
 			cocomoStyle.Render(fmt.Sprintf("%.2f", s.EstimatedPeople)))
 	}
 
@@ -205,4 +205,18 @@ func truncate(s string, maxLen int) string {
 		return s
 	}
 	return s[:maxLen-1] + "…"
+}
+
+func padRight(s string, width int) string {
+	if len(s) >= width {
+		return s
+	}
+	return s + strings.Repeat(" ", width-len(s))
+}
+
+func padLeft(s string, width int) string {
+	if len(s) >= width {
+		return s
+	}
+	return strings.Repeat(" ", width-len(s)) + s
 }
