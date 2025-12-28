@@ -320,27 +320,27 @@ func TestPrintAvailableConditionsDoesNotPanic(t *testing.T) {
 }
 
 func TestRunListNoError(t *testing.T) {
-	err := runList(false, "", false)
+	err := runList(false, "", false, false)
 	assert.NoError(t, err)
 }
 
 func TestRunListWithCustomOnly(t *testing.T) {
-	err := runList(true, "", false)
+	err := runList(true, "", false, false)
 	assert.NoError(t, err)
 }
 
 func TestRunListWithCategory(t *testing.T) {
-	err := runList(false, "resource", false)
+	err := runList(false, "resource", false, false)
 	assert.NoError(t, err)
 }
 
 func TestRunListWithCategoryAndPaths(t *testing.T) {
-	err := runList(false, "resource", true)
+	err := runList(false, "resource", true, false)
 	assert.NoError(t, err)
 }
 
 func TestRunListWithAllOptions(t *testing.T) {
-	err := runList(true, "test", true)
+	err := runList(true, "test", true, false)
 	assert.NoError(t, err)
 }
 

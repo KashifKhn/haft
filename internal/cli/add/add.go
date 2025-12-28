@@ -84,6 +84,9 @@ func runAdd(cmd *cobra.Command, args []string) error {
 
 	if len(args) == 0 && !browseFlag {
 		if noInteractive {
+			if jsonFlag {
+				return output.Error("MISSING_ARGUMENT", "dependency argument required when using --no-interactive")
+			}
 			return fmt.Errorf("dependency argument required when using --no-interactive")
 		}
 		return runInteractivePicker(cmd)
@@ -95,30 +98,41 @@ func runAdd(cmd *cobra.Command, args []string) error {
 
 	cwd, err := os.Getwd()
 	if err != nil {
+		if jsonFlag {
+			return output.Error("CWD_ERROR", "could not get current directory", err.Error())
+		}
 		return err
 	}
 
 	fs := afero.NewOsFs()
 	result, err := buildtool.Detect(cwd, fs)
 	if err != nil {
+		if jsonFlag {
+			return output.Error("NO_BUILD_FILE", "could not find build file", err.Error())
+		}
 		return fmt.Errorf("could not find build file: %w", err)
 	}
 
 	project, err := result.Parser.Parse(result.FilePath)
 	if err != nil {
+		if jsonFlag {
+			return output.Error("PARSE_ERROR", fmt.Sprintf("could not parse %s", result.FilePath), err.Error())
+		}
 		return fmt.Errorf("could not parse %s: %w", result.FilePath, err)
 	}
 
 	scopeOverride, _ := cmd.Flags().GetString("scope")
 	versionOverride, _ := cmd.Flags().GetString("version")
 
-	addedCount := 0
-	skippedCount := 0
+	var added, skipped, errors []string
 
 	for _, arg := range args {
 		deps, entryName, err := resolveDependency(arg)
 		if err != nil {
-			log.Error("Invalid dependency", "input", arg, "error", err.Error())
+			if !jsonFlag {
+				log.Error("Invalid dependency", "input", arg, "error", err.Error())
+			}
+			errors = append(errors, fmt.Sprintf("%s: %s", arg, err.Error()))
 			continue
 		}
 
@@ -131,33 +145,57 @@ func runAdd(cmd *cobra.Command, args []string) error {
 			}
 
 			if result.Parser.HasDependency(project, dep.GroupId, dep.ArtifactId) {
-				log.Warning("Skipped (already exists)", "dependency", formatDependency(dep))
-				skippedCount++
+				if !jsonFlag {
+					log.Warning("Skipped (already exists)", "dependency", formatDependency(dep))
+				}
+				skipped = append(skipped, formatDependency(dep))
 				continue
 			}
 
 			result.Parser.AddDependency(project, dep)
-			if entryName != "" {
-				log.Success("Added", "dependency", entryName, "artifact", dep.ArtifactId)
-			} else {
-				log.Success("Added", "dependency", formatDependency(dep))
+			if !jsonFlag {
+				if entryName != "" {
+					log.Success("Added", "dependency", entryName, "artifact", dep.ArtifactId)
+				} else {
+					log.Success("Added", "dependency", formatDependency(dep))
+				}
 			}
-			addedCount++
+			added = append(added, formatDependency(dep))
 		}
 	}
 
-	if addedCount == 0 {
-		if skippedCount > 0 {
+	if len(added) == 0 {
+		if jsonFlag {
+			return output.Success(output.AddRemoveResult{
+				Action:  "add",
+				Added:   added,
+				Skipped: skipped,
+				Errors:  errors,
+			})
+		}
+		if len(skipped) > 0 {
 			log.Info("No new dependencies added (all already exist)")
 		}
 		return nil
 	}
 
 	if err := result.Parser.Write(result.FilePath, project); err != nil {
+		if jsonFlag {
+			return output.Error("WRITE_ERROR", fmt.Sprintf("could not write %s", result.FilePath), err.Error())
+		}
 		return fmt.Errorf("could not write %s: %w", result.FilePath, err)
 	}
 
-	log.Success(fmt.Sprintf("Added %d dependencies to %s", addedCount, buildtool.GetBuildFileName(result.BuildTool)))
+	if jsonFlag {
+		return output.Success(output.AddRemoveResult{
+			Action:  "add",
+			Added:   added,
+			Skipped: skipped,
+			Errors:  errors,
+		})
+	}
+
+	log.Success(fmt.Sprintf("Added %d dependencies to %s", len(added), buildtool.GetBuildFileName(result.BuildTool)))
 	return nil
 }
 

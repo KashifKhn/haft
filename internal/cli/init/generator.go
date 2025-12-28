@@ -9,55 +9,119 @@ import (
 
 	"github.com/KashifKhn/haft/internal/config"
 	"github.com/KashifKhn/haft/internal/generator"
+	"github.com/KashifKhn/haft/internal/output"
 	"github.com/KashifKhn/haft/internal/tui/styles"
 	"github.com/spf13/afero"
 )
 
-func generateProject(cfg ProjectConfig, projectDir string) error {
+func generateProject(cfg ProjectConfig, projectDir string, jsonOutput bool) error {
 	fs := afero.NewOsFs()
 
 	if exists, _ := afero.DirExists(fs, projectDir); exists {
+		if jsonOutput {
+			return output.Error("PROJECT_EXISTS", fmt.Sprintf("directory %s already exists", projectDir))
+		}
 		return fmt.Errorf("directory %s already exists", projectDir)
 	}
 
-	fmt.Println()
-	fmt.Printf("  Creating project %s...\n", styles.Focused.Render(cfg.Name))
-	fmt.Println()
+	var filesCreated []string
+
+	if !jsonOutput {
+		fmt.Println()
+		fmt.Printf("  Creating project %s...\n", styles.Focused.Render(cfg.Name))
+		fmt.Println()
+	}
 
 	engine := generator.NewEngine(fs)
 
-	fmt.Printf("  %s Creating directory structure\n", styles.CheckMark)
+	if !jsonOutput {
+		fmt.Printf("  %s Creating directory structure\n", styles.CheckMark)
+	}
 	if err := createDirectoryStructure(engine, projectDir, cfg); err != nil {
+		if jsonOutput {
+			return output.Error("DIR_STRUCTURE_FAILED", "failed to create directory structure", err.Error())
+		}
 		return fmt.Errorf("failed to create directory structure: %w", err)
 	}
 
-	fmt.Printf("  %s Generating project files\n", styles.CheckMark)
-	if err := generateProjectFiles(engine, projectDir, cfg); err != nil {
+	if !jsonOutput {
+		fmt.Printf("  %s Generating project files\n", styles.CheckMark)
+	}
+	generatedFiles, err := generateProjectFiles(engine, projectDir, cfg)
+	if err != nil {
+		if jsonOutput {
+			return output.Error("PROJECT_FILES_FAILED", "failed to generate project files", err.Error())
+		}
 		return fmt.Errorf("failed to generate project files: %w", err)
 	}
+	filesCreated = append(filesCreated, generatedFiles...)
 
 	if cfg.BuildTool == "maven" {
-		fmt.Printf("  %s Adding Maven wrapper\n", styles.CheckMark)
-		if err := copyMavenWrapper(engine, projectDir); err != nil {
+		if !jsonOutput {
+			fmt.Printf("  %s Adding Maven wrapper\n", styles.CheckMark)
+		}
+		wrapperFiles, err := copyMavenWrapper(engine, projectDir)
+		if err != nil {
+			if jsonOutput {
+				return output.Error("MAVEN_WRAPPER_FAILED", "failed to copy Maven wrapper", err.Error())
+			}
 			return fmt.Errorf("failed to copy Maven wrapper: %w", err)
 		}
+		filesCreated = append(filesCreated, wrapperFiles...)
 	} else if cfg.BuildTool == "gradle" || cfg.BuildTool == "gradle-kotlin" {
-		fmt.Printf("  %s Adding Gradle wrapper\n", styles.CheckMark)
-		if err := copyGradleWrapper(engine, projectDir); err != nil {
+		if !jsonOutput {
+			fmt.Printf("  %s Adding Gradle wrapper\n", styles.CheckMark)
+		}
+		wrapperFiles, err := copyGradleWrapper(engine, projectDir)
+		if err != nil {
+			if jsonOutput {
+				return output.Error("GRADLE_WRAPPER_FAILED", "failed to copy Gradle wrapper", err.Error())
+			}
 			return fmt.Errorf("failed to copy Gradle wrapper: %w", err)
 		}
+		filesCreated = append(filesCreated, wrapperFiles...)
 	}
 
-	fmt.Printf("  %s Writing configuration\n", styles.CheckMark)
+	if !jsonOutput {
+		fmt.Printf("  %s Writing configuration\n", styles.CheckMark)
+	}
 	if err := writeHaftConfig(fs, projectDir, cfg); err != nil {
+		if jsonOutput {
+			return output.Error("CONFIG_FAILED", "failed to write .haft.yaml", err.Error())
+		}
 		return fmt.Errorf("failed to write .haft.yaml: %w", err)
 	}
+	filesCreated = append(filesCreated, filepath.Join(projectDir, ".haft.yaml"))
 
+	gitInitialized := false
 	if cfg.InitGit {
-		fmt.Printf("  %s Initializing git repository\n", styles.CheckMark)
-		if err := initGitRepository(projectDir); err != nil {
-			fmt.Printf("  %s Failed to initialize git: %v\n", styles.ErrorText.Render("✗"), err)
+		if !jsonOutput {
+			fmt.Printf("  %s Initializing git repository\n", styles.CheckMark)
 		}
+		if err := initGitRepository(projectDir); err != nil {
+			if !jsonOutput {
+				fmt.Printf("  %s Failed to initialize git: %v\n", styles.ErrorText.Render("✗"), err)
+			}
+		} else {
+			gitInitialized = true
+		}
+	}
+
+	if jsonOutput {
+		return output.Success(output.InitOutput{
+			ProjectName:       cfg.Name,
+			GroupID:           cfg.GroupId,
+			ArtifactID:        cfg.ArtifactId,
+			PackageName:       cfg.PackageName,
+			JavaVersion:       cfg.JavaVersion,
+			SpringBootVersion: cfg.SpringBootVersion,
+			BuildTool:         cfg.BuildTool,
+			Packaging:         cfg.Packaging,
+			Dependencies:      cfg.Dependencies,
+			ProjectDir:        projectDir,
+			FilesCreated:      filesCreated,
+			GitInitialized:    gitInitialized,
+		})
 	}
 
 	fmt.Println()
@@ -104,7 +168,8 @@ func createDirectoryStructure(engine *generator.Engine, projectDir string, cfg P
 	return nil
 }
 
-func generateProjectFiles(engine *generator.Engine, projectDir string, cfg ProjectConfig) error {
+func generateProjectFiles(engine *generator.Engine, projectDir string, cfg ProjectConfig) ([]string, error) {
+	var filesCreated []string
 	basePackagePath := strings.ReplaceAll(cfg.PackageName, ".", string(os.PathSeparator))
 	applicationName := toPascalCase(cfg.ArtifactId)
 
@@ -128,52 +193,66 @@ func generateProjectFiles(engine *generator.Engine, projectDir string, cfg Proje
 	}
 
 	if cfg.BuildTool == "maven" {
+		filePath := filepath.Join(projectDir, "pom.xml")
 		if err := engine.RenderAndWrite(
 			"project/pom.xml.tmpl",
-			filepath.Join(projectDir, "pom.xml"),
+			filePath,
 			data,
 		); err != nil {
-			return err
+			return nil, err
 		}
+		filesCreated = append(filesCreated, filePath)
 	} else if cfg.BuildTool == "gradle" {
+		buildFile := filepath.Join(projectDir, "build.gradle")
 		if err := engine.RenderAndWrite(
 			"project/build.gradle.tmpl",
-			filepath.Join(projectDir, "build.gradle"),
+			buildFile,
 			data,
 		); err != nil {
-			return err
+			return nil, err
 		}
+		filesCreated = append(filesCreated, buildFile)
+
+		settingsFile := filepath.Join(projectDir, "settings.gradle")
 		if err := engine.RenderAndWrite(
 			"project/settings.gradle.tmpl",
-			filepath.Join(projectDir, "settings.gradle"),
+			settingsFile,
 			data,
 		); err != nil {
-			return err
+			return nil, err
 		}
+		filesCreated = append(filesCreated, settingsFile)
 	} else if cfg.BuildTool == "gradle-kotlin" {
+		buildFile := filepath.Join(projectDir, "build.gradle.kts")
 		if err := engine.RenderAndWrite(
 			"project/build.gradle.kts.tmpl",
-			filepath.Join(projectDir, "build.gradle.kts"),
+			buildFile,
 			data,
 		); err != nil {
-			return err
+			return nil, err
 		}
+		filesCreated = append(filesCreated, buildFile)
+
+		settingsFile := filepath.Join(projectDir, "settings.gradle.kts")
 		if err := engine.RenderAndWrite(
 			"project/settings.gradle.kts.tmpl",
-			filepath.Join(projectDir, "settings.gradle.kts"),
+			settingsFile,
 			data,
 		); err != nil {
-			return err
+			return nil, err
 		}
+		filesCreated = append(filesCreated, settingsFile)
 	}
 
+	appFile := filepath.Join(projectDir, "src", "main", "java", basePackagePath, applicationName+"Application.java")
 	if err := engine.RenderAndWrite(
 		"project/Application.java.tmpl",
-		filepath.Join(projectDir, "src", "main", "java", basePackagePath, applicationName+"Application.java"),
+		appFile,
 		data,
 	); err != nil {
-		return err
+		return nil, err
 	}
+	filesCreated = append(filesCreated, appFile)
 
 	configFile := "application.properties"
 	configTemplate := "project/application.properties.tmpl"
@@ -182,31 +261,37 @@ func generateProjectFiles(engine *generator.Engine, projectDir string, cfg Proje
 		configTemplate = "project/application.yml.tmpl"
 	}
 
+	configPath := filepath.Join(projectDir, "src", "main", "resources", configFile)
 	if err := engine.RenderAndWrite(
 		configTemplate,
-		filepath.Join(projectDir, "src", "main", "resources", configFile),
+		configPath,
 		data,
 	); err != nil {
-		return err
+		return nil, err
 	}
+	filesCreated = append(filesCreated, configPath)
 
+	testFile := filepath.Join(projectDir, "src", "test", "java", basePackagePath, applicationName+"ApplicationTests.java")
 	if err := engine.RenderAndWrite(
 		"project/ApplicationTests.java.tmpl",
-		filepath.Join(projectDir, "src", "test", "java", basePackagePath, applicationName+"ApplicationTests.java"),
+		testFile,
 		data,
 	); err != nil {
-		return err
+		return nil, err
 	}
+	filesCreated = append(filesCreated, testFile)
 
 	gitignoreContent, err := engine.ReadTemplateFile("project/gitignore.tmpl")
 	if err != nil {
-		return fmt.Errorf("failed to read gitignore template: %w", err)
+		return nil, fmt.Errorf("failed to read gitignore template: %w", err)
 	}
-	if err := engine.WriteFileWithPerm(filepath.Join(projectDir, ".gitignore"), gitignoreContent, 0644); err != nil {
-		return fmt.Errorf("failed to write .gitignore: %w", err)
+	gitignorePath := filepath.Join(projectDir, ".gitignore")
+	if err := engine.WriteFileWithPerm(gitignorePath, gitignoreContent, 0644); err != nil {
+		return nil, fmt.Errorf("failed to write .gitignore: %w", err)
 	}
+	filesCreated = append(filesCreated, gitignorePath)
 
-	return nil
+	return filesCreated, nil
 }
 
 func writeHaftConfig(fs afero.Fs, projectDir string, cfg ProjectConfig) error {
@@ -249,76 +334,86 @@ func writeHaftConfig(fs afero.Fs, projectDir string, cfg ProjectConfig) error {
 	return cm.SaveProjectConfig(&projectCfg)
 }
 
-func copyMavenWrapper(engine *generator.Engine, projectDir string) error {
+func copyMavenWrapper(engine *generator.Engine, projectDir string) ([]string, error) {
+	var filesCreated []string
+
 	wrapperDir := filepath.Join(projectDir, ".mvn", "wrapper")
 	if err := engine.GetFS().MkdirAll(wrapperDir, 0755); err != nil {
-		return fmt.Errorf("failed to create .mvn/wrapper directory: %w", err)
+		return nil, fmt.Errorf("failed to create .mvn/wrapper directory: %w", err)
 	}
 
 	propsContent, err := engine.ReadTemplateFile("wrapper/maven-wrapper.properties")
 	if err != nil {
-		return fmt.Errorf("failed to read maven-wrapper.properties: %w", err)
+		return nil, fmt.Errorf("failed to read maven-wrapper.properties: %w", err)
 	}
 	propsPath := filepath.Join(wrapperDir, "maven-wrapper.properties")
 	if err := engine.WriteFileWithPerm(propsPath, propsContent, 0644); err != nil {
-		return fmt.Errorf("failed to write maven-wrapper.properties: %w", err)
+		return nil, fmt.Errorf("failed to write maven-wrapper.properties: %w", err)
 	}
+	filesCreated = append(filesCreated, propsPath)
 
 	mvnwContent, err := engine.ReadTemplateFile("wrapper/mvnw")
 	if err != nil {
-		return fmt.Errorf("failed to read mvnw: %w", err)
+		return nil, fmt.Errorf("failed to read mvnw: %w", err)
 	}
 	mvnwPath := filepath.Join(projectDir, "mvnw")
 	if err := engine.WriteFileWithPerm(mvnwPath, mvnwContent, 0755); err != nil {
-		return fmt.Errorf("failed to write mvnw: %w", err)
+		return nil, fmt.Errorf("failed to write mvnw: %w", err)
 	}
+	filesCreated = append(filesCreated, mvnwPath)
 
 	mvnwCmdContent, err := engine.ReadTemplateFile("wrapper/mvnw.cmd")
 	if err != nil {
-		return fmt.Errorf("failed to read mvnw.cmd: %w", err)
+		return nil, fmt.Errorf("failed to read mvnw.cmd: %w", err)
 	}
 	mvnwCmdPath := filepath.Join(projectDir, "mvnw.cmd")
 	if err := engine.WriteFileWithPerm(mvnwCmdPath, mvnwCmdContent, 0644); err != nil {
-		return fmt.Errorf("failed to write mvnw.cmd: %w", err)
+		return nil, fmt.Errorf("failed to write mvnw.cmd: %w", err)
 	}
+	filesCreated = append(filesCreated, mvnwCmdPath)
 
-	return nil
+	return filesCreated, nil
 }
 
-func copyGradleWrapper(engine *generator.Engine, projectDir string) error {
+func copyGradleWrapper(engine *generator.Engine, projectDir string) ([]string, error) {
+	var filesCreated []string
+
 	wrapperDir := filepath.Join(projectDir, "gradle", "wrapper")
 	if err := engine.GetFS().MkdirAll(wrapperDir, 0755); err != nil {
-		return fmt.Errorf("failed to create gradle/wrapper directory: %w", err)
+		return nil, fmt.Errorf("failed to create gradle/wrapper directory: %w", err)
 	}
 
 	propsContent, err := engine.ReadTemplateFile("wrapper/gradle-wrapper.properties")
 	if err != nil {
-		return fmt.Errorf("failed to read gradle-wrapper.properties: %w", err)
+		return nil, fmt.Errorf("failed to read gradle-wrapper.properties: %w", err)
 	}
 	propsPath := filepath.Join(wrapperDir, "gradle-wrapper.properties")
 	if err := engine.WriteFileWithPerm(propsPath, propsContent, 0644); err != nil {
-		return fmt.Errorf("failed to write gradle-wrapper.properties: %w", err)
+		return nil, fmt.Errorf("failed to write gradle-wrapper.properties: %w", err)
 	}
+	filesCreated = append(filesCreated, propsPath)
 
 	gradlewContent, err := engine.ReadTemplateFile("wrapper/gradlew")
 	if err != nil {
-		return fmt.Errorf("failed to read gradlew: %w", err)
+		return nil, fmt.Errorf("failed to read gradlew: %w", err)
 	}
 	gradlewPath := filepath.Join(projectDir, "gradlew")
 	if err := engine.WriteFileWithPerm(gradlewPath, gradlewContent, 0755); err != nil {
-		return fmt.Errorf("failed to write gradlew: %w", err)
+		return nil, fmt.Errorf("failed to write gradlew: %w", err)
 	}
+	filesCreated = append(filesCreated, gradlewPath)
 
 	gradlewBatContent, err := engine.ReadTemplateFile("wrapper/gradlew.bat")
 	if err != nil {
-		return fmt.Errorf("failed to read gradlew.bat: %w", err)
+		return nil, fmt.Errorf("failed to read gradlew.bat: %w", err)
 	}
 	gradlewBatPath := filepath.Join(projectDir, "gradlew.bat")
 	if err := engine.WriteFileWithPerm(gradlewBatPath, gradlewBatContent, 0644); err != nil {
-		return fmt.Errorf("failed to write gradlew.bat: %w", err)
+		return nil, fmt.Errorf("failed to write gradlew.bat: %w", err)
 	}
+	filesCreated = append(filesCreated, gradlewBatPath)
 
-	return nil
+	return filesCreated, nil
 }
 
 func toPascalCase(s string) string {

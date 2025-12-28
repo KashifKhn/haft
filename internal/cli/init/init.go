@@ -68,12 +68,14 @@ category (Web, SQL, NoSQL, Security, etc.) with descriptions and search.`,
 	cmd.Flags().String("config", "", "Config format (properties, yaml)")
 	cmd.Flags().StringSlice("deps", nil, "Dependencies (comma-separated IDs)")
 	cmd.Flags().Bool("no-interactive", false, "Skip interactive wizard")
+	cmd.Flags().Bool("json", false, "Output result as JSON")
 
 	return cmd
 }
 
 func runInit(cmd *cobra.Command, args []string) error {
 	noInteractive, _ := cmd.Flags().GetBool("no-interactive")
+	jsonOutput, _ := cmd.Flags().GetBool("json")
 
 	var cfg ProjectConfig
 
@@ -132,7 +134,7 @@ func runInit(cmd *cobra.Command, args []string) error {
 	dir, _ := cmd.Flags().GetString("dir")
 	projectDir := filepath.Join(dir, cfg.ArtifactId)
 
-	return generateProject(cfg, projectDir)
+	return generateProject(cfg, projectDir, jsonOutput)
 }
 
 func runWizard(cfg ProjectConfig) (ProjectConfig, error) {
