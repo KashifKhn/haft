@@ -45,7 +45,7 @@ haft init my-app \
   --group com.example \
   --artifact my-app \
   --java 21 \
-  --spring 3.4.1 \
+  --spring 3.4.0 \
   --build maven \
   --deps web,data-jpa,lombok \
   --no-interactive
@@ -65,19 +65,21 @@ Uses defaults for unspecified options.
 
 | Flag | Short | Description | Default |
 |------|-------|-------------|---------|
-| `--group` | `-g` | Group ID (e.g., `com.example`) | `com.example` |
-| `--artifact` | `-a` | Artifact ID | Project name |
-| `--java` | `-j` | Java version (`17`, `21`, `25`) | `21` |
-| `--spring` | `-s` | Spring Boot version | Latest stable |
-| `--build` | `-b` | Build tool (`maven`, `gradle`, `gradle-kotlin`) | `maven` |
+| `--group` | `-g` | Group ID (e.g., `com.example`) | `com.example`* |
+| `--artifact` | `-a` | Artifact ID | Project name* |
+| `--java` | `-j` | Java version (`17`, `21`, `25`) | `21`* |
+| `--spring` | `-s` | Spring Boot version | Latest stable* |
+| `--build` | `-b` | Build tool (`maven`, `gradle`, `gradle-kotlin`) | `maven`* |
 | `--deps` | | Dependencies (comma-separated) | None |
-| `--package` | | Base package name | Auto-generated |
-| `--packaging` | | Packaging type (`jar`, `war`) | `jar` |
-| `--config` | | Config format (`properties`, `yaml`) | `yaml` |
+| `--package` | | Base package name | Auto-generated* |
+| `--packaging` | | Packaging type (`jar`, `war`) | `jar`* |
+| `--config` | | Config format (`properties`, `yaml`) | `yaml`* |
 | `--description` | | Project description | Empty |
 | `--dir` | `-d` | Output directory | Current directory |
 | `--no-interactive` | | Skip interactive wizard | `false` |
 | `--json` | | Output result as JSON | `false` |
+
+*\*Defaults shown are wizard pre-selections. When using `--no-interactive`, these become required values if not explicitly provided.*
 
 ## Global Flags
 

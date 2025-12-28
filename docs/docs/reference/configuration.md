@@ -1,12 +1,102 @@
 ---
 sidebar_position: 1
 title: Configuration
-description: Haft configuration options
+description: Haft configuration options and config files
 ---
 
 # Configuration
 
 Haft can be configured through command-line flags and configuration files.
+
+## Configuration Files
+
+Haft supports two configuration files:
+
+| Config Type | File Name | Location | Purpose |
+|-------------|-----------|----------|---------|
+| **Project Config** | `.haft.yaml` | Project root directory | Project-specific settings |
+| **Global Config** | `config.yaml` | `~/.config/haft/` | User-wide defaults |
+
+### Project Configuration (`.haft.yaml`)
+
+Create a `.haft.yaml` file in your project root to configure project-specific settings:
+
+```yaml
+version: "1"
+
+project:
+  name: "my-app"
+  group: "com.example"
+  artifact: "my-app"
+  description: "My Spring Boot application"
+  package: "com.example.myapp"
+
+spring:
+  version: "3.4.0"
+
+java:
+  version: "21"
+
+build:
+  tool: "maven"  # maven, gradle, gradle-kotlin
+
+architecture:
+  style: "layered"  # layered, hexagonal, clean
+
+database:
+  type: "postgresql"  # postgresql, mysql, h2, etc.
+
+generators:
+  dto:
+    style: "record"  # record, class
+  tests:
+    enabled: true
+```
+
+#### Project Config Reference
+
+| Key | Type | Default | Description |
+|-----|------|---------|-------------|
+| `version` | string | `"1"` | Config file version |
+| `project.name` | string | `""` | Project name |
+| `project.group` | string | `""` | Maven group ID |
+| `project.artifact` | string | `""` | Maven artifact ID |
+| `project.description` | string | `""` | Project description |
+| `project.package` | string | `""` | Base Java package |
+| `spring.version` | string | `"3.4.0"` | Spring Boot version |
+| `java.version` | string | `"21"` | Java version |
+| `build.tool` | string | `"maven"` | Build tool (maven, gradle, gradle-kotlin) |
+| `architecture.style` | string | `"layered"` | Architecture style |
+| `database.type` | string | `"postgresql"` | Database type |
+| `generators.dto.style` | string | `"record"` | DTO generation style |
+| `generators.tests.enabled` | bool | `true` | Generate test files |
+
+### Global Configuration (`~/.config/haft/config.yaml`)
+
+Create a global config file to set user-wide defaults:
+
+```yaml
+defaults:
+  java_version: "21"
+  build_tool: "maven"
+  architecture: "layered"
+  spring_boot: "3.4.0"
+
+output:
+  colors: true
+  verbose: false
+```
+
+#### Global Config Reference
+
+| Key | Type | Default | Description |
+|-----|------|---------|-------------|
+| `defaults.java_version` | string | `"21"` | Default Java version for new projects |
+| `defaults.build_tool` | string | `"maven"` | Default build tool |
+| `defaults.architecture` | string | `"layered"` | Default architecture style |
+| `defaults.spring_boot` | string | `"3.4.0"` | Default Spring Boot version |
+| `output.colors` | bool | `true` | Enable colored output |
+| `output.verbose` | bool | `false` | Enable verbose output |
 
 ## Command-Line Flags
 
@@ -29,6 +119,8 @@ haft --no-color init
 ```
 
 ## Default Values
+
+When using the interactive wizard, these values are pre-selected:
 
 ### Project Defaults
 
@@ -66,13 +158,22 @@ haft init my-app \
   --group com.company \
   --artifact my-service \
   --java 21 \
-  --spring 3.4.1 \
+  --spring 3.4.0 \
   --build maven \
   --packaging jar \
   --config yaml \
   --deps web,jpa,lombok \
   --no-interactive
 ```
+
+## Configuration Priority
+
+Haft uses the following priority order (highest to lowest):
+
+1. **Command-line flags** - Always take precedence
+2. **Project config** (`.haft.yaml`) - Project-specific settings
+3. **Global config** (`~/.config/haft/config.yaml`) - User defaults
+4. **Built-in defaults** - Fallback values
 
 ## Dependency Detection
 

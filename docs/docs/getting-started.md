@@ -167,7 +167,7 @@ For CI/CD pipelines or scripting:
 haft init my-service \
   --group com.example \
   --java 21 \
-  --spring 3.4.1 \
+  --spring 3.4.0 \
   --deps web,data-jpa,lombok,validation \
   --no-interactive
 

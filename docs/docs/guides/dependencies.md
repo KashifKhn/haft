@@ -6,7 +6,7 @@ description: Available Spring Boot dependencies and shortcuts
 
 # Dependencies
 
-Haft provides access to all official Spring Boot starters plus 330+ additional dependency shortcuts for popular libraries.
+Haft provides access to all official Spring Boot starters plus 330+ additional dependency shortcuts for popular libraries across 35 categories.
 
 ## Build Tool Support
 
@@ -576,6 +576,58 @@ Beyond Spring Initializr starters, `haft add` supports 330+ shortcuts for popula
 | `coap` | Californium CoAP protocol |
 | `modbus` | Modbus industrial protocol |
 | `pi4j` | Pi4J Raspberry Pi control |
+
+### Ops
+
+| Shortcut | Description |
+|----------|-------------|
+| `actuator` | Spring Boot Actuator for monitoring |
+| `micrometer` | Micrometer Prometheus metrics exporter |
+
+### Template Engines
+
+| Shortcut | Description |
+|----------|-------------|
+| `thymeleaf` | Thymeleaf server-side HTML templating |
+| `freemarker` | FreeMarker template engine |
+| `mustache` | Mustache template engine |
+
+### Content
+
+| Shortcut | Description |
+|----------|-------------|
+| `rome` | Rome RSS and Atom feed parser |
+| `htmlunit` | HtmlUnit headless browser |
+| `bliki` | Bliki Wikipedia syntax parser |
+| `emoji-java` | Emoji Java string handling |
+
+### Networking
+
+| Shortcut | Description |
+|----------|-------------|
+| `netty` | Netty async event-driven network framework |
+| `pcap4j` | Pcap4J packet capture library |
+| `dns-java` | dnsjava DNS protocol implementation |
+
+### Integration
+
+| Shortcut | Description |
+|----------|-------------|
+| `spring-integration` | Spring Integration EIP patterns |
+| `apache-camel` | Apache Camel integration framework |
+| `spring-cloud-data-flow` | Spring Cloud Data Flow orchestration |
+| `spring-cloud-task` | Spring Cloud Task short-lived microservices |
+
+### API
+
+| Shortcut | Description |
+|----------|-------------|
+| `springdoc` | SpringDoc OpenAPI 3 generation |
+| `asyncapi` | AsyncAPI event-driven documentation |
+| `netflix-dgs` | Netflix DGS GraphQL framework |
+| `avro-serializer` | Avro serialization for Kafka schemas |
+| `json-schema` | JSON Schema validation |
+| `graphql-kickstart` | GraphQL Kickstart starter |
 
 ---
 
