@@ -223,6 +223,34 @@ type DevCommandOutput struct {
 	Output    string `json:"output,omitempty"`
 }
 
+type TemplateInitOutput struct {
+	TargetDir string   `json:"targetDir"`
+	Scope     string   `json:"scope"`
+	Category  string   `json:"category,omitempty"`
+	Copied    []string `json:"copied"`
+	Skipped   []string `json:"skipped"`
+}
+
+type TemplateValidationError struct {
+	Line    int    `json:"line"`
+	Message string `json:"message"`
+}
+
+type TemplateValidationResult struct {
+	Path     string                    `json:"path"`
+	Valid    bool                      `json:"valid"`
+	Errors   []TemplateValidationError `json:"errors,omitempty"`
+	Warnings []TemplateValidationError `json:"warnings,omitempty"`
+}
+
+type TemplateValidateOutput struct {
+	Results      []TemplateValidationResult `json:"results"`
+	TotalFiles   int                        `json:"totalFiles"`
+	ValidCount   int                        `json:"validCount"`
+	ErrorCount   int                        `json:"errorCount"`
+	WarningCount int                        `json:"warningCount"`
+}
+
 func JSON(v interface{}) error {
 	encoder := json.NewEncoder(os.Stdout)
 	encoder.SetIndent("", "  ")

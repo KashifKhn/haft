@@ -6,6 +6,7 @@ import (
 
 	"github.com/KashifKhn/haft/internal/generator"
 	"github.com/KashifKhn/haft/internal/logger"
+	"github.com/KashifKhn/haft/internal/output"
 	"github.com/spf13/afero"
 	"github.com/spf13/cobra"
 )
@@ -14,6 +15,7 @@ func newInitCommand() *cobra.Command {
 	var category string
 	var global bool
 	var force bool
+	var jsonOutput bool
 
 	cmd := &cobra.Command{
 		Use:   "init",
@@ -41,20 +43,24 @@ global level (~/.haft/templates/). Project templates take priority.`,
   haft template init --global
 
   # Overwrite existing templates
-  haft template init --force`,
+  haft template init --force
+
+  # Output as JSON
+  haft template init --json`,
 		RunE: func(cmd *cobra.Command, args []string) error {
-			return runInit(category, global, force)
+			return runInit(category, global, force, jsonOutput)
 		},
 	}
 
 	cmd.Flags().StringVarP(&category, "category", "c", "", "Template category to initialize (resource, test, project)")
 	cmd.Flags().BoolVarP(&global, "global", "g", false, "Initialize templates in global ~/.haft/templates directory")
 	cmd.Flags().BoolVarP(&force, "force", "f", false, "Overwrite existing templates")
+	cmd.Flags().BoolVar(&jsonOutput, "json", false, "Output result as JSON")
 
 	return cmd
 }
 
-func runInit(category string, global bool, force bool) error {
+func runInit(category string, global bool, force bool, jsonOutput bool) error {
 	log := logger.Default()
 	fs := afero.NewOsFs()
 
@@ -64,6 +70,9 @@ func runInit(category string, global bool, force bool) error {
 	if global {
 		homeDir, err := os.UserHomeDir()
 		if err != nil {
+			if jsonOutput {
+				return output.Error("HOME_DIR_ERROR", "could not determine home directory", err.Error())
+			}
 			return fmt.Errorf("could not determine home directory: %w", err)
 		}
 		targetDir = homeDir
@@ -71,6 +80,9 @@ func runInit(category string, global bool, force bool) error {
 	} else {
 		cwd, err := os.Getwd()
 		if err != nil {
+			if jsonOutput {
+				return output.Error("CWD_ERROR", "could not determine current directory", err.Error())
+			}
 			return fmt.Errorf("could not determine current directory: %w", err)
 		}
 		targetDir = cwd
@@ -85,14 +97,23 @@ func runInit(category string, global bool, force bool) error {
 	if category != "" {
 		templates, err = generator.ListEmbeddedTemplates(category)
 		if err != nil {
+			if jsonOutput {
+				return output.Error("INVALID_CATEGORY", fmt.Sprintf("invalid category '%s'", category), err.Error())
+			}
 			return fmt.Errorf("invalid category '%s': %w", category, err)
 		}
 		if len(templates) == 0 {
+			if jsonOutput {
+				return output.Error("NO_TEMPLATES", fmt.Sprintf("no templates found for category '%s'", category))
+			}
 			return fmt.Errorf("no templates found for category '%s'", category)
 		}
 	} else {
 		templates, err = generator.ListAllEmbeddedTemplates()
 		if err != nil {
+			if jsonOutput {
+				return output.Error("LIST_ERROR", "could not list templates", err.Error())
+			}
 			return fmt.Errorf("could not list templates: %w", err)
 		}
 	}
@@ -102,39 +123,56 @@ func runInit(category string, global bool, force bool) error {
 		templateDir = loader.GetGlobalTemplateDir()
 	}
 
-	log.Info(fmt.Sprintf("Initializing %s templates", targetLabel), "dir", templateDir)
+	if !jsonOutput {
+		log.Info(fmt.Sprintf("Initializing %s templates", targetLabel), "dir", templateDir)
+	}
 
-	copiedCount := 0
-	skippedCount := 0
+	var copied, skipped []string
 
 	for _, tmpl := range templates {
 		destPath := fmt.Sprintf("%s/%s", templateDir, tmpl)
 
 		exists, _ := afero.Exists(fs, destPath)
 		if exists && !force {
-			log.Debug("Skipping existing template", "template", tmpl)
-			skippedCount++
+			if !jsonOutput {
+				log.Debug("Skipping existing template", "template", tmpl)
+			}
+			skipped = append(skipped, tmpl)
 			continue
 		}
 
 		if err := loader.CopyEmbeddedToProject(tmpl); err != nil {
-			log.Warning("Failed to copy template", "template", tmpl, "error", err.Error())
+			if !jsonOutput {
+				log.Warning("Failed to copy template", "template", tmpl, "error", err.Error())
+			}
 			continue
 		}
 
-		log.Debug("Copied template", "template", tmpl)
-		copiedCount++
+		if !jsonOutput {
+			log.Debug("Copied template", "template", tmpl)
+		}
+		copied = append(copied, tmpl)
 	}
 
-	if copiedCount > 0 {
-		log.Success(fmt.Sprintf("Initialized %d templates", copiedCount))
+	if jsonOutput {
+		return output.Success(output.TemplateInitOutput{
+			TargetDir: templateDir,
+			Scope:     targetLabel,
+			Category:  category,
+			Copied:    copied,
+			Skipped:   skipped,
+		})
 	}
 
-	if skippedCount > 0 {
-		log.Info(fmt.Sprintf("Skipped %d existing templates (use --force to overwrite)", skippedCount))
+	if len(copied) > 0 {
+		log.Success(fmt.Sprintf("Initialized %d templates", len(copied)))
 	}
 
-	if copiedCount == 0 && skippedCount == 0 {
+	if len(skipped) > 0 {
+		log.Info(fmt.Sprintf("Skipped %d existing templates (use --force to overwrite)", len(skipped)))
+	}
+
+	if len(copied) == 0 && len(skipped) == 0 {
 		log.Warning("No templates were initialized")
 	}
 
