@@ -37,6 +37,42 @@ Haft includes embedded templates for all generated files:
 | `Mapper.java.tmpl` | MapStruct mapper |
 | `ResourceNotFoundException.java.tmpl` | Exception class |
 
+### Security Templates (JWT)
+
+| Template | Output |
+|----------|--------|
+| `SecurityConfig.java.tmpl` | Spring Security configuration |
+| `JwtUtil.java.tmpl` | JWT token utility |
+| `JwtAuthenticationFilter.java.tmpl` | JWT request filter |
+| `AuthenticationController.java.tmpl` | Auth endpoints |
+| `AuthRequest.java.tmpl` | Login request DTO |
+| `AuthResponse.java.tmpl` | Token response DTO |
+| `RegisterRequest.java.tmpl` | Registration DTO |
+| `RefreshTokenRequest.java.tmpl` | Refresh token DTO |
+| `CustomUserDetailsService.java.tmpl` | User loading service |
+| `User.java.tmpl` | User entity |
+| `Role.java.tmpl` | Role entity |
+| `UserRepository.java.tmpl` | User repository |
+| `RoleRepository.java.tmpl` | Role repository |
+
+### Security Templates (Session)
+
+| Template | Output |
+|----------|--------|
+| `SecurityConfig.java.tmpl` | Form login configuration |
+| `CustomUserDetailsService.java.tmpl` | User loading service |
+| `AuthController.java.tmpl` | MVC auth controller |
+| `RegisterRequest.java.tmpl` | Registration DTO |
+
+### Security Templates (OAuth2)
+
+| Template | Output |
+|----------|--------|
+| `SecurityConfig.java.tmpl` | OAuth2 login configuration |
+| `OAuth2UserService.java.tmpl` | Custom OAuth2 user handling |
+| `OAuth2SuccessHandler.java.tmpl` | Post-login handler |
+| `OAuth2UserPrincipal.java.tmpl` | OAuth2User implementation |
+
 ## Template Variables
 
 Templates have access to these variables:
@@ -70,6 +106,17 @@ Templates have access to these variables:
 | `{{.HasLombok}}` | Lombok is available |
 | `{{.HasMapStruct}}` | MapStruct is available |
 | `{{.HasValidation}}` | Validation is available |
+
+### Security Variables
+
+| Variable | Description |
+|----------|-------------|
+| `{{.SecurityPackage}}` | Security package path |
+| `{{.UserEntityPackage}}` | User entity package |
+| `{{.UserRepositoryPackage}}` | User repository package |
+| `{{.UserEntityName}}` | Name of User entity |
+| `{{.DefaultJwtSecret}}` | Generated JWT secret |
+| `{{.GenerateEntities}}` | Whether to generate User/Role entities |
 
 ### Template Functions
 

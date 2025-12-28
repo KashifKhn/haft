@@ -77,7 +77,31 @@ haft generate entity Customer      # haft g e
 haft generate dto Invoice
 ```
 
-### 4. Add Dependencies
+### 4. Add Security
+
+```bash
+# Interactive selection of security types
+haft generate security
+
+# Generate JWT authentication for REST APIs
+haft generate security --jwt
+
+# Generate session-based auth for web apps
+haft generate security --session
+
+# Generate OAuth2 (Google, GitHub, Facebook)
+haft generate security --oauth2
+```
+
+This creates a complete security setup:
+
+- `SecurityConfig.java` - Spring Security configuration
+- `JwtUtil.java` - Token generation/validation (JWT)
+- `AuthenticationController.java` - Login/register endpoints
+- `CustomUserDetailsService.java` - User loading
+- DTOs for authentication requests/responses
+
+### 5. Add Dependencies
 
 ```bash
 # Interactive search picker
@@ -96,7 +120,7 @@ haft add postgresql
 haft add --list
 ```
 
-### 5. Remove Dependencies
+### 6. Remove Dependencies
 
 ```bash
 # Interactive picker
@@ -110,7 +134,7 @@ haft rm h2 validation
 haft rm jpa   # Removes spring-boot-starter-data-jpa
 ```
 
-### 6. Run Your Project
+### 7. Run Your Project
 
 ```bash
 # Maven
@@ -127,8 +151,9 @@ That's it! You have a fully configured Spring Boot project with CRUD endpoints.
 - [Installation](/docs/installation) — Detailed installation options
 - [Why Haft?](/docs/why-haft) — Learn what makes Haft different
 - [haft init](/docs/commands/init) — Project initialization reference
-- [haft generate](/docs/commands/generate) — Resource generation reference
-- [haft add](/docs/commands/add) — Add dependencies
+- [haft generate](/docs/commands/generate) - Resource generation reference
+- [haft generate security](/docs/commands/security) - Security configuration
+- [haft add](/docs/commands/add) - Add dependencies
 - [haft remove](/docs/commands/remove) — Remove dependencies
 - [haft completion](/docs/commands/completion) — Shell completions setup
 - [Wizard Navigation](/docs/guides/wizard-navigation) — Master the TUI wizard

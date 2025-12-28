@@ -27,6 +27,7 @@ haft g <subcommand> [name] [flags]  # alias
 | `haft generate dto` | - | Generate Request and Response DTOs |
 | `haft generate exception` | `haft g ex` | Generate global exception handler |
 | `haft generate config` | `haft g cfg` | Generate configuration classes |
+| `haft generate security` | `haft g sec` | Generate security configuration (JWT, Session, OAuth2) |
 
 ## Smart Detection
 
@@ -900,4 +901,5 @@ Names are automatically converted to PascalCase:
 - [haft init](/docs/commands/init) - Initialize a new project
 - [haft add](/docs/commands/add) - Add dependencies
 - [haft template](/docs/commands/template) - Customize templates
+- [haft generate security](/docs/commands/security) - Security configuration
 - [Project Structure](/docs/guides/project-structure) - Where files are generated
