@@ -7,6 +7,7 @@ import (
 	"strings"
 
 	"github.com/KashifKhn/haft/internal/buildtool"
+	"github.com/KashifKhn/haft/internal/output"
 	"github.com/KashifKhn/haft/internal/stats"
 	"github.com/charmbracelet/lipgloss"
 	"github.com/spf13/afero"
@@ -23,6 +24,7 @@ var (
 func NewCommand() *cobra.Command {
 	var jsonOutput bool
 	var showLoc bool
+	var showDeps bool
 
 	cmd := &cobra.Command{
 		Use:   "info",
@@ -38,27 +40,40 @@ Java version, and dependency summary.`,
   haft info --json
 
   # Include lines of code summary
-  haft info --loc`,
+  haft info --loc
+
+  # Include full dependency list
+  haft info --deps
+
+  # Full info as JSON (for editor plugins)
+  haft info --json --loc --deps`,
 		RunE: func(cmd *cobra.Command, args []string) error {
-			return runInfo(jsonOutput, showLoc)
+			return runInfo(jsonOutput, showLoc, showDeps)
 		},
 	}
 
 	cmd.Flags().BoolVar(&jsonOutput, "json", false, "Output as JSON")
 	cmd.Flags().BoolVar(&showLoc, "loc", false, "Show lines of code summary")
+	cmd.Flags().BoolVar(&showDeps, "deps", false, "Include full dependency list in output")
 
 	return cmd
 }
 
-func runInfo(jsonOutput bool, showLoc bool) error {
+func runInfo(jsonOutput bool, showLoc bool, showDeps bool) error {
 	fs := afero.NewOsFs()
 	result, err := buildtool.DetectWithCwd(fs)
 	if err != nil {
+		if jsonOutput {
+			return output.Error("NOT_SPRING_PROJECT", "Not a Spring Boot project", err.Error())
+		}
 		return fmt.Errorf("not a Spring Boot project: %w", err)
 	}
 
 	project, err := result.Parser.Parse(result.FilePath)
 	if err != nil {
+		if jsonOutput {
+			return output.Error("PARSE_ERROR", "Failed to parse build file", err.Error())
+		}
 		return fmt.Errorf("failed to parse build file: %w", err)
 	}
 
@@ -69,7 +84,7 @@ func runInfo(jsonOutput bool, showLoc bool) error {
 	}
 
 	if jsonOutput {
-		return printJSON(project, result, locStats)
+		return printJSON(project, result, locStats, showDeps)
 	}
 
 	return printFormatted(project, result, locStats)
@@ -229,51 +244,64 @@ func countByScope(deps []buildtool.Dependency, scope string) int {
 	return count
 }
 
-func printJSON(project *buildtool.Project, result *buildtool.DetectionResult, locStats *stats.ProjectStats) error {
+func printJSON(project *buildtool.Project, result *buildtool.DetectionResult, locStats *stats.ProjectStats, showDeps bool) error {
 	cwd, _ := os.Getwd()
 	projectName := filepath.Base(cwd)
 
-	locJSON := ""
-	if locStats != nil {
-		locJSON = fmt.Sprintf(`,
-  "codeStats": {
-    "totalFiles": %d,
-    "linesOfCode": %d,
-    "comments": %d,
-    "blankLines": %d
-  }`,
-			locStats.TotalFiles,
-			locStats.TotalCode,
-			locStats.TotalComments,
-			locStats.TotalBlanks)
+	starters := countByPrefix(project.Dependencies, "spring-boot-starter")
+	springLibs := countByPrefix(project.Dependencies, "spring") - starters
+	testDeps := countByScope(project.Dependencies, "test")
+
+	info := output.ProjectInfo{
+		Name:              projectName,
+		GroupID:           project.GroupId,
+		ArtifactID:        project.ArtifactId,
+		Version:           project.Version,
+		Description:       project.Description,
+		BuildTool:         string(result.BuildTool),
+		BuildFile:         filepath.Base(result.FilePath),
+		JavaVersion:       project.JavaVersion,
+		SpringBootVersion: project.SpringBootVersion,
+		Packaging:         project.Packaging,
+		Dependencies: &output.DependencyInfo{
+			Total:          len(project.Dependencies),
+			SpringStarters: starters,
+			SpringLibs:     springLibs,
+			TestDeps:       testDeps,
+		},
+		Features: &output.FeatureInfo{
+			HasWeb:        result.Parser.HasSpringWeb(project),
+			HasJPA:        result.Parser.HasSpringDataJpa(project),
+			HasLombok:     result.Parser.HasLombok(project),
+			HasValidation: result.Parser.HasValidation(project),
+			HasMapStruct:  result.Parser.HasMapStruct(project),
+			HasSecurity:   result.Parser.HasDependency(project, "org.springframework.boot", "spring-boot-starter-security"),
+			HasActuator:   result.Parser.HasDependency(project, "org.springframework.boot", "spring-boot-starter-actuator"),
+			HasDevTools:   result.Parser.HasDependency(project, "org.springframework.boot", "spring-boot-devtools"),
+		},
 	}
 
-	fmt.Printf(`{
-  "name": "%s",
-  "groupId": "%s",
-  "artifactId": "%s",
-  "version": "%s",
-  "description": "%s",
-  "buildTool": "%s",
-  "buildFile": "%s",
-  "javaVersion": "%s",
-  "springBootVersion": "%s",
-  "packaging": "%s",
-  "dependencyCount": %d%s
-}
-`,
-		projectName,
-		project.GroupId,
-		project.ArtifactId,
-		project.Version,
-		project.Description,
-		result.BuildTool,
-		filepath.Base(result.FilePath),
-		project.JavaVersion,
-		project.SpringBootVersion,
-		project.Packaging,
-		len(project.Dependencies),
-		locJSON)
+	if showDeps {
+		depList := make([]output.DependencyListItem, len(project.Dependencies))
+		for i, d := range project.Dependencies {
+			depList[i] = output.DependencyListItem{
+				GroupID:    d.GroupId,
+				ArtifactID: d.ArtifactId,
+				Version:    d.Version,
+				Scope:      d.Scope,
+			}
+		}
+		info.Dependencies.List = depList
+	}
 
-	return nil
+	if locStats != nil {
+		info.CodeStats = &output.CodeStatsInfo{
+			TotalFiles:  locStats.TotalFiles,
+			LinesOfCode: locStats.TotalCode,
+			Comments:    locStats.TotalComments,
+			BlankLines:  locStats.TotalBlanks,
+		}
+	}
+
+	return output.Success(info)
 }

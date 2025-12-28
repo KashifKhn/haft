@@ -9,6 +9,7 @@ import (
 	_ "github.com/KashifKhn/haft/internal/gradle"
 	"github.com/KashifKhn/haft/internal/logger"
 	_ "github.com/KashifKhn/haft/internal/maven"
+	"github.com/KashifKhn/haft/internal/output"
 	"github.com/KashifKhn/haft/internal/tui/components"
 	tea "github.com/charmbracelet/bubbletea"
 	"github.com/spf13/afero"
@@ -46,7 +47,10 @@ Dependencies are auto-detected from the catalog or verified against Maven Centra
   haft add h2 --scope test
 
   # List available shortcuts
-  haft add --list`,
+  haft add --list
+
+  # Output catalog as JSON
+  haft add --list --json`,
 		Args: cobra.ArbitraryArgs,
 		RunE: runAdd,
 	}
@@ -56,6 +60,7 @@ Dependencies are auto-detected from the catalog or verified against Maven Centra
 	cmd.Flags().Bool("list", false, "List available dependency shortcuts")
 	cmd.Flags().BoolP("browse", "b", false, "Browse dependencies by category")
 	cmd.Flags().Bool("no-interactive", false, "Skip interactive picker (requires dependency argument)")
+	cmd.Flags().Bool("json", false, "Output as JSON (use with --list)")
 
 	return cmd
 }
@@ -64,7 +69,12 @@ func runAdd(cmd *cobra.Command, args []string) error {
 	log := logger.Default()
 
 	listFlag, _ := cmd.Flags().GetBool("list")
+	jsonFlag, _ := cmd.Flags().GetBool("json")
+
 	if listFlag {
+		if jsonFlag {
+			return printCatalogJSON()
+		}
 		printCatalog()
 		return nil
 	}
@@ -368,4 +378,54 @@ func printCatalog() {
 	fmt.Println("       haft add <shortcut>")
 	fmt.Println("       haft add <groupId:artifactId>")
 	fmt.Println("       haft add <groupId:artifactId:version>")
+}
+
+func printCatalogJSON() error {
+	categories := GetCatalogByCategory()
+	categoryOrder := []string{
+		"Web", "SQL", "NoSQL", "Security", "Messaging",
+		"I/O", "Template Engines", "Ops", "Observability",
+		"AI", "Cloud", "Notifications", "Payments", "Search",
+		"Utilities", "Workflow", "Developer Tools", "Testing",
+		"Maps", "Media", "Fintech", "Social", "Data",
+		"Feature Flags", "Microservices", "Integration", "IoT",
+		"DevOps", "Quality", "Caching", "Content", "Networking",
+		"API", "Scheduling", "Logging",
+	}
+
+	var outputCategories []output.CatalogCategory
+	totalDeps := 0
+
+	for _, catName := range categoryOrder {
+		aliases, ok := categories[catName]
+		if !ok {
+			continue
+		}
+
+		var items []output.CatalogItem
+		for _, alias := range aliases {
+			entry, _ := GetCatalogEntry(alias)
+			item := output.CatalogItem{
+				Shortcut:    alias,
+				Name:        entry.Name,
+				Description: entry.Description,
+			}
+			if len(entry.Dependencies) > 0 {
+				item.GroupID = entry.Dependencies[0].GroupId
+				item.ArtifactID = entry.Dependencies[0].ArtifactId
+			}
+			items = append(items, item)
+			totalDeps++
+		}
+
+		outputCategories = append(outputCategories, output.CatalogCategory{
+			Name:         catName,
+			Dependencies: items,
+		})
+	}
+
+	return output.Success(output.CatalogOutput{
+		Categories: outputCategories,
+		Total:      totalDeps,
+	})
 }

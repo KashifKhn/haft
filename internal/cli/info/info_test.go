@@ -265,3 +265,36 @@ func TestCountByScope_LargeDependencyList(t *testing.T) {
 	result = countByScope(deps, "")
 	assert.Equal(t, 20, result)
 }
+
+func TestNewCommand_HasDepsFlag(t *testing.T) {
+	cmd := NewCommand()
+
+	depsFlag := cmd.Flags().Lookup("deps")
+	assert.NotNil(t, depsFlag)
+	assert.Equal(t, "false", depsFlag.DefValue)
+}
+
+func TestNewCommand_FlagDefaults(t *testing.T) {
+	cmd := NewCommand()
+
+	jsonFlag := cmd.Flags().Lookup("json")
+	assert.NotNil(t, jsonFlag)
+	assert.Equal(t, "false", jsonFlag.DefValue)
+
+	locFlag := cmd.Flags().Lookup("loc")
+	assert.NotNil(t, locFlag)
+	assert.Equal(t, "false", locFlag.DefValue)
+
+	depsFlag := cmd.Flags().Lookup("deps")
+	assert.NotNil(t, depsFlag)
+	assert.Equal(t, "false", depsFlag.DefValue)
+}
+
+func TestNewCommand_Examples(t *testing.T) {
+	cmd := NewCommand()
+
+	assert.Contains(t, cmd.Example, "haft info")
+	assert.Contains(t, cmd.Example, "--json")
+	assert.Contains(t, cmd.Example, "--loc")
+	assert.Contains(t, cmd.Example, "--deps")
+}

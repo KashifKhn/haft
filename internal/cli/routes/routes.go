@@ -10,6 +10,7 @@ import (
 	"strings"
 
 	"github.com/KashifKhn/haft/internal/buildtool"
+	"github.com/KashifKhn/haft/internal/output"
 	"github.com/charmbracelet/lipgloss"
 	"github.com/spf13/afero"
 	"github.com/spf13/cobra"
@@ -71,6 +72,9 @@ func runRoutes(jsonOutput bool, showFiles bool) error {
 	fs := afero.NewOsFs()
 	_, err := buildtool.DetectWithCwd(fs)
 	if err != nil {
+		if jsonOutput {
+			return output.Error("NOT_SPRING_PROJECT", "Not a Spring Boot project", err.Error())
+		}
 		return fmt.Errorf("not a Spring Boot project: %w", err)
 	}
 
@@ -78,18 +82,21 @@ func runRoutes(jsonOutput bool, showFiles bool) error {
 
 	routes, err := scanForRoutes(srcDir)
 	if err != nil {
+		if jsonOutput {
+			return output.Error("SCAN_ERROR", "Failed to scan routes", err.Error())
+		}
 		return fmt.Errorf("failed to scan routes: %w", err)
-	}
-
-	if len(routes) == 0 {
-		fmt.Println("No routes found.")
-		return nil
 	}
 
 	sortRoutes(routes)
 
 	if jsonOutput {
 		return printRoutesJSON(routes)
+	}
+
+	if len(routes) == 0 {
+		fmt.Println("No routes found.")
+		return nil
 	}
 
 	return printRoutesFormatted(routes, showFiles)
@@ -312,15 +319,20 @@ func printRoutesFormatted(routes []Route, showFiles bool) error {
 }
 
 func printRoutesJSON(routes []Route) error {
-	fmt.Println("[")
+	routeInfos := make([]output.RouteInfo, len(routes))
 	for i, r := range routes {
-		comma := ","
-		if i == len(routes)-1 {
-			comma = ""
+		routeInfos[i] = output.RouteInfo{
+			Method:     r.Method,
+			Path:       r.Path,
+			Controller: r.Controller,
+			Handler:    r.Handler,
+			File:       r.File,
+			Line:       r.Line,
 		}
-		fmt.Printf(`  {"method": "%s", "path": "%s", "controller": "%s", "handler": "%s", "file": "%s", "line": %d}%s
-`, r.Method, r.Path, r.Controller, r.Handler, r.File, r.Line, comma)
 	}
-	fmt.Println("]")
-	return nil
+
+	return output.Success(output.RoutesOutput{
+		Routes: routeInfos,
+		Total:  len(routes),
+	})
 }
