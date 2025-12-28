@@ -16,6 +16,10 @@ func TestNewCommand(t *testing.T) {
 	assert.NotEmpty(t, cmd.Example)
 	assert.Contains(t, cmd.Aliases, "rm")
 	assert.NotNil(t, cmd.RunE)
+
+	noInteractiveFlag := cmd.Flag("no-interactive")
+	assert.NotNil(t, noInteractiveFlag)
+	assert.Equal(t, "bool", noInteractiveFlag.Value.Type())
 }
 
 func TestResolveInput(t *testing.T) {

@@ -55,6 +55,7 @@ Dependencies are auto-detected from the catalog or verified against Maven Centra
 	cmd.Flags().String("version", "", "Override dependency version")
 	cmd.Flags().Bool("list", false, "List available dependency shortcuts")
 	cmd.Flags().BoolP("browse", "b", false, "Browse dependencies by category")
+	cmd.Flags().Bool("no-interactive", false, "Skip interactive picker (requires dependency argument)")
 
 	return cmd
 }
@@ -69,8 +70,12 @@ func runAdd(cmd *cobra.Command, args []string) error {
 	}
 
 	browseFlag, _ := cmd.Flags().GetBool("browse")
+	noInteractive, _ := cmd.Flags().GetBool("no-interactive")
 
 	if len(args) == 0 && !browseFlag {
+		if noInteractive {
+			return fmt.Errorf("dependency argument required when using --no-interactive")
+		}
 		return runInteractivePicker(cmd)
 	}
 

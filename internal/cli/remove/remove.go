@@ -41,6 +41,8 @@ The remove command modifies your build file (pom.xml or build.gradle) to remove 
 		RunE:    runRemove,
 	}
 
+	cmd.Flags().Bool("no-interactive", false, "Skip interactive picker (requires dependency argument)")
+
 	return cmd
 }
 
@@ -68,7 +70,12 @@ func runRemove(cmd *cobra.Command, args []string) error {
 		return nil
 	}
 
+	noInteractive, _ := cmd.Flags().GetBool("no-interactive")
+
 	if len(args) == 0 {
+		if noInteractive {
+			return fmt.Errorf("dependency argument required when using --no-interactive")
+		}
 		return runInteractivePicker(result.Parser, result.FilePath, project)
 	}
 
