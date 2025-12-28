@@ -13,6 +13,7 @@ import (
 	_ "github.com/KashifKhn/haft/internal/gradle"
 	"github.com/KashifKhn/haft/internal/logger"
 	_ "github.com/KashifKhn/haft/internal/maven"
+	"github.com/KashifKhn/haft/internal/output"
 	"github.com/KashifKhn/haft/internal/tui/components"
 	"github.com/KashifKhn/haft/internal/tui/wizard"
 	tea "github.com/charmbracelet/bubbletea"
@@ -513,4 +514,55 @@ func FindTestPath(startDir string) string {
 	}
 
 	return ""
+}
+
+type GenerateTracker struct {
+	Type      string
+	Name      string
+	Generated []string
+	Skipped   []string
+	Errors    []string
+}
+
+func NewGenerateTracker(componentType, name string) *GenerateTracker {
+	return &GenerateTracker{
+		Type:      componentType,
+		Name:      name,
+		Generated: []string{},
+		Skipped:   []string{},
+		Errors:    []string{},
+	}
+}
+
+func (t *GenerateTracker) AddGenerated(file string) {
+	t.Generated = append(t.Generated, file)
+}
+
+func (t *GenerateTracker) AddSkipped(file string) {
+	t.Skipped = append(t.Skipped, file)
+}
+
+func (t *GenerateTracker) AddError(err string) {
+	t.Errors = append(t.Errors, err)
+}
+
+func (t *GenerateTracker) ToOutput() output.GenerateResult {
+	return output.GenerateResult{
+		Type:      t.Type,
+		Name:      t.Name,
+		Generated: t.Generated,
+		Skipped:   t.Skipped,
+		Errors:    t.Errors,
+	}
+}
+
+func OutputGenerateResult(jsonOutput bool, tracker *GenerateTracker) error {
+	if jsonOutput {
+		return output.Success(output.GenerateOutput{
+			Results:        []output.GenerateResult{tracker.ToOutput()},
+			TotalGenerated: len(tracker.Generated),
+			TotalSkipped:   len(tracker.Skipped),
+		})
+	}
+	return nil
 }

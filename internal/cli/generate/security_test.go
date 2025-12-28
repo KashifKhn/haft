@@ -681,7 +681,7 @@ func TestGenerateSecurityNoSourcePath(t *testing.T) {
 		UserEntityName: "User",
 	}
 
-	err = generateSecurity(profile, cfg)
+	err = generateSecurity(profile, cfg, false)
 	assert.Error(t, err)
 	assert.Contains(t, err.Error(), "could not find src/main/java directory")
 }
@@ -714,7 +714,7 @@ func TestGenerateSecurityJWTIntegration(t *testing.T) {
 		GenerateEntities: true,
 	}
 
-	err = generateSecurity(profile, cfg)
+	err = generateSecurity(profile, cfg, false)
 	require.NoError(t, err)
 
 	securityPath := filepath.Join(tmpDir, "src", "main", "java", "com", "example", "demo", "security")
@@ -764,7 +764,7 @@ func TestGenerateSecuritySessionIntegration(t *testing.T) {
 		GenerateEntities: false,
 	}
 
-	err = generateSecurity(profile, cfg)
+	err = generateSecurity(profile, cfg, false)
 	require.NoError(t, err)
 
 	securityPath := filepath.Join(tmpDir, "src", "main", "java", "com", "example", "demo", "security")
@@ -800,7 +800,7 @@ func TestGenerateSecurityOAuth2Integration(t *testing.T) {
 		GenerateEntities: false,
 	}
 
-	err = generateSecurity(profile, cfg)
+	err = generateSecurity(profile, cfg, false)
 	require.NoError(t, err)
 
 	securityPath := filepath.Join(tmpDir, "src", "main", "java", "com", "example", "demo", "security")
@@ -839,7 +839,7 @@ func TestGenerateSecuritySkipsExistingFiles(t *testing.T) {
 		GenerateEntities: false,
 	}
 
-	err = generateSecurity(profile, cfg)
+	err = generateSecurity(profile, cfg, false)
 	require.NoError(t, err)
 
 	content, err := os.ReadFile(existingFile)
@@ -871,7 +871,7 @@ func TestGenerateSecurityFeatureArchitecture(t *testing.T) {
 		GenerateEntities: true,
 	}
 
-	err = generateSecurity(profile, cfg)
+	err = generateSecurity(profile, cfg, false)
 	require.NoError(t, err)
 
 	securityPath := filepath.Join(tmpDir, "src", "main", "java", "com", "example", "demo", "common", "security")
@@ -907,7 +907,7 @@ func TestGenerateSecurityHexagonalArchitecture(t *testing.T) {
 		GenerateEntities: true,
 	}
 
-	err = generateSecurity(profile, cfg)
+	err = generateSecurity(profile, cfg, false)
 	require.NoError(t, err)
 
 	securityPath := filepath.Join(tmpDir, "src", "main", "java", "com", "example", "demo", "infrastructure", "security")
@@ -1112,7 +1112,7 @@ func TestGenerateSecurityMultipleTypes(t *testing.T) {
 		GenerateEntities: false,
 	}
 
-	err = generateSecurity(profile, cfg)
+	err = generateSecurity(profile, cfg, false)
 	require.NoError(t, err)
 
 	securityPath := filepath.Join(tmpDir, "src", "main", "java", "com", "example", "demo", "security")

@@ -9,6 +9,7 @@ import (
 	"github.com/KashifKhn/haft/internal/detector"
 	"github.com/KashifKhn/haft/internal/generator"
 	"github.com/KashifKhn/haft/internal/logger"
+	"github.com/KashifKhn/haft/internal/output"
 	"github.com/KashifKhn/haft/internal/tui/components"
 	"github.com/KashifKhn/haft/internal/tui/wizard"
 	tea "github.com/charmbracelet/bubbletea"
@@ -61,7 +62,10 @@ generates code that matches your existing conventions:
   haft generate resource user --package com.example.myapp --no-interactive
 
   # Force re-detection of project profile
-  haft generate resource user --refresh`,
+  haft generate resource user --refresh
+
+  # Output as JSON
+  haft generate resource user --json --no-interactive`,
 		Args: cobra.MaximumNArgs(1),
 		RunE: runResource,
 	}
@@ -73,6 +77,7 @@ generates code that matches your existing conventions:
 	cmd.Flags().Bool("skip-tests", false, "Skip test generation")
 	cmd.Flags().Bool("legacy", false, "Use legacy layered generation (ignores architecture detection)")
 	cmd.Flags().Bool("refresh", false, "Force re-detection of project profile (ignore cache)")
+	cmd.Flags().Bool("json", false, "Output as JSON")
 
 	return cmd
 }
@@ -81,6 +86,7 @@ func runResource(cmd *cobra.Command, args []string) error {
 	noInteractive, _ := cmd.Flags().GetBool("no-interactive")
 	useLegacy, _ := cmd.Flags().GetBool("legacy")
 	forceRefresh, _ := cmd.Flags().GetBool("refresh")
+	jsonOutput, _ := cmd.Flags().GetBool("json")
 	log := logger.Default()
 
 	if useLegacy {
@@ -89,6 +95,9 @@ func runResource(cmd *cobra.Command, args []string) error {
 
 	profile, err := DetectProjectProfileWithRefresh(forceRefresh)
 	if err != nil {
+		if jsonOutput {
+			return output.Error("DETECTION_ERROR", "Could not detect project profile", err.Error())
+		}
 		log.Warning("Could not detect project profile, falling back to legacy mode")
 		return runLegacyResource(cmd, args)
 	}
@@ -106,27 +115,40 @@ func runResource(cmd *cobra.Command, args []string) error {
 		var wizErr error
 		resourceName, wizErr = runResourceNameWizard(resourceName)
 		if wizErr != nil {
+			if jsonOutput {
+				return output.Error("WIZARD_ERROR", wizErr.Error())
+			}
 			return wizErr
 		}
 	}
 
 	if resourceName == "" {
+		if jsonOutput {
+			return output.Error("VALIDATION_ERROR", "Resource name is required")
+		}
 		return fmt.Errorf("resource name is required")
 	}
 
 	if err := ValidateComponentName(resourceName); err != nil {
+		if jsonOutput {
+			return output.Error("VALIDATION_ERROR", err.Error())
+		}
 		return err
 	}
 
 	if profile.BasePackage == "" {
-		return fmt.Errorf("base package could not be detected. Use --package flag to specify it (e.g., --package com.example.myapp)")
+		errMsg := "base package could not be detected. Use --package flag to specify it (e.g., --package com.example.myapp)"
+		if jsonOutput {
+			return output.Error("DETECTION_ERROR", errMsg)
+		}
+		return fmt.Errorf("%s", errMsg)
 	}
 
 	skipEntity, _ := cmd.Flags().GetBool("skip-entity")
 	skipRepository, _ := cmd.Flags().GetBool("skip-repository")
 	skipTests, _ := cmd.Flags().GetBool("skip-tests")
 
-	return generateResourceWithProfile(resourceName, profile, skipEntity, skipRepository, skipTests)
+	return generateResourceWithProfile(resourceName, profile, skipEntity, skipRepository, skipTests, jsonOutput)
 }
 
 func runResourceNameWizard(currentName string) (string, error) {
@@ -166,12 +188,16 @@ func runResourceNameWizard(currentName string) (string, error) {
 	return ToPascalCase(wiz.StringValue("name")), nil
 }
 
-func generateResourceWithProfile(name string, profile *detector.ProjectProfile, skipEntity, skipRepository, skipTests bool) error {
+func generateResourceWithProfile(name string, profile *detector.ProjectProfile, skipEntity, skipRepository, skipTests, jsonOutput bool) error {
 	log := logger.Default()
 	fs := afero.NewOsFs()
+	tracker := NewGenerateTracker("resource", name)
 
 	cwd, err := os.Getwd()
 	if err != nil {
+		if jsonOutput {
+			return output.Error("DIRECTORY_ERROR", "Failed to get current directory", err.Error())
+		}
 		return err
 	}
 
@@ -179,6 +205,9 @@ func generateResourceWithProfile(name string, profile *detector.ProjectProfile, 
 
 	srcPath := FindSourcePath(cwd)
 	if srcPath == "" {
+		if jsonOutput {
+			return output.Error("SOURCE_ERROR", "Could not find src/main/java directory")
+		}
 		return fmt.Errorf("could not find src/main/java directory")
 	}
 
@@ -186,29 +215,28 @@ func generateResourceWithProfile(name string, profile *detector.ProjectProfile, 
 	templateDir := GetTemplateDir(profile)
 	data := ctx.ToMap()
 
-	log.Info("Generating resource", "name", name, "architecture", profile.Architecture)
-	log.Debug("Template directory", "dir", templateDir)
+	if !jsonOutput {
+		log.Info("Generating resource", "name", name, "architecture", profile.Architecture)
+		log.Debug("Template directory", "dir", templateDir)
 
-	if profile.Lombok.Detected {
-		log.Debug("Using Lombok annotations")
-	}
-	if ctx.HasJpa {
-		log.Debug("Generating JPA Entity and Repository")
-	}
-	if profile.HasSwagger {
-		log.Debug("Adding Swagger/OpenAPI annotations")
-	}
-	if ctx.HasMapStruct {
-		log.Debug("Using MapStruct for mapping")
-	}
-	if ctx.HasBaseEntity {
-		log.Debug("Extending base entity", "base", ctx.BaseEntityName)
+		if profile.Lombok.Detected {
+			log.Debug("Using Lombok annotations")
+		}
+		if ctx.HasJpa {
+			log.Debug("Generating JPA Entity and Repository")
+		}
+		if profile.HasSwagger {
+			log.Debug("Adding Swagger/OpenAPI annotations")
+		}
+		if ctx.HasMapStruct {
+			log.Debug("Using MapStruct for mapping")
+		}
+		if ctx.HasBaseEntity {
+			log.Debug("Extending base entity", "base", ctx.BaseEntityName)
+		}
 	}
 
 	templates := buildTemplateList(name, profile, templateDir, ctx, skipEntity, skipRepository)
-
-	generatedCount := 0
-	skippedCount := 0
 
 	for _, t := range templates {
 		if t.skip {
@@ -216,42 +244,60 @@ func generateResourceWithProfile(name string, profile *detector.ProjectProfile, 
 		}
 
 		outputPath := computeOutputPath(srcPath, profile, name, t.subPackage, t.fileName)
+		relPath := FormatRelativePath(cwd, outputPath)
 
 		if engine.FileExists(outputPath) {
-			log.Warning("File exists, skipping", "file", FormatRelativePath(cwd, outputPath))
-			skippedCount++
+			if !jsonOutput {
+				log.Warning("File exists, skipping", "file", relPath)
+			}
+			tracker.AddSkipped(relPath)
 			continue
 		}
 
 		if err := engine.RenderAndWrite(t.template, outputPath, data); err != nil {
-			return fmt.Errorf("failed to generate %s: %w", t.fileName, err)
+			tracker.AddError(fmt.Sprintf("failed to generate %s: %v", t.fileName, err))
+			if !jsonOutput {
+				return fmt.Errorf("failed to generate %s: %w", t.fileName, err)
+			}
+			continue
 		}
 
-		log.Info("Created", "file", FormatRelativePath(cwd, outputPath))
-		generatedCount++
+		if !jsonOutput {
+			log.Info("Created", "file", relPath)
+		}
+		tracker.AddGenerated(relPath)
 	}
 
 	if !skipTests {
-		testCount, testSkipped, err := generateTestsWithProfile(name, profile, ctx, skipEntity, skipRepository)
-		if err != nil {
-			log.Warning("Failed to generate tests", "error", err.Error())
-		} else {
-			generatedCount += testCount
-			skippedCount += testSkipped
+		testCount, testSkipped, testErr := generateTestsWithProfileTracked(name, profile, ctx, skipEntity, skipRepository, tracker, jsonOutput)
+		if testErr != nil && !jsonOutput {
+			log.Warning("Failed to generate tests", "error", testErr.Error())
 		}
+		_ = testCount
+		_ = testSkipped
 	}
 
-	if generatedCount > 0 {
-		log.Success(fmt.Sprintf("Generated %d files for %s resource", generatedCount, name))
+	if jsonOutput {
+		return OutputGenerateResult(true, tracker)
 	}
-	if skippedCount > 0 {
-		log.Info(fmt.Sprintf("Skipped %d existing files", skippedCount))
+
+	if len(tracker.Generated) > 0 {
+		log.Success(fmt.Sprintf("Generated %d files for %s resource", len(tracker.Generated), name))
+	}
+	if len(tracker.Skipped) > 0 {
+		log.Info(fmt.Sprintf("Skipped %d existing files", len(tracker.Skipped)))
 	}
 
 	return nil
 }
 
 func generateTestsWithProfile(name string, profile *detector.ProjectProfile, ctx TemplateContext, skipEntity, skipRepository bool) (int, int, error) {
+	tracker := NewGenerateTracker("test", name)
+	count, skipped, err := generateTestsWithProfileTracked(name, profile, ctx, skipEntity, skipRepository, tracker, false)
+	return count, skipped, err
+}
+
+func generateTestsWithProfileTracked(name string, profile *detector.ProjectProfile, ctx TemplateContext, skipEntity, skipRepository bool, tracker *GenerateTracker, jsonOutput bool) (int, int, error) {
 	log := logger.Default()
 	fs := afero.NewOsFs()
 
@@ -270,7 +316,9 @@ func generateTestsWithProfile(name string, profile *detector.ProjectProfile, ctx
 	testTemplateDir := GetTestTemplateDir(profile)
 	data := ctx.ToMap()
 
-	log.Debug("Generating tests", "template_dir", testTemplateDir)
+	if !jsonOutput {
+		log.Debug("Generating tests", "template_dir", testTemplateDir)
+	}
 
 	testTemplates := buildTestTemplateList(name, profile, testTemplateDir, ctx, skipEntity, skipRepository)
 
@@ -283,18 +331,26 @@ func generateTestsWithProfile(name string, profile *detector.ProjectProfile, ctx
 		}
 
 		outputPath := computeTestOutputPath(testPath, profile, name, t.subPackage, t.fileName)
+		relPath := FormatRelativePath(cwd, outputPath)
 
 		if engine.FileExists(outputPath) {
-			log.Warning("Test file exists, skipping", "file", FormatRelativePath(cwd, outputPath))
+			if !jsonOutput {
+				log.Warning("Test file exists, skipping", "file", relPath)
+			}
+			tracker.AddSkipped(relPath)
 			skippedCount++
 			continue
 		}
 
 		if err := engine.RenderAndWrite(t.template, outputPath, data); err != nil {
+			tracker.AddError(fmt.Sprintf("failed to generate %s: %v", t.fileName, err))
 			return generatedCount, skippedCount, fmt.Errorf("failed to generate %s: %w", t.fileName, err)
 		}
 
-		log.Info("Created test", "file", FormatRelativePath(cwd, outputPath))
+		if !jsonOutput {
+			log.Info("Created test", "file", relPath)
+		}
+		tracker.AddGenerated(relPath)
 		generatedCount++
 	}
 

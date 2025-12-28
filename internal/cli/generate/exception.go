@@ -10,6 +10,7 @@ import (
 	"github.com/KashifKhn/haft/internal/detector"
 	"github.com/KashifKhn/haft/internal/generator"
 	"github.com/KashifKhn/haft/internal/logger"
+	"github.com/KashifKhn/haft/internal/output"
 	"github.com/KashifKhn/haft/internal/tui/components"
 	tea "github.com/charmbracelet/bubbletea"
 	"github.com/spf13/afero"
@@ -86,6 +87,7 @@ The handler includes built-in support for validation errors when detected.`,
 	cmd.Flags().Bool("no-interactive", false, "Skip interactive wizard (default exceptions only)")
 	cmd.Flags().Bool("all", false, "Include all optional exceptions")
 	cmd.Flags().Bool("refresh", false, "Force re-detection of project profile (ignore cache)")
+	cmd.Flags().Bool("json", false, "Output result as JSON")
 
 	return cmd
 }
@@ -94,11 +96,15 @@ func runException(cmd *cobra.Command, args []string) error {
 	noInteractive, _ := cmd.Flags().GetBool("no-interactive")
 	includeAll, _ := cmd.Flags().GetBool("all")
 	forceRefresh, _ := cmd.Flags().GetBool("refresh")
+	jsonOutput, _ := cmd.Flags().GetBool("json")
 	log := logger.Default()
 
 	profile, err := DetectProjectProfileWithRefresh(forceRefresh)
 	if err != nil {
 		if noInteractive {
+			if jsonOutput {
+				return output.Error("DETECTION_ERROR", "Could not detect project profile", err.Error())
+			}
 			return fmt.Errorf("could not detect project profile: %w", err)
 		}
 		log.Warning("Could not detect project profile, using defaults")
@@ -124,6 +130,9 @@ func runException(cmd *cobra.Command, args []string) error {
 	if !noInteractive {
 		wizardCfg, err := runExceptionWizard(profile.BasePackage, includeAll)
 		if err != nil {
+			if jsonOutput {
+				return output.Error("WIZARD_ERROR", "Wizard failed", err.Error())
+			}
 			return err
 		}
 		if wizardCfg.BasePackage != "" {
@@ -135,10 +144,13 @@ func runException(cmd *cobra.Command, args []string) error {
 	}
 
 	if profile.BasePackage == "" {
+		if jsonOutput {
+			return output.Error("VALIDATION_ERROR", "Base package could not be detected", "Use --package flag to specify it")
+		}
 		return fmt.Errorf("base package could not be detected. Use --package flag to specify it (e.g., --package com.example.myapp)")
 	}
 
-	return generateExceptionHandler(profile, cfg)
+	return generateExceptionHandler(profile, cfg, jsonOutput)
 }
 
 func enrichProfileFromBuildFile(profile *detector.ProjectProfile) {
@@ -261,12 +273,15 @@ func runOptionalExceptionPicker() ([]string, error) {
 	return result.model.Values(), nil
 }
 
-func generateExceptionHandler(profile *detector.ProjectProfile, cfg exceptionConfig) error {
+func generateExceptionHandler(profile *detector.ProjectProfile, cfg exceptionConfig, jsonOutput bool) error {
 	log := logger.Default()
 	fs := afero.NewOsFs()
 
 	cwd, err := os.Getwd()
 	if err != nil {
+		if jsonOutput {
+			return output.Error("DIRECTORY_ERROR", "Could not get current directory", err.Error())
+		}
 		return err
 	}
 
@@ -274,6 +289,9 @@ func generateExceptionHandler(profile *detector.ProjectProfile, cfg exceptionCon
 
 	srcPath := FindSourcePath(cwd)
 	if srcPath == "" {
+		if jsonOutput {
+			return output.Error("SOURCE_ERROR", "Could not find src/main/java directory")
+		}
 		return fmt.Errorf("could not find src/main/java directory")
 	}
 
@@ -285,7 +303,11 @@ func generateExceptionHandler(profile *detector.ProjectProfile, cfg exceptionCon
 	data := buildExceptionTemplateData(profile, exceptionPackage, selectedMap)
 	templateDir := getExceptionTemplateDir(profile)
 
-	log.Info("Generating exception handler", "package", exceptionPackage)
+	tracker := NewGenerateTracker("exception", "GlobalExceptionHandler")
+
+	if !jsonOutput {
+		log.Info("Generating exception handler", "package", exceptionPackage)
+	}
 
 	templates := []struct {
 		template    string
@@ -309,38 +331,46 @@ func generateExceptionHandler(profile *detector.ProjectProfile, cfg exceptionCon
 		{templateDir + "/GatewayTimeoutException.java.tmpl", "GatewayTimeoutException.java", "HasGatewayTimeout"},
 	}
 
-	generatedCount := 0
-	skippedCount := 0
-
 	for _, t := range templates {
 		if t.conditional != "" && !selectedMap[t.conditional] {
 			continue
 		}
 
 		outputPath := filepath.Join(basePath, t.fileName)
+		relPath := FormatRelativePath(cwd, outputPath)
 
 		if engine.FileExists(outputPath) {
-			log.Warning("File exists, skipping", "file", FormatRelativePath(cwd, outputPath))
-			skippedCount++
+			if !jsonOutput {
+				log.Warning("File exists, skipping", "file", relPath)
+			}
+			tracker.AddSkipped(relPath)
 			continue
 		}
 
 		if err := engine.RenderAndWrite(t.template, outputPath, data); err != nil {
+			if jsonOutput {
+				tracker.AddError(fmt.Sprintf("failed to generate %s: %s", t.fileName, err.Error()))
+				continue
+			}
 			return fmt.Errorf("failed to generate %s: %w", t.fileName, err)
 		}
 
-		log.Info("Created", "file", FormatRelativePath(cwd, outputPath))
-		generatedCount++
+		if !jsonOutput {
+			log.Info("Created", "file", relPath)
+		}
+		tracker.AddGenerated(relPath)
 	}
 
-	if generatedCount > 0 {
-		log.Success(fmt.Sprintf("Generated %d exception handler files", generatedCount))
-	}
-	if skippedCount > 0 {
-		log.Info(fmt.Sprintf("Skipped %d existing files", skippedCount))
+	if !jsonOutput {
+		if len(tracker.Generated) > 0 {
+			log.Success(fmt.Sprintf("Generated %d exception handler files", len(tracker.Generated)))
+		}
+		if len(tracker.Skipped) > 0 {
+			log.Info(fmt.Sprintf("Skipped %d existing files", len(tracker.Skipped)))
+		}
 	}
 
-	return nil
+	return OutputGenerateResult(jsonOutput, tracker)
 }
 
 func buildSelectedMap(selected []string) map[string]bool {

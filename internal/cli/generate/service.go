@@ -4,6 +4,7 @@ import (
 	"fmt"
 
 	"github.com/KashifKhn/haft/internal/logger"
+	"github.com/KashifKhn/haft/internal/output"
 	"github.com/spf13/cobra"
 )
 
@@ -28,24 +29,32 @@ and checks for JPA dependency to include repository injection.`,
   haft g s product
 
   # Non-interactive with package override
-  haft generate service order --package com.example.app --no-interactive`,
+  haft generate service order --package com.example.app --no-interactive
+
+  # Output as JSON
+  haft generate service user --json --no-interactive`,
 		Args: cobra.MaximumNArgs(1),
 		RunE: runService,
 	}
 
 	cmd.Flags().StringP("package", "p", "", "Base package (auto-detected from build file)")
 	cmd.Flags().Bool("no-interactive", false, "Skip interactive wizard")
+	cmd.Flags().Bool("json", false, "Output as JSON")
 
 	return cmd
 }
 
 func runService(cmd *cobra.Command, args []string) error {
 	noInteractive, _ := cmd.Flags().GetBool("no-interactive")
+	jsonOutput, _ := cmd.Flags().GetBool("json")
 	log := logger.Default()
 
 	cfg, err := DetectProjectConfig()
 	if err != nil {
 		if noInteractive {
+			if jsonOutput {
+				return output.Error("DETECTION_ERROR", "Could not detect project configuration", err.Error())
+			}
 			return fmt.Errorf("could not detect project configuration: %w", err)
 		}
 		log.Warning("Could not detect project config, using defaults")
@@ -62,20 +71,47 @@ func runService(cmd *cobra.Command, args []string) error {
 	if !noInteractive {
 		cfg, err = RunComponentWizard("Generate Service", cfg, "Service")
 		if err != nil {
+			if jsonOutput {
+				return output.Error("WIZARD_ERROR", err.Error())
+			}
 			return err
 		}
 	}
 
 	if err := ValidateComponentConfig(cfg); err != nil {
+		if jsonOutput {
+			return output.Error("VALIDATION_ERROR", err.Error())
+		}
 		return err
 	}
 
-	log.Info("Generating service", "name", cfg.Name)
+	tracker := NewGenerateTracker("service", cfg.Name)
 
-	if _, err := GenerateComponent(cfg, "resource/layered/Service.java.tmpl", "service", "{Name}Service.java"); err != nil {
-		return err
+	if !jsonOutput {
+		log.Info("Generating service", "name", cfg.Name)
 	}
 
-	_, err = GenerateComponent(cfg, "resource/layered/ServiceImpl.java.tmpl", "service/impl", "{Name}ServiceImpl.java")
-	return err
+	if generated, err := GenerateComponent(cfg, "resource/layered/Service.java.tmpl", "service", "{Name}Service.java"); err != nil {
+		tracker.AddError(err.Error())
+		if !jsonOutput {
+			return err
+		}
+	} else if generated {
+		tracker.AddGenerated(cfg.Name + "Service.java")
+	} else {
+		tracker.AddSkipped(cfg.Name + "Service.java")
+	}
+
+	if generated, err := GenerateComponent(cfg, "resource/layered/ServiceImpl.java.tmpl", "service/impl", "{Name}ServiceImpl.java"); err != nil {
+		tracker.AddError(err.Error())
+		if !jsonOutput {
+			return err
+		}
+	} else if generated {
+		tracker.AddGenerated(cfg.Name + "ServiceImpl.java")
+	} else {
+		tracker.AddSkipped(cfg.Name + "ServiceImpl.java")
+	}
+
+	return OutputGenerateResult(jsonOutput, tracker)
 }

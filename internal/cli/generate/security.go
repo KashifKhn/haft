@@ -12,6 +12,7 @@ import (
 	"github.com/KashifKhn/haft/internal/detector"
 	"github.com/KashifKhn/haft/internal/generator"
 	"github.com/KashifKhn/haft/internal/logger"
+	"github.com/KashifKhn/haft/internal/output"
 	"github.com/KashifKhn/haft/internal/tui/components"
 	tea "github.com/charmbracelet/bubbletea"
 	"github.com/spf13/afero"
@@ -108,6 +109,7 @@ Files generated for JWT:
 	cmd.Flags().Bool("no-interactive", false, "Skip interactive wizard")
 	cmd.Flags().Bool("skip-entities", false, "Skip User/Role entity generation even if not detected")
 	cmd.Flags().Bool("refresh", false, "Force re-detection of project profile (ignore cache)")
+	cmd.Flags().Bool("json", false, "Output result as JSON")
 
 	return cmd
 }
@@ -120,11 +122,15 @@ func runSecurity(cmd *cobra.Command, args []string) error {
 	oauth2Flag, _ := cmd.Flags().GetBool("oauth2")
 	skipEntities, _ := cmd.Flags().GetBool("skip-entities")
 	forceRefresh, _ := cmd.Flags().GetBool("refresh")
+	jsonOutput, _ := cmd.Flags().GetBool("json")
 	log := logger.Default()
 
 	profile, err := DetectProjectProfileWithRefresh(forceRefresh)
 	if err != nil {
 		if noInteractive {
+			if jsonOutput {
+				return output.Error("DETECTION_ERROR", "Could not detect project profile", err.Error())
+			}
 			return fmt.Errorf("could not detect project profile: %w", err)
 		}
 		log.Warning("Could not detect project profile, using defaults")
@@ -158,6 +164,9 @@ func runSecurity(cmd *cobra.Command, args []string) error {
 	if !noInteractive {
 		wizardCfg, err := runSecurityWizard(profile.BasePackage, len(cfg.SecurityTypes) > 0)
 		if err != nil {
+			if jsonOutput {
+				return output.Error("WIZARD_ERROR", "Wizard failed", err.Error())
+			}
 			return err
 		}
 		if wizardCfg.BasePackage != "" {
@@ -169,12 +178,25 @@ func runSecurity(cmd *cobra.Command, args []string) error {
 	}
 
 	if profile.BasePackage == "" {
+		if jsonOutput {
+			return output.Error("VALIDATION_ERROR", "Base package could not be detected", "Use --package flag to specify it")
+		}
 		return fmt.Errorf("base package could not be detected. Use --package flag to specify it (e.g., --package com.example.myapp)")
 	}
 
 	if len(cfg.SecurityTypes) == 0 {
 		if noInteractive {
+			if jsonOutput {
+				return output.Error("VALIDATION_ERROR", "No authentication type specified", "Use --jwt, --session, --oauth2, or --all")
+			}
 			return fmt.Errorf("specify authentication type with --jwt, --session, --oauth2, or --all")
+		}
+		if jsonOutput {
+			return output.Success(output.GenerateOutput{
+				Results:        []output.GenerateResult{},
+				TotalGenerated: 0,
+				TotalSkipped:   0,
+			})
 		}
 		log.Info("No authentication type selected")
 		return nil
@@ -182,27 +204,42 @@ func runSecurity(cmd *cobra.Command, args []string) error {
 
 	cwd, err := os.Getwd()
 	if err != nil {
+		if jsonOutput {
+			return output.Error("DIRECTORY_ERROR", "Could not get current directory", err.Error())
+		}
 		return err
 	}
 
 	fs := afero.NewOsFs()
 	missingDeps, err := checkSecurityDependencies(cwd, fs, cfg.SecurityTypes)
 	if err != nil {
+		if jsonOutput {
+			return output.Error("DEPENDENCY_ERROR", "Could not check dependencies", err.Error())
+		}
 		return err
 	}
 
 	if len(missingDeps) > 0 {
 		if noInteractive {
+			if jsonOutput {
+				return output.Error("DEPENDENCY_ERROR", "Missing required dependencies", formatMissingDeps(missingDeps))
+			}
 			return fmt.Errorf("missing required dependencies: %v", formatMissingDeps(missingDeps))
 		}
 
 		shouldAdd, err := promptAddDependencies(missingDeps)
 		if err != nil {
+			if jsonOutput {
+				return output.Error("WIZARD_ERROR", "Dependency prompt failed", err.Error())
+			}
 			return err
 		}
 
 		if shouldAdd {
 			if err := addSecurityDependencies(cwd, fs, missingDeps); err != nil {
+				if jsonOutput {
+					return output.Error("DEPENDENCY_ERROR", "Failed to add dependencies", err.Error())
+				}
 				return err
 			}
 		} else {
@@ -221,12 +258,15 @@ func runSecurity(cmd *cobra.Command, args []string) error {
 	if cfg.GenerateEntities && !noInteractive {
 		shouldGenerate, err := promptGenerateEntities()
 		if err != nil {
+			if jsonOutput {
+				return output.Error("WIZARD_ERROR", "Entity prompt failed", err.Error())
+			}
 			return err
 		}
 		cfg.GenerateEntities = shouldGenerate
 	}
 
-	return generateSecurity(profile, cfg)
+	return generateSecurity(profile, cfg, jsonOutput)
 }
 
 func runSecurityWizard(currentPackage string, skipTypePicker bool) (securityConfig, error) {
@@ -511,12 +551,15 @@ func promptGenerateEntities() (bool, error) {
 	return result.model.Value() == "yes", nil
 }
 
-func generateSecurity(profile *detector.ProjectProfile, cfg securityConfig) error {
+func generateSecurity(profile *detector.ProjectProfile, cfg securityConfig, jsonOutput bool) error {
 	log := logger.Default()
 	fs := afero.NewOsFs()
 
 	cwd, err := os.Getwd()
 	if err != nil {
+		if jsonOutput {
+			return output.Error("DIRECTORY_ERROR", "Could not get current directory", err.Error())
+		}
 		return err
 	}
 
@@ -524,6 +567,9 @@ func generateSecurity(profile *detector.ProjectProfile, cfg securityConfig) erro
 
 	srcPath := FindSourcePath(cwd)
 	if srcPath == "" {
+		if jsonOutput {
+			return output.Error("SOURCE_ERROR", "Could not find src/main/java directory")
+		}
 		return fmt.Errorf("could not find src/main/java directory")
 	}
 
@@ -533,39 +579,47 @@ func generateSecurity(profile *detector.ProjectProfile, cfg securityConfig) erro
 
 	data := buildSecurityTemplateData(profile, securityPackage, userEntityPackage, userRepositoryPackage, cfg)
 
-	log.Info("Generating security configuration", "package", securityPackage)
+	tracker := NewGenerateTracker("security", "SecurityConfig")
 
-	generatedCount := 0
-	skippedCount := 0
+	if !jsonOutput {
+		log.Info("Generating security configuration", "package", securityPackage)
+	}
 
 	for _, secType := range cfg.SecurityTypes {
-		count, skipped, err := generateSecurityType(engine, srcPath, secType, data, cfg, cwd)
+		count, skipped, err := generateSecurityTypeTracked(engine, srcPath, secType, data, cfg, cwd, tracker, jsonOutput)
 		if err != nil {
+			if jsonOutput {
+				tracker.AddError(err.Error())
+				continue
+			}
 			return err
 		}
-		generatedCount += count
-		skippedCount += skipped
+		_ = count
+		_ = skipped
 	}
 
 	if cfg.GenerateEntities {
-		count, skipped, err := generateSecurityEntities(engine, srcPath, data, cwd)
+		_, _, err := generateSecurityEntitiesTracked(engine, srcPath, data, cwd, tracker, jsonOutput)
 		if err != nil {
-			return err
+			if jsonOutput {
+				tracker.AddError(err.Error())
+			} else {
+				return err
+			}
 		}
-		generatedCount += count
-		skippedCount += skipped
 	}
 
-	if generatedCount > 0 {
-		log.Success(fmt.Sprintf("Generated %d security files", generatedCount))
-	}
-	if skippedCount > 0 {
-		log.Info(fmt.Sprintf("Skipped %d existing files", skippedCount))
+	if !jsonOutput {
+		if len(tracker.Generated) > 0 {
+			log.Success(fmt.Sprintf("Generated %d security files", len(tracker.Generated)))
+		}
+		if len(tracker.Skipped) > 0 {
+			log.Info(fmt.Sprintf("Skipped %d existing files", len(tracker.Skipped)))
+		}
+		printSecurityInstructions(cfg.SecurityTypes)
 	}
 
-	printSecurityInstructions(cfg.SecurityTypes)
-
-	return nil
+	return OutputGenerateResult(jsonOutput, tracker)
 }
 
 func generateSecurityType(engine *generator.Engine, srcPath string, secType SecurityType, data map[string]any, cfg securityConfig, cwd string) (int, int, error) {
@@ -600,6 +654,55 @@ func generateSecurityType(engine *generator.Engine, srcPath string, secType Secu
 		}
 
 		log.Info("Created", "file", FormatRelativePath(cwd, outputPath))
+		generatedCount++
+	}
+
+	return generatedCount, skippedCount, nil
+}
+
+func generateSecurityTypeTracked(engine *generator.Engine, srcPath string, secType SecurityType, data map[string]any, cfg securityConfig, cwd string, tracker *GenerateTracker, jsonOutput bool) (int, int, error) {
+	log := logger.Default()
+
+	securityPackage := data["SecurityPackage"].(string)
+	packagePath := strings.ReplaceAll(securityPackage, ".", string(os.PathSeparator))
+	basePath := filepath.Join(srcPath, packagePath)
+
+	templates := getSecurityTemplates(secType)
+
+	generatedCount := 0
+	skippedCount := 0
+
+	for _, t := range templates {
+		if t.conditional != "" {
+			if val, ok := data[t.conditional].(bool); !ok || !val {
+				continue
+			}
+		}
+
+		outputPath := filepath.Join(basePath, t.fileName)
+		relPath := FormatRelativePath(cwd, outputPath)
+
+		if engine.FileExists(outputPath) {
+			if !jsonOutput {
+				log.Warning("File exists, skipping", "file", relPath)
+			}
+			tracker.AddSkipped(relPath)
+			skippedCount++
+			continue
+		}
+
+		if err := engine.RenderAndWrite(t.template, outputPath, data); err != nil {
+			if jsonOutput {
+				tracker.AddError(fmt.Sprintf("failed to generate %s: %s", t.fileName, err.Error()))
+				continue
+			}
+			return generatedCount, skippedCount, fmt.Errorf("failed to generate %s: %w", t.fileName, err)
+		}
+
+		if !jsonOutput {
+			log.Info("Created", "file", relPath)
+		}
+		tracker.AddGenerated(relPath)
 		generatedCount++
 	}
 
@@ -685,6 +788,63 @@ func generateSecurityEntities(engine *generator.Engine, srcPath string, data map
 		}
 
 		log.Info("Created", "file", FormatRelativePath(cwd, outputPath))
+		generatedCount++
+	}
+
+	return generatedCount, skippedCount, nil
+}
+
+func generateSecurityEntitiesTracked(engine *generator.Engine, srcPath string, data map[string]any, cwd string, tracker *GenerateTracker, jsonOutput bool) (int, int, error) {
+	log := logger.Default()
+
+	userEntityPackage := data["UserEntityPackage"].(string)
+	userRepoPackage := data["UserRepositoryPackage"].(string)
+
+	entityPath := strings.ReplaceAll(userEntityPackage, ".", string(os.PathSeparator))
+	repoPath := strings.ReplaceAll(userRepoPackage, ".", string(os.PathSeparator))
+
+	entityBasePath := filepath.Join(srcPath, entityPath)
+	repoBasePath := filepath.Join(srcPath, repoPath)
+
+	templates := []struct {
+		template   string
+		fileName   string
+		outputPath string
+	}{
+		{"security/jwt/User.java.tmpl", data["UserEntityName"].(string) + ".java", entityBasePath},
+		{"security/jwt/Role.java.tmpl", "Role.java", entityBasePath},
+		{"security/jwt/UserRepository.java.tmpl", data["UserEntityName"].(string) + "Repository.java", repoBasePath},
+		{"security/jwt/RoleRepository.java.tmpl", "RoleRepository.java", repoBasePath},
+	}
+
+	generatedCount := 0
+	skippedCount := 0
+
+	for _, t := range templates {
+		outputPath := filepath.Join(t.outputPath, t.fileName)
+		relPath := FormatRelativePath(cwd, outputPath)
+
+		if engine.FileExists(outputPath) {
+			if !jsonOutput {
+				log.Warning("File exists, skipping", "file", relPath)
+			}
+			tracker.AddSkipped(relPath)
+			skippedCount++
+			continue
+		}
+
+		if err := engine.RenderAndWrite(t.template, outputPath, data); err != nil {
+			if jsonOutput {
+				tracker.AddError(fmt.Sprintf("failed to generate %s: %s", t.fileName, err.Error()))
+				continue
+			}
+			return generatedCount, skippedCount, fmt.Errorf("failed to generate %s: %w", t.fileName, err)
+		}
+
+		if !jsonOutput {
+			log.Info("Created", "file", relPath)
+		}
+		tracker.AddGenerated(relPath)
 		generatedCount++
 	}
 

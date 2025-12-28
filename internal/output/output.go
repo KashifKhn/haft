@@ -186,6 +186,43 @@ type SecurityTypesOutput struct {
 	Types []SecurityType `json:"types"`
 }
 
+type InitOutput struct {
+	ProjectName       string   `json:"projectName"`
+	GroupID           string   `json:"groupId"`
+	ArtifactID        string   `json:"artifactId"`
+	PackageName       string   `json:"packageName"`
+	JavaVersion       string   `json:"javaVersion"`
+	SpringBootVersion string   `json:"springBootVersion"`
+	BuildTool         string   `json:"buildTool"`
+	Packaging         string   `json:"packaging"`
+	Dependencies      []string `json:"dependencies"`
+	ProjectDir        string   `json:"projectDir"`
+	FilesCreated      []string `json:"filesCreated"`
+	GitInitialized    bool     `json:"gitInitialized"`
+}
+
+type TemplateInfo struct {
+	Name     string `json:"name"`
+	Category string `json:"category"`
+	Source   string `json:"source"`
+	Path     string `json:"path,omitempty"`
+}
+
+type TemplateListOutput struct {
+	Templates     []TemplateInfo `json:"templates"`
+	Total         int            `json:"total"`
+	ProjectCount  int            `json:"projectCount"`
+	GlobalCount   int            `json:"globalCount"`
+	EmbeddedCount int            `json:"embeddedCount"`
+}
+
+type DevCommandOutput struct {
+	Command   string `json:"command"`
+	BuildTool string `json:"buildTool"`
+	ExitCode  int    `json:"exitCode"`
+	Output    string `json:"output,omitempty"`
+}
+
 func JSON(v interface{}) error {
 	encoder := json.NewEncoder(os.Stdout)
 	encoder.SetIndent("", "  ")
