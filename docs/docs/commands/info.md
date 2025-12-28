@@ -24,6 +24,7 @@ The `info` command analyzes your Spring Boot project and displays comprehensive 
 |------|-------------|
 | `--json` | Output as JSON format |
 | `--loc` | Include lines of code summary |
+| `--deps` | Include full dependency list |
 
 ## Examples
 

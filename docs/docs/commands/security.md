@@ -12,7 +12,8 @@ Generate Spring Security configuration with support for JWT, Session-based, and 
 
 ```bash
 haft generate security [flags]
-haft g sec [flags]  # alias
+haft g sec [flags]   # alias
+haft g auth [flags]  # alias
 ```
 
 ## Overview
@@ -37,6 +38,7 @@ The security generator creates a complete, production-ready security setup for y
 | `--no-interactive` | | Skip interactive wizard |
 | `--skip-entities` | | Skip User/Role entity generation |
 | `--refresh` | | Force re-scan project profile |
+| `--json` | | Output result as JSON |
 
 ## Examples
 

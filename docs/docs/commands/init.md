@@ -77,6 +77,7 @@ Uses defaults for unspecified options.
 | `--description` | | Project description | Empty |
 | `--dir` | `-d` | Output directory | Current directory |
 | `--no-interactive` | | Skip interactive wizard | `false` |
+| `--json` | | Output result as JSON | `false` |
 
 ## Global Flags
 
