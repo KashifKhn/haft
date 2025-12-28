@@ -648,14 +648,47 @@ haft add lombok jpa validation
 # Add multiple at once
 haft add jwt openapi mapstruct
 
-# Add by Maven coordinates (auto-verified)
+# Add by Maven coordinates (auto-verified against Maven Central)
 haft add org.mapstruct:mapstruct
 
 # Add with specific version
 haft add io.jsonwebtoken:jjwt-api:0.12.5
 
+# Add with scope override
+haft add h2 --scope test
+
 # List all shortcuts
 haft add --list
+```
+
+### Adding Any Maven Central Dependency
+
+You can add **any dependency from Maven Central** using Maven coordinates format:
+
+```bash
+# Format: groupId:artifactId
+haft add org.apache.commons:commons-collections4
+
+# Format: groupId:artifactId:version
+haft add com.google.code.gson:gson:2.10.1
+
+# Multiple coordinates
+haft add org.modelmapper:modelmapper io.github.cdimascio:dotenv-java
+```
+
+Haft automatically:
+- Verifies the dependency exists on Maven Central
+- Fetches the latest version if not specified
+- Adds to your `pom.xml` or `build.gradle` with correct format
+
+```bash
+# This will fetch latest version automatically
+$ haft add org.mapstruct:mapstruct
+SUCCESS ✓ Added dependency=org.mapstruct:mapstruct:1.5.5.Final
+
+# Error if dependency doesn't exist
+$ haft add com.fake:nonexistent
+ERROR ✗ dependency 'com.fake:nonexistent' not found on Maven Central
 ```
 
 ### With `haft remove`
