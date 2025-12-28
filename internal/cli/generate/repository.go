@@ -73,6 +73,6 @@ func runRepository(cmd *cobra.Command, args []string) error {
 	}
 
 	log.Info("Generating repository", "name", cfg.Name)
-	_, err = GenerateComponent(cfg, "resource/Repository.java.tmpl", "repository", "{Name}Repository.java")
+	_, err = GenerateComponent(cfg, "resource/layered/Repository.java.tmpl", "repository", "{Name}Repository.java")
 	return err
 }

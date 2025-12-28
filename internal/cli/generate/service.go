@@ -72,10 +72,10 @@ func runService(cmd *cobra.Command, args []string) error {
 
 	log.Info("Generating service", "name", cfg.Name)
 
-	if _, err := GenerateComponent(cfg, "resource/Service.java.tmpl", "service", "{Name}Service.java"); err != nil {
+	if _, err := GenerateComponent(cfg, "resource/layered/Service.java.tmpl", "service", "{Name}Service.java"); err != nil {
 		return err
 	}
 
-	_, err = GenerateComponent(cfg, "resource/ServiceImpl.java.tmpl", "service/impl", "{Name}ServiceImpl.java")
+	_, err = GenerateComponent(cfg, "resource/layered/ServiceImpl.java.tmpl", "service/impl", "{Name}ServiceImpl.java")
 	return err
 }

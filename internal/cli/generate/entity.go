@@ -78,6 +78,6 @@ func runEntity(cmd *cobra.Command, args []string) error {
 	}
 
 	log.Info("Generating entity", "name", cfg.Name)
-	_, err = GenerateComponent(cfg, "resource/Entity.java.tmpl", "entity", "{Name}.java")
+	_, err = GenerateComponent(cfg, "resource/layered/Entity.java.tmpl", "entity", "{Name}.java")
 	return err
 }
