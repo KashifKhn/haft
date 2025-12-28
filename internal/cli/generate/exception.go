@@ -135,7 +135,7 @@ func runException(cmd *cobra.Command, args []string) error {
 	}
 
 	if profile.BasePackage == "" {
-		return fmt.Errorf("base package is required")
+		return fmt.Errorf("base package could not be detected. Use --package flag to specify it (e.g., --package com.example.myapp)")
 	}
 
 	return generateExceptionHandler(profile, cfg)

@@ -349,7 +349,7 @@ func TestValidateResourceConfig(t *testing.T) {
 			name:    "missing package",
 			cfg:     ResourceConfig{Name: "User"},
 			wantErr: true,
-			errMsg:  "base package is required",
+			errMsg:  "base package could not be detected",
 		},
 		{
 			name:    "invalid name starts with number",
@@ -406,7 +406,7 @@ func TestValidateComponentConfig(t *testing.T) {
 			name:    "missing package",
 			cfg:     ComponentConfig{Name: "User"},
 			wantErr: true,
-			errMsg:  "base package is required",
+			errMsg:  "base package could not be detected",
 		},
 	}
 

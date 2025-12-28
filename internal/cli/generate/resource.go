@@ -119,7 +119,7 @@ func runResource(cmd *cobra.Command, args []string) error {
 	}
 
 	if profile.BasePackage == "" {
-		return fmt.Errorf("base package is required")
+		return fmt.Errorf("base package could not be detected. Use --package flag to specify it (e.g., --package com.example.myapp)")
 	}
 
 	skipEntity, _ := cmd.Flags().GetBool("skip-entity")
@@ -484,7 +484,7 @@ func validateResourceConfig(cfg ResourceConfig) error {
 		return err
 	}
 	if cfg.BasePackage == "" {
-		return fmt.Errorf("base package is required")
+		return fmt.Errorf("base package could not be detected. Use --package flag to specify it (e.g., --package com.example.myapp)")
 	}
 	return nil
 }

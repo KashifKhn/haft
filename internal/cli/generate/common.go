@@ -127,7 +127,7 @@ func ValidateComponentConfig(cfg ComponentConfig) error {
 		return err
 	}
 	if cfg.BasePackage == "" {
-		return fmt.Errorf("base package is required")
+		return fmt.Errorf("base package could not be detected. Use --package flag to specify it (e.g., --package com.example.myapp)")
 	}
 	if err := ValidatePackageName(cfg.BasePackage); err != nil {
 		return err
