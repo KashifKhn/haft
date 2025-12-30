@@ -103,7 +103,11 @@ func runServe(profile string, debug bool, port int, noInteractive bool) error {
 			logger.Warning("Failed to enable interactive mode", "error", err)
 			isInteractive = false
 		} else {
-			defer keyboard.Stop()
+			defer func() {
+				if err := keyboard.Stop(); err != nil {
+					logger.Debug("Failed to restore terminal state", "error", err)
+				}
+			}()
 		}
 	} else {
 		logger.Info("Starting application (non-interactive)", "build-tool", result.BuildTool.DisplayName())
@@ -120,7 +124,9 @@ func runServe(profile string, debug bool, port int, noInteractive bool) error {
 		select {
 		case sig := <-sigChan:
 			logger.Info("Received signal, shutting down", "signal", sig)
-			pm.Stop()
+			if err := pm.Stop(); err != nil {
+				logger.Debug("Error during shutdown", "error", err)
+			}
 			return nil
 
 		case cmd := <-keyboard.Commands():
@@ -130,11 +136,15 @@ func runServe(profile string, debug bool, port int, noInteractive bool) error {
 					fmt.Println("\n\033[33m→ Restart already in progress...\033[0m")
 					continue
 				}
-				pm.Restart(ctx)
+				if err := pm.Restart(ctx); err != nil {
+					logger.Debug("Restart failed", "error", err)
+				}
 
 			case KeyQuit:
 				fmt.Println("\n\033[33m→ Shutting down...\033[0m")
-				pm.Stop()
+				if err := pm.Stop(); err != nil {
+					logger.Debug("Error during shutdown", "error", err)
+				}
 				return nil
 
 			case KeyClear:
@@ -150,7 +160,9 @@ func runServe(profile string, debug bool, port int, noInteractive bool) error {
 				continue
 			}
 			fmt.Println("\n\033[35m→ External restart triggered\033[0m")
-			pm.Restart(ctx)
+			if err := pm.Restart(ctx); err != nil {
+				logger.Debug("External restart failed", "error", err)
+			}
 
 		default:
 			if pm.State() == StateIdle || pm.State() == StateFailed {
@@ -179,17 +191,23 @@ func waitForRestartOrQuit(keyboard *KeyboardListener, sigChan chan os.Signal, pm
 		select {
 		case sig := <-sigChan:
 			logger.Info("Received signal", "signal", sig)
-			pm.Stop()
+			if err := pm.Stop(); err != nil {
+				logger.Debug("Error during shutdown", "error", err)
+			}
 			return
 
 		case cmd := <-keyboard.Commands():
 			switch cmd {
 			case KeyRestart:
-				pm.Restart(ctx)
+				if err := pm.Restart(ctx); err != nil {
+					logger.Debug("Restart failed", "error", err)
+				}
 				return
 			case KeyQuit:
 				fmt.Println("\n\033[33m→ Shutting down...\033[0m")
-				pm.Stop()
+				if err := pm.Stop(); err != nil {
+					logger.Debug("Error during shutdown", "error", err)
+				}
 				return
 			case KeyHelp:
 				PrintKeyCommands()

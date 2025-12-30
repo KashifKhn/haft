@@ -12,6 +12,7 @@ import (
 	"time"
 
 	"github.com/KashifKhn/haft/internal/buildtool"
+	"github.com/KashifKhn/haft/internal/logger"
 )
 
 type ProcessState int
@@ -240,13 +241,17 @@ func (pm *ProcessManager) gracefulStop(cmd *exec.Cmd) error {
 	}()
 
 	if err := pm.sendTermSignal(cmd); err != nil {
-		pm.sendKillSignal(cmd)
+		if killErr := pm.sendKillSignal(cmd); killErr != nil {
+			logger.Debug("Failed to force kill process after SIGTERM failed", "error", killErr)
+		}
 	}
 
 	select {
 	case <-done:
 	case <-time.After(2 * time.Second):
-		pm.sendKillSignal(cmd)
+		if err := pm.sendKillSignal(cmd); err != nil {
+			logger.Debug("Failed to force kill process after timeout", "error", err)
+		}
 		select {
 		case <-done:
 		case <-time.After(1 * time.Second):
@@ -279,7 +284,9 @@ func (pm *ProcessManager) sendKillSignal(cmd *exec.Cmd) error {
 
 	pgid, err := syscall.Getpgid(cmd.Process.Pid)
 	if err == nil {
-		syscall.Kill(-pgid, syscall.SIGKILL)
+		if killErr := syscall.Kill(-pgid, syscall.SIGKILL); killErr != nil {
+			logger.Debug("Failed to kill process group", "pgid", pgid, "error", killErr)
+		}
 	}
 	return cmd.Process.Kill()
 }
@@ -417,7 +424,9 @@ func (pm *ProcessManager) Kill() error {
 	pm.mu.Unlock()
 
 	if cmd != nil && cmd.Process != nil {
-		pm.sendKillSignal(cmd)
+		if err := pm.sendKillSignal(cmd); err != nil {
+			logger.Debug("Failed to kill process", "error", err)
+		}
 	}
 
 	pm.mu.Lock()
