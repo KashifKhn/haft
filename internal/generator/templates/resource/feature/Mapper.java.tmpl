@@ -1,14 +1,6 @@
-package {{.FeaturePackage}}.mapper;
+package {{.FeaturePackage}};
 
-{{if .HasMapStruct}}
-import org.mapstruct.*;
-{{else}}
-import org.springframework.stereotype.Component;
-{{end}}
-
-import {{.FeaturePackage}}.entity.{{.Name}};
-import {{.FeaturePackage}}.dto.{{.RequestSuffix}};
-import {{.FeaturePackage}}.dto.{{.ResponseSuffix}};
+{{if .HasMapStruct}}import org.mapstruct.*;{{else}}import org.springframework.stereotype.Component;{{end}}
 {{if .HasMapStruct}}
 @Mapper(componentModel = "spring", unmappedTargetPolicy = ReportingPolicy.IGNORE)
 public interface {{.Name}}Mapper {
@@ -28,28 +20,20 @@ public class {{.Name}}Mapper {
         if (entity == null) {
             return null;
         }
-        {{if .HasLombok}}
-        return {{.ResponseSuffix}}.builder()
+{{if .HasLombok}}        return {{.ResponseSuffix}}.builder()
                 .id(entity.getId())
-                .build();
-        {{else}}
-        {{.ResponseSuffix}} response = new {{.ResponseSuffix}}();
+                .build();{{else}}        {{.ResponseSuffix}} response = new {{.ResponseSuffix}}();
         response.setId(entity.getId());
-        return response;
-        {{end}}
+        return response;{{end}}
     }
 
     public {{.Name}} toEntity({{.RequestSuffix}} request) {
         if (request == null) {
             return null;
         }
-        {{if .HasLombok}}
-        return {{.Name}}.builder()
-                .build();
-        {{else}}
-        {{.Name}} entity = new {{.Name}}();
-        return entity;
-        {{end}}
+{{if .HasLombok}}        return {{.Name}}.builder()
+                .build();{{else}}        {{.Name}} entity = new {{.Name}}();
+        return entity;{{end}}
     }
 
     public void updateEntity({{.Name}} entity, {{.RequestSuffix}} request) {

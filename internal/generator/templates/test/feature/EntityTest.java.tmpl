@@ -1,10 +1,8 @@
-package {{.TestPackage}}.entity;
+package {{.TestPackage}};
 
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
-
-import {{.FeaturePackage}}.entity.{{.Name}};
 
 import static org.assertj.core.api.Assertions.assertThat;
 
@@ -23,9 +21,7 @@ class {{.Name}}Test {
     void shouldCreateInstance() {
         assertThat({{.NameCamel}}).isNotNull();
     }
-{{if .HasLombok}}
-{{if .Lombok.UseBuilder}}
-
+{{if .HasLombok}}{{if .Lombok.UseBuilder}}
     @Test
     @DisplayName("Should create {{.NameLower}} with builder")
     void shouldCreateWithBuilder() {
@@ -33,9 +29,7 @@ class {{.Name}}Test {
 
         assertThat(built).isNotNull();
     }
-{{end}}
-{{end}}
-
+{{end}}{{end}}
     @Test
     @DisplayName("Should have correct equals and hashCode")
     void shouldHaveCorrectEqualsAndHashCode() {

@@ -1,12 +1,8 @@
-package {{.FeaturePackage}}.repository;
+package {{.FeaturePackage}};
 
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.stereotype.Repository;
-
-import {{.FeaturePackage}}.entity.{{.Name}};
-{{if .IDImport}}
-import {{.IDImport}};
-{{end}}
+{{if .IDImport}}import {{.IDImport}};{{end}}
 
 @Repository
 public interface {{.Name}}Repository extends JpaRepository<{{.Name}}, {{.IDType}}> {

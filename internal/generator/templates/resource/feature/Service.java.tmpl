@@ -1,7 +1,6 @@
-package {{.FeaturePackage}}.service;
+package {{.FeaturePackage}};
 
-import {{.FeaturePackage}}.dto.{{.RequestSuffix}};
-import {{.FeaturePackage}}.dto.{{.ResponseSuffix}};
+{{if .IDImport}}import {{.IDImport}};{{end}}
 
 import java.util.List;
 

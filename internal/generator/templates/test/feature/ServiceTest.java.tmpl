@@ -1,4 +1,4 @@
-package {{.TestPackage}}.service;
+package {{.TestPackage}};
 
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
@@ -7,19 +7,7 @@ import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
-{{if .HasJpa}}
-import {{.FeaturePackage}}.repository.{{.Name}}Repository;
-import {{.FeaturePackage}}.entity.{{.Name}};
-{{end}}
-import {{.FeaturePackage}}.service.impl.{{.Name}}ServiceImpl;
-import {{.FeaturePackage}}.mapper.{{.Name}}Mapper;
-import {{.FeaturePackage}}.dto.{{.RequestSuffix}};
-{{if ne .RequestSuffix .ResponseSuffix}}
-import {{.FeaturePackage}}.dto.{{.ResponseSuffix}};
-{{end}}
-{{if ne .IDImport ""}}
-import {{.IDImport}};
-{{end}}
+{{if ne .IDImport ""}}import {{.IDImport}};{{end}}
 
 import java.util.List;
 import java.util.Optional;
@@ -52,9 +40,7 @@ class {{.Name}}ServiceTest {
     @BeforeEach
     void setUp() {
         testId = {{.TestIdValue}};
-{{if .HasJpa}}
-        {{.NameCamel}} = new {{.Name}}();
-{{end}}
+{{if .HasJpa}}        {{.NameCamel}} = new {{.Name}}();{{end}}
         request = new {{.RequestSuffix}}();
         response = new {{.ResponseSuffix}}();
     }
@@ -62,77 +48,60 @@ class {{.Name}}ServiceTest {
     @Test
     @DisplayName("Should return all {{plural .NameLower}}")
     void shouldFindAll() {
-{{if .HasJpa}}
-        given({{.NameCamel}}Repository.findAll()).willReturn(List.of({{.NameCamel}}));
+{{if .HasJpa}}        given({{.NameCamel}}Repository.findAll()).willReturn(List.of({{.NameCamel}}));
         given({{.NameCamel}}Mapper.toResponse(any({{.Name}}.class))).willReturn(response);
 
         List<{{.ResponseSuffix}}> result = {{.NameCamel}}Service.findAll();
 
         assertThat(result).hasSize(1);
-        verify({{.NameCamel}}Repository).findAll();
-{{else}}
-        assertThatThrownBy(() -> {{.NameCamel}}Service.findAll())
-                .isInstanceOf(UnsupportedOperationException.class);
-{{end}}
+        verify({{.NameCamel}}Repository).findAll();{{else}}        assertThatThrownBy(() -> {{.NameCamel}}Service.findAll())
+                .isInstanceOf(UnsupportedOperationException.class);{{end}}
     }
 
     @Test
     @DisplayName("Should find {{.NameLower}} by ID")
     void shouldFindById() {
-{{if .HasJpa}}
-        given({{.NameCamel}}Repository.findById(testId)).willReturn(Optional.of({{.NameCamel}}));
+{{if .HasJpa}}        given({{.NameCamel}}Repository.findById(testId)).willReturn(Optional.of({{.NameCamel}}));
         given({{.NameCamel}}Mapper.toResponse({{.NameCamel}})).willReturn(response);
 
         {{.ResponseSuffix}} result = {{.NameCamel}}Service.findById(testId);
 
         assertThat(result).isNotNull();
-        verify({{.NameCamel}}Repository).findById(testId);
-{{else}}
-        assertThatThrownBy(() -> {{.NameCamel}}Service.findById(testId))
-                .isInstanceOf(UnsupportedOperationException.class);
-{{end}}
+        verify({{.NameCamel}}Repository).findById(testId);{{else}}        assertThatThrownBy(() -> {{.NameCamel}}Service.findById(testId))
+                .isInstanceOf(UnsupportedOperationException.class);{{end}}
     }
 
     @Test
     @DisplayName("Should throw exception when {{.NameLower}} not found by ID")
     void shouldThrowExceptionWhenNotFoundById() {
-{{if .HasJpa}}
-        given({{.NameCamel}}Repository.findById(testId)).willReturn(Optional.empty());
+{{if .HasJpa}}        given({{.NameCamel}}Repository.findById(testId)).willReturn(Optional.empty());
 
         assertThatThrownBy(() -> {{.NameCamel}}Service.findById(testId))
                 .isInstanceOf(RuntimeException.class)
                 .hasMessageContaining("not found");
 
-        verify({{.NameCamel}}Mapper, never()).toResponse(any());
-{{else}}
-        assertThatThrownBy(() -> {{.NameCamel}}Service.findById(testId))
-                .isInstanceOf(UnsupportedOperationException.class);
-{{end}}
+        verify({{.NameCamel}}Mapper, never()).toResponse(any());{{else}}        assertThatThrownBy(() -> {{.NameCamel}}Service.findById(testId))
+                .isInstanceOf(UnsupportedOperationException.class);{{end}}
     }
 
     @Test
     @DisplayName("Should create new {{.NameLower}}")
     void shouldCreate() {
-{{if .HasJpa}}
-        given({{.NameCamel}}Mapper.toEntity(request)).willReturn({{.NameCamel}});
+{{if .HasJpa}}        given({{.NameCamel}}Mapper.toEntity(request)).willReturn({{.NameCamel}});
         given({{.NameCamel}}Repository.save({{.NameCamel}})).willReturn({{.NameCamel}});
         given({{.NameCamel}}Mapper.toResponse({{.NameCamel}})).willReturn(response);
 
         {{.ResponseSuffix}} result = {{.NameCamel}}Service.create(request);
 
         assertThat(result).isNotNull();
-        verify({{.NameCamel}}Repository).save(any({{.Name}}.class));
-{{else}}
-        assertThatThrownBy(() -> {{.NameCamel}}Service.create(request))
-                .isInstanceOf(UnsupportedOperationException.class);
-{{end}}
+        verify({{.NameCamel}}Repository).save(any({{.Name}}.class));{{else}}        assertThatThrownBy(() -> {{.NameCamel}}Service.create(request))
+                .isInstanceOf(UnsupportedOperationException.class);{{end}}
     }
 
     @Test
     @DisplayName("Should update existing {{.NameLower}}")
     void shouldUpdate() {
-{{if .HasJpa}}
-        given({{.NameCamel}}Repository.findById(testId)).willReturn(Optional.of({{.NameCamel}}));
+{{if .HasJpa}}        given({{.NameCamel}}Repository.findById(testId)).willReturn(Optional.of({{.NameCamel}}));
         given({{.NameCamel}}Repository.save({{.NameCamel}})).willReturn({{.NameCamel}});
         given({{.NameCamel}}Mapper.toResponse({{.NameCamel}})).willReturn(response);
 
@@ -140,59 +109,44 @@ class {{.Name}}ServiceTest {
 
         assertThat(result).isNotNull();
         verify({{.NameCamel}}Mapper).updateEntity({{.NameCamel}}, request);
-        verify({{.NameCamel}}Repository).save({{.NameCamel}});
-{{else}}
-        assertThatThrownBy(() -> {{.NameCamel}}Service.update(testId, request))
-                .isInstanceOf(UnsupportedOperationException.class);
-{{end}}
+        verify({{.NameCamel}}Repository).save({{.NameCamel}});{{else}}        assertThatThrownBy(() -> {{.NameCamel}}Service.update(testId, request))
+                .isInstanceOf(UnsupportedOperationException.class);{{end}}
     }
 
     @Test
     @DisplayName("Should throw exception when updating non-existent {{.NameLower}}")
     void shouldThrowExceptionWhenUpdatingNonExistent() {
-{{if .HasJpa}}
-        given({{.NameCamel}}Repository.findById(testId)).willReturn(Optional.empty());
+{{if .HasJpa}}        given({{.NameCamel}}Repository.findById(testId)).willReturn(Optional.empty());
 
         assertThatThrownBy(() -> {{.NameCamel}}Service.update(testId, request))
                 .isInstanceOf(RuntimeException.class)
                 .hasMessageContaining("not found");
 
-        verify({{.NameCamel}}Repository, never()).save(any());
-{{else}}
-        assertThatThrownBy(() -> {{.NameCamel}}Service.update(testId, request))
-                .isInstanceOf(UnsupportedOperationException.class);
-{{end}}
+        verify({{.NameCamel}}Repository, never()).save(any());{{else}}        assertThatThrownBy(() -> {{.NameCamel}}Service.update(testId, request))
+                .isInstanceOf(UnsupportedOperationException.class);{{end}}
     }
 
     @Test
     @DisplayName("Should delete {{.NameLower}} by ID")
     void shouldDelete() {
-{{if .HasJpa}}
-        given({{.NameCamel}}Repository.existsById(testId)).willReturn(true);
+{{if .HasJpa}}        given({{.NameCamel}}Repository.existsById(testId)).willReturn(true);
 
         {{.NameCamel}}Service.delete(testId);
 
-        verify({{.NameCamel}}Repository).deleteById(testId);
-{{else}}
-        assertThatThrownBy(() -> {{.NameCamel}}Service.delete(testId))
-                .isInstanceOf(UnsupportedOperationException.class);
-{{end}}
+        verify({{.NameCamel}}Repository).deleteById(testId);{{else}}        assertThatThrownBy(() -> {{.NameCamel}}Service.delete(testId))
+                .isInstanceOf(UnsupportedOperationException.class);{{end}}
     }
 
     @Test
     @DisplayName("Should throw exception when deleting non-existent {{.NameLower}}")
     void shouldThrowExceptionWhenDeletingNonExistent() {
-{{if .HasJpa}}
-        given({{.NameCamel}}Repository.existsById(testId)).willReturn(false);
+{{if .HasJpa}}        given({{.NameCamel}}Repository.existsById(testId)).willReturn(false);
 
         assertThatThrownBy(() -> {{.NameCamel}}Service.delete(testId))
                 .isInstanceOf(RuntimeException.class)
                 .hasMessageContaining("not found");
 
-        verify({{.NameCamel}}Repository, never()).deleteById(any());
-{{else}}
-        assertThatThrownBy(() -> {{.NameCamel}}Service.delete(testId))
-                .isInstanceOf(UnsupportedOperationException.class);
-{{end}}
+        verify({{.NameCamel}}Repository, never()).deleteById(any());{{else}}        assertThatThrownBy(() -> {{.NameCamel}}Service.delete(testId))
+                .isInstanceOf(UnsupportedOperationException.class);{{end}}
     }
 }
