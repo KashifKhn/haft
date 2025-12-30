@@ -1,4 +1,4 @@
-package {{.FeaturePackage}};
+package {{.FeaturePackage}}{{if not .FeatureStyleFlat}}.dto{{end}};
 
 {{if .HasLombok}}import lombok.*;{{end}}
 {{if .IDImport}}import {{.IDImport}};{{end}}

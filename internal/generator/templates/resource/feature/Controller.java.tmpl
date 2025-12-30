@@ -1,4 +1,4 @@
-package {{.FeaturePackage}};
+package {{.FeaturePackage}}{{if not .FeatureStyleFlat}}.controller{{end}};
 
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
@@ -8,6 +8,11 @@ import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
 {{end}}
 {{if .HasResponseWrapper}}import {{.ResponseWrapperImport}};{{end}}
+{{if not .FeatureStyleFlat}}
+import {{.FeaturePackage}}.service.{{.Name}}Service;
+import {{.FeaturePackage}}.dto.{{.RequestSuffix}};
+import {{.FeaturePackage}}.dto.{{.ResponseSuffix}};
+{{end}}
 {{if .IDImport}}import {{.IDImport}};{{end}}
 
 import java.util.List;

@@ -1,10 +1,18 @@
-package {{.FeaturePackage}};
+package {{.FeaturePackage}}{{if not .FeatureStyleFlat}}.service.impl{{end}};
 
 import org.springframework.stereotype.Service;
 {{if .HasLombok}}import lombok.RequiredArgsConstructor;{{if .Lombok.UseSlf4j}}
 import lombok.extern.slf4j.Slf4j;{{end}}{{end}}
 {{if .HasJpa}}import org.springframework.transaction.annotation.Transactional;{{end}}
 {{if .HasGlobalException}}import {{.ExceptionPackage}}.ResourceNotFoundException;{{end}}
+{{if not .FeatureStyleFlat}}
+import {{.FeaturePackage}}.dto.{{.RequestSuffix}};
+import {{.FeaturePackage}}.dto.{{.ResponseSuffix}};
+import {{.FeaturePackage}}.entity.{{.Name}};
+import {{.FeaturePackage}}.mapper.{{.Name}}Mapper;
+import {{.FeaturePackage}}.repository.{{.Name}}Repository;
+import {{.FeaturePackage}}.service.{{.Name}}Service;
+{{end}}
 {{if .IDImport}}import {{.IDImport}};{{end}}
 
 import java.util.List;

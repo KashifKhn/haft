@@ -1,7 +1,10 @@
-package {{.FeaturePackage}};
+package {{.FeaturePackage}}{{if not .FeatureStyleFlat}}.repository{{end}};
 
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.stereotype.Repository;
+{{if not .FeatureStyleFlat}}
+import {{.FeaturePackage}}.entity.{{.Name}};
+{{end}}
 {{if .IDImport}}import {{.IDImport}};{{end}}
 
 @Repository

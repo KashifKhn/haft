@@ -1,4 +1,4 @@
-package {{.TestPackage}};
+package {{.TestPackage}}{{if not .FeatureStyleFlat}}.service{{end}};
 
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
@@ -7,7 +7,15 @@ import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
-{{if ne .IDImport ""}}import {{.IDImport}};{{end}}
+{{if not .FeatureStyleFlat}}
+import {{.FeaturePackage}}.dto.{{.RequestSuffix}};
+import {{.FeaturePackage}}.dto.{{.ResponseSuffix}};
+import {{.FeaturePackage}}.entity.{{.Name}};
+import {{.FeaturePackage}}.mapper.{{.Name}}Mapper;
+import {{.FeaturePackage}}.repository.{{.Name}}Repository;
+import {{.FeaturePackage}}.service.impl.{{.Name}}ServiceImpl;
+{{end}}
+{{if .IDImport}}import {{.IDImport}};{{end}}
 
 import java.util.List;
 import java.util.Optional;

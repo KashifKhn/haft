@@ -1,6 +1,11 @@
-package {{.FeaturePackage}};
+package {{.FeaturePackage}}{{if not .FeatureStyleFlat}}.mapper{{end}};
 
 {{if .HasMapStruct}}import org.mapstruct.*;{{else}}import org.springframework.stereotype.Component;{{end}}
+{{if not .FeatureStyleFlat}}
+import {{.FeaturePackage}}.dto.{{.RequestSuffix}};
+import {{.FeaturePackage}}.dto.{{.ResponseSuffix}};
+import {{.FeaturePackage}}.entity.{{.Name}};
+{{end}}
 {{if .HasMapStruct}}
 @Mapper(componentModel = "spring", unmappedTargetPolicy = ReportingPolicy.IGNORE)
 public interface {{.Name}}Mapper {

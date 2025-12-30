@@ -1,4 +1,4 @@
-package {{.FeaturePackage}};
+package {{.FeaturePackage}}{{if not .FeatureStyleFlat}}.entity{{end}};
 
 import jakarta.persistence.*;
 {{if .HasLombok}}import lombok.*;{{end}}

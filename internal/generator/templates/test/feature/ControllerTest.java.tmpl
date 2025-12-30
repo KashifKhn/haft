@@ -1,4 +1,4 @@
-package {{.TestPackage}};
+package {{.TestPackage}}{{if not .FeatureStyleFlat}}.controller{{end}};
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import org.junit.jupiter.api.BeforeEach;
@@ -9,7 +9,13 @@ import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest;
 import org.springframework.boot.test.mock.mockito.MockBean;
 import org.springframework.http.MediaType;
 import org.springframework.test.web.servlet.MockMvc;
-{{if ne .IDImport ""}}import {{.IDImport}};{{end}}
+{{if not .FeatureStyleFlat}}
+import {{.FeaturePackage}}.controller.{{.Name}}{{.ControllerSuffix}};
+import {{.FeaturePackage}}.dto.{{.RequestSuffix}};
+import {{.FeaturePackage}}.dto.{{.ResponseSuffix}};
+import {{.FeaturePackage}}.service.{{.Name}}Service;
+{{end}}
+{{if .IDImport}}import {{.IDImport}};{{end}}
 
 import java.util.List;
 

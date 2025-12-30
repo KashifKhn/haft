@@ -1,8 +1,11 @@
-package {{.TestPackage}};
+package {{.TestPackage}}{{if not .FeatureStyleFlat}}.entity{{end}};
 
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
+{{if not .FeatureStyleFlat}}
+import {{.FeaturePackage}}.entity.{{.Name}};
+{{end}}
 
 import static org.assertj.core.api.Assertions.assertThat;
 

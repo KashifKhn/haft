@@ -1,4 +1,4 @@
-package {{.TestPackage}};
+package {{.TestPackage}}{{if not .FeatureStyleFlat}}.repository{{end}};
 
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
@@ -11,6 +11,10 @@ import org.springframework.boot.test.autoconfigure.jdbc.AutoConfigureTestDatabas
 import org.springframework.test.context.ActiveProfiles;
 {{if .IDImport}}
 import {{.IDImport}};
+{{end}}
+{{if not .FeatureStyleFlat}}
+import {{.FeaturePackage}}.entity.{{.Name}};
+import {{.FeaturePackage}}.repository.{{.Name}}Repository;
 {{end}}
 import java.util.Optional;
 
