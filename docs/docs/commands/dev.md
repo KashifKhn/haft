@@ -116,8 +116,10 @@ haft dev serve --no-interactive
 
 | Build Tool | Run Command | Compile Command (for restart) |
 |------------|-------------|-------------------------------|
-| Maven | `mvn spring-boot:run -DskipTests` | `mvn compile -DskipTests -q` |
+| Maven | `mvn spring-boot:run -DskipTests -B` | `mvn compile -DskipTests -q -B` |
 | Gradle | `./gradlew bootRun -x test` | `./gradlew classes -x test -q` |
+
+Note: The `-B` flag enables Maven batch mode for cleaner output formatting.
 
 ---
 

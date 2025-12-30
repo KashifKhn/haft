@@ -3,7 +3,6 @@ package dev
 import (
 	"fmt"
 	"os"
-	"runtime"
 
 	"github.com/mattn/go-isatty"
 	"golang.org/x/term"
@@ -145,29 +144,25 @@ func (kl *KeyboardListener) parseKey(buf []byte) KeyCommand {
 }
 
 func ClearScreen() {
-	if runtime.GOOS == "windows" {
-		fmt.Print("\033[H\033[2J")
-	} else {
-		fmt.Print("\033[H\033[2J")
-	}
+	fmt.Print("\033[H\033[2J")
 }
 
 func PrintKeyCommands() {
-	fmt.Println()
-	fmt.Println("\033[36mHaft dev commands:\033[0m")
-	fmt.Println("  \033[33mr\033[0m  Restart (compile first, then restart)")
-	fmt.Println("  \033[33mq\033[0m  Quit")
-	fmt.Println("  \033[33mc\033[0m  Clear screen")
-	fmt.Println("  \033[33mh\033[0m  Help")
-	fmt.Println()
+	fmt.Print("\r\n")
+	fmt.Print("\033[36mHaft dev commands:\033[0m\r\n")
+	fmt.Print("  \033[33mr\033[0m  Restart (compile first, then restart)\r\n")
+	fmt.Print("  \033[33mq\033[0m  Quit\r\n")
+	fmt.Print("  \033[33mc\033[0m  Clear screen\r\n")
+	fmt.Print("  \033[33mh\033[0m  Help\r\n")
+	fmt.Print("\r\n")
 }
 
 func PrintBanner() {
-	fmt.Println()
-	fmt.Println("\033[36m╭─────────────────────────────────────────╮\033[0m")
-	fmt.Println("\033[36m│\033[0m  \033[1;35mHaft Dev Server\033[0m                       \033[36m│\033[0m")
-	fmt.Println("\033[36m│\033[0m  Press \033[33mr\033[0m to restart, \033[33mq\033[0m to quit         \033[36m│\033[0m")
-	fmt.Println("\033[36m│\033[0m  Press \033[33mh\033[0m for more commands               \033[36m│\033[0m")
-	fmt.Println("\033[36m╰─────────────────────────────────────────╯\033[0m")
-	fmt.Println()
+	fmt.Print("\r\n")
+	fmt.Print("\033[36m╭─────────────────────────────────────────╮\033[0m\r\n")
+	fmt.Print("\033[36m│\033[0m  \033[1;35mHaft Dev Server\033[0m                       \033[36m│\033[0m\r\n")
+	fmt.Print("\033[36m│\033[0m  Press \033[33mr\033[0m to restart, \033[33mq\033[0m to quit         \033[36m│\033[0m\r\n")
+	fmt.Print("\033[36m│\033[0m  Press \033[33mh\033[0m for more commands               \033[36m│\033[0m\r\n")
+	fmt.Print("\033[36m╰─────────────────────────────────────────╯\033[0m\r\n")
+	fmt.Print("\r\n")
 }
