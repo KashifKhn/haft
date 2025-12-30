@@ -23,13 +23,17 @@ execute the appropriate underlying commands.`,
   haft dev test
 
   # Clean build artifacts
-  haft dev clean`,
+  haft dev clean
+
+  # Trigger restart (for use with haft dev serve)
+  haft dev restart`,
 	}
 
 	cmd.AddCommand(newServeCommand())
 	cmd.AddCommand(newBuildCommand())
 	cmd.AddCommand(newTestCommand())
 	cmd.AddCommand(newCleanCommand())
+	cmd.AddCommand(newRestartCommand())
 
 	return cmd
 }

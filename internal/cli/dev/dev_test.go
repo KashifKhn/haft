@@ -4,6 +4,7 @@ import (
 	"runtime"
 	"testing"
 
+	"github.com/KashifKhn/haft/internal/buildtool"
 	"github.com/spf13/cobra"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
@@ -27,7 +28,7 @@ func TestDevSubcommands(t *testing.T) {
 		subcommands[sub.Name()] = sub
 	}
 
-	expectedSubs := []string{"serve", "build", "test", "clean"}
+	expectedSubs := []string{"serve", "build", "test", "clean", "restart"}
 	for _, name := range expectedSubs {
 		assert.Contains(t, subcommands, name, "missing subcommand: %s", name)
 	}
@@ -142,6 +143,24 @@ func TestCleanCommand(t *testing.T) {
 	assert.NotEmpty(t, cleanCmd.Example)
 }
 
+func TestRestartCommand(t *testing.T) {
+	cmd := NewCommand()
+
+	var restartCmd *cobra.Command
+	for _, sub := range cmd.Commands() {
+		if sub.Name() == "restart" {
+			restartCmd = sub
+			break
+		}
+	}
+
+	require.NotNil(t, restartCmd)
+	assert.Equal(t, "restart", restartCmd.Use)
+	assert.NotEmpty(t, restartCmd.Short)
+	assert.NotEmpty(t, restartCmd.Long)
+	assert.NotEmpty(t, restartCmd.Example)
+}
+
 func TestGetMavenExecutable(t *testing.T) {
 	exec := getMavenExecutable()
 	if runtime.GOOS == "windows" {
@@ -157,5 +176,229 @@ func TestGetGradleExecutable(t *testing.T) {
 		assert.Contains(t, []string{"gradle", "gradlew.bat"}, exec)
 	} else {
 		assert.Contains(t, []string{"gradle", "./gradlew"}, exec)
+	}
+}
+
+func TestServeCommandHasNoInteractiveFlag(t *testing.T) {
+	cmd := NewCommand()
+
+	var serveCmd *cobra.Command
+	for _, sub := range cmd.Commands() {
+		if sub.Name() == "serve" {
+			serveCmd = sub
+			break
+		}
+	}
+
+	require.NotNil(t, serveCmd)
+
+	noInteractiveFlag := serveCmd.Flags().Lookup("no-interactive")
+	require.NotNil(t, noInteractiveFlag)
+	assert.Equal(t, "false", noInteractiveFlag.DefValue)
+}
+
+func TestProcessState_String(t *testing.T) {
+	tests := []struct {
+		state    ProcessState
+		expected string
+	}{
+		{StateIdle, "idle"},
+		{StateStarting, "starting"},
+		{StateRunning, "running"},
+		{StateStopping, "stopping"},
+		{StateRestarting, "restarting"},
+		{StateCompiling, "compiling"},
+		{StateFailed, "failed"},
+		{ProcessState(99), "unknown"},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.expected, func(t *testing.T) {
+			assert.Equal(t, tt.expected, tt.state.String())
+		})
+	}
+}
+
+func TestKeyCommand_String(t *testing.T) {
+	tests := []struct {
+		cmd      KeyCommand
+		expected string
+	}{
+		{KeyRestart, "restart"},
+		{KeyQuit, "quit"},
+		{KeyClear, "clear"},
+		{KeyHelp, "help"},
+		{KeyNone, "unknown"},
+		{KeyUnknown, "unknown"},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.expected, func(t *testing.T) {
+			assert.Equal(t, tt.expected, tt.cmd.String())
+		})
+	}
+}
+
+func TestNewProcessManager(t *testing.T) {
+	cfg := ProcessConfig{
+		BuildTool: buildtool.Maven,
+		Profile:   "dev",
+		Debug:     true,
+		Port:      8080,
+	}
+
+	pm := NewProcessManager(cfg)
+
+	assert.NotNil(t, pm)
+	assert.Equal(t, StateIdle, pm.State())
+	assert.False(t, pm.IsRunning())
+	assert.False(t, pm.IsBusy())
+	assert.Equal(t, 0, pm.RestartCount())
+	assert.Nil(t, pm.LastError())
+}
+
+func TestProcessManager_StateTransitions(t *testing.T) {
+	var lastState ProcessState
+	cfg := ProcessConfig{
+		OnStateChange: func(s ProcessState) {
+			lastState = s
+		},
+	}
+
+	pm := NewProcessManager(cfg)
+
+	pm.mu.Lock()
+	pm.setState(StateStarting)
+	pm.mu.Unlock()
+
+	assert.Equal(t, StateStarting, pm.State())
+	assert.Equal(t, StateStarting, lastState)
+}
+
+func TestProcessManager_IsBusy(t *testing.T) {
+	pm := NewProcessManager(ProcessConfig{})
+
+	assert.False(t, pm.IsBusy())
+
+	busyStates := []ProcessState{StateStarting, StateStopping, StateRestarting, StateCompiling}
+	for _, state := range busyStates {
+		pm.mu.Lock()
+		pm.state = state
+		pm.mu.Unlock()
+		assert.True(t, pm.IsBusy(), "should be busy in state: %s", state)
+	}
+
+	notBusyStates := []ProcessState{StateIdle, StateRunning, StateFailed}
+	for _, state := range notBusyStates {
+		pm.mu.Lock()
+		pm.state = state
+		pm.mu.Unlock()
+		assert.False(t, pm.IsBusy(), "should not be busy in state: %s", state)
+	}
+}
+
+func TestNewKeyboardListener(t *testing.T) {
+	kl := NewKeyboardListener()
+
+	assert.NotNil(t, kl)
+	assert.NotNil(t, kl.commands)
+	assert.NotNil(t, kl.done)
+}
+
+func TestKeyboardListener_ParseKey(t *testing.T) {
+	kl := NewKeyboardListener()
+
+	tests := []struct {
+		name     string
+		input    []byte
+		expected KeyCommand
+	}{
+		{"restart lowercase", []byte{'r'}, KeyRestart},
+		{"restart uppercase", []byte{'R'}, KeyRestart},
+		{"quit lowercase", []byte{'q'}, KeyQuit},
+		{"quit uppercase", []byte{'Q'}, KeyQuit},
+		{"clear lowercase", []byte{'c'}, KeyClear},
+		{"clear uppercase", []byte{'C'}, KeyClear},
+		{"help lowercase", []byte{'h'}, KeyHelp},
+		{"help uppercase", []byte{'H'}, KeyHelp},
+		{"help question mark", []byte{'?'}, KeyHelp},
+		{"ctrl+c", []byte{3}, KeyQuit},
+		{"unknown key", []byte{'x'}, KeyNone},
+		{"empty", []byte{}, KeyNone},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			result := kl.parseKey(tt.input)
+			assert.Equal(t, tt.expected, result)
+		})
+	}
+}
+
+func TestNewTriggerWatcher(t *testing.T) {
+	tw := NewTriggerWatcher()
+
+	assert.NotNil(t, tw)
+	assert.NotNil(t, tw.events)
+	assert.NotNil(t, tw.done)
+}
+
+func TestTriggerWatcher_GetTriggerPath(t *testing.T) {
+	path, err := GetTriggerPath()
+
+	assert.NoError(t, err)
+	assert.Contains(t, path, ".haft")
+	assert.Contains(t, path, "restart")
+}
+
+func TestProcessManager_BuildMavenRunCommand(t *testing.T) {
+	pm := NewProcessManager(ProcessConfig{
+		BuildTool: buildtool.Maven,
+		Profile:   "dev",
+		Debug:     true,
+		Port:      8080,
+	})
+
+	executable, args := pm.buildMavenRunCommand()
+
+	assert.Contains(t, []string{"mvn", "./mvnw", "mvnw.cmd"}, executable)
+	assert.Contains(t, args, "spring-boot:run")
+	assert.Contains(t, args, "-DskipTests")
+	assert.Contains(t, args, "-Dspring-boot.run.profiles=dev")
+	assert.Contains(t, args, "-Dspring-boot.run.arguments=--server.port=8080")
+}
+
+func TestProcessManager_BuildGradleRunCommand(t *testing.T) {
+	pm := NewProcessManager(ProcessConfig{
+		BuildTool: buildtool.Gradle,
+		Profile:   "dev",
+		Port:      8080,
+	})
+
+	executable, args := pm.buildGradleRunCommand()
+
+	assert.Contains(t, []string{"gradle", "./gradlew", "gradlew.bat"}, executable)
+	assert.Contains(t, args, "bootRun")
+	assert.Contains(t, args, "-x")
+	assert.Contains(t, args, "test")
+}
+
+func TestProcessManager_BuildCompileCommand(t *testing.T) {
+	tests := []struct {
+		name      string
+		buildTool buildtool.Type
+		wantGoal  string
+	}{
+		{"maven", buildtool.Maven, "compile"},
+		{"gradle", buildtool.Gradle, "classes"},
+		{"gradle-kotlin", buildtool.GradleKotln, "classes"},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			pm := NewProcessManager(ProcessConfig{BuildTool: tt.buildTool})
+			_, args := pm.buildCompileCommand()
+			assert.Contains(t, args, tt.wantGoal)
+		})
 	}
 }

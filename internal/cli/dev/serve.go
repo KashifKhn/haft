@@ -1,10 +1,12 @@
 package dev
 
 import (
+	"context"
 	"fmt"
 	"os"
-	"os/exec"
+	"os/signal"
 	"runtime"
+	"syscall"
 
 	"github.com/KashifKhn/haft/internal/buildtool"
 	"github.com/KashifKhn/haft/internal/logger"
@@ -16,19 +18,29 @@ func newServeCommand() *cobra.Command {
 	var profile string
 	var debug bool
 	var port int
+	var noInteractive bool
 
 	cmd := &cobra.Command{
 		Use:     "serve",
 		Aliases: []string{"run", "start"},
 		Short:   "Start the application with hot-reload",
-		Long: `Start the Spring Boot application with DevTools for hot-reload.
+		Long: `Start the Spring Boot application in supervisor mode.
 
 This command detects your build tool (Maven or Gradle) and runs the 
-appropriate command to start your application with Spring DevTools enabled.
+appropriate command to start your application.
 
-For Maven:  mvn spring-boot:run
-For Gradle: ./gradlew bootRun`,
-		Example: `  # Start with default settings
+In interactive mode (default when running in a terminal), you can:
+  - Press 'r' to restart (compiles first, keeps server if compile fails)
+  - Press 'q' to quit
+  - Press 'c' to clear screen
+  - Press 'h' for help
+
+For Maven:  mvn spring-boot:run -DskipTests
+For Gradle: ./gradlew bootRun -x test
+
+External plugins (Neovim, VSCode, IntelliJ) can trigger restart by
+creating a trigger file at .haft/restart`,
+		Example: `  # Start with default settings (interactive mode)
   haft dev serve
 
   # Start with specific profile
@@ -38,64 +50,155 @@ For Gradle: ./gradlew bootRun`,
   haft dev serve --debug
 
   # Start on specific port
-  haft dev serve --port 8081`,
+  haft dev serve --port 8081
+
+  # Start in non-interactive mode (for CI/scripts)
+  haft dev serve --no-interactive`,
 		RunE: func(cmd *cobra.Command, args []string) error {
-			return runServe(profile, debug, port)
+			return runServe(profile, debug, port, noInteractive)
 		},
 	}
 
 	cmd.Flags().StringVarP(&profile, "profile", "p", "", "Spring profile to activate (e.g., dev, prod)")
 	cmd.Flags().BoolVarP(&debug, "debug", "d", false, "Enable remote debugging on port 5005")
 	cmd.Flags().IntVar(&port, "port", 0, "Server port (overrides application config)")
+	cmd.Flags().BoolVar(&noInteractive, "no-interactive", false, "Disable interactive mode (no keyboard commands)")
 
 	return cmd
 }
 
-func runServe(profile string, debug bool, port int) error {
+func runServe(profile string, debug bool, port int, noInteractive bool) error {
 	fs := afero.NewOsFs()
 	result, err := buildtool.DetectWithCwd(fs)
 	if err != nil {
 		return fmt.Errorf("not a Spring Boot project: %w", err)
 	}
 
-	logger.Info("Starting application", "build-tool", result.BuildTool.DisplayName())
+	pm := NewProcessManager(ProcessConfig{
+		BuildTool: result.BuildTool,
+		Profile:   profile,
+		Debug:     debug,
+		Port:      port,
+		Stdout:    os.Stdout,
+		Stderr:    os.Stderr,
+	})
 
-	var cmdArgs []string
-	var executable string
+	keyboard := NewKeyboardListener()
+	isInteractive := keyboard.IsInteractive() && !noInteractive
 
-	switch result.BuildTool {
-	case buildtool.Maven:
-		executable = getMavenExecutable()
-		cmdArgs = []string{"spring-boot:run"}
-		if profile != "" {
-			cmdArgs = append(cmdArgs, fmt.Sprintf("-Dspring-boot.run.profiles=%s", profile))
-		}
-		if debug {
-			cmdArgs = append(cmdArgs, "-Dspring-boot.run.jvmArguments=-agentlib:jdwp=transport=dt_socket,server=y,suspend=n,address=*:5005")
-		}
-		if port > 0 {
-			cmdArgs = append(cmdArgs, fmt.Sprintf("-Dspring-boot.run.arguments=--server.port=%d", port))
-		}
+	trigger := NewTriggerWatcher()
+	if err := trigger.Setup(); err != nil {
+		logger.Warning("Failed to setup trigger watcher", "error", err)
+	}
+	defer trigger.Cleanup()
 
-	case buildtool.Gradle, buildtool.GradleKotln:
-		executable = getGradleExecutable()
-		cmdArgs = []string{"bootRun"}
-		if profile != "" {
-			cmdArgs = append(cmdArgs, fmt.Sprintf("--args=--spring.profiles.active=%s", profile))
+	sigChan := make(chan os.Signal, 1)
+	signal.Notify(sigChan, syscall.SIGINT, syscall.SIGTERM, syscall.SIGHUP)
+
+	if isInteractive {
+		PrintBanner()
+		logger.Info("Starting application", "build-tool", result.BuildTool.DisplayName())
+
+		if err := keyboard.Start(); err != nil {
+			logger.Warning("Failed to enable interactive mode", "error", err)
+			isInteractive = false
+		} else {
+			defer keyboard.Stop()
 		}
-		if debug {
-			cmdArgs = append(cmdArgs, "--debug-jvm")
-		}
-		if port > 0 {
-			if profile != "" {
-				cmdArgs[len(cmdArgs)-1] = fmt.Sprintf("--args=--spring.profiles.active=%s --server.port=%d", profile, port)
-			} else {
-				cmdArgs = append(cmdArgs, fmt.Sprintf("--args=--server.port=%d", port))
+	} else {
+		logger.Info("Starting application (non-interactive)", "build-tool", result.BuildTool.DisplayName())
+	}
+
+	if err := pm.Start(); err != nil {
+		return fmt.Errorf("failed to start application: %w", err)
+	}
+
+	ctx, cancel := context.WithCancel(context.Background())
+	defer cancel()
+
+	for {
+		select {
+		case sig := <-sigChan:
+			logger.Info("Received signal, shutting down", "signal", sig)
+			pm.Stop()
+			return nil
+
+		case cmd := <-keyboard.Commands():
+			switch cmd {
+			case KeyRestart:
+				if pm.IsBusy() {
+					fmt.Println("\n\033[33m→ Restart already in progress...\033[0m")
+					continue
+				}
+				pm.Restart(ctx)
+
+			case KeyQuit:
+				fmt.Println("\n\033[33m→ Shutting down...\033[0m")
+				pm.Stop()
+				return nil
+
+			case KeyClear:
+				ClearScreen()
+				PrintBanner()
+
+			case KeyHelp:
+				PrintKeyCommands()
+			}
+
+		case <-trigger.Events():
+			if pm.IsBusy() {
+				continue
+			}
+			fmt.Println("\n\033[35m→ External restart triggered\033[0m")
+			pm.Restart(ctx)
+
+		default:
+			if pm.State() == StateIdle || pm.State() == StateFailed {
+				if lastErr := pm.LastError(); lastErr != nil {
+					if isInteractive {
+						fmt.Printf("\n\033[31mProcess stopped: %v\033[0m\n", lastErr)
+						fmt.Println("\033[33mPress 'r' to restart or 'q' to quit\033[0m")
+						waitForRestartOrQuit(keyboard, sigChan, pm, ctx)
+					} else {
+						return lastErr
+					}
+				}
+			}
+
+			select {
+			case <-ctx.Done():
+				return nil
+			default:
 			}
 		}
 	}
+}
 
-	return executeCommand(executable, cmdArgs)
+func waitForRestartOrQuit(keyboard *KeyboardListener, sigChan chan os.Signal, pm *ProcessManager, ctx context.Context) {
+	for {
+		select {
+		case sig := <-sigChan:
+			logger.Info("Received signal", "signal", sig)
+			pm.Stop()
+			return
+
+		case cmd := <-keyboard.Commands():
+			switch cmd {
+			case KeyRestart:
+				pm.Restart(ctx)
+				return
+			case KeyQuit:
+				fmt.Println("\n\033[33m→ Shutting down...\033[0m")
+				pm.Stop()
+				return
+			case KeyHelp:
+				PrintKeyCommands()
+			case KeyClear:
+				ClearScreen()
+				PrintBanner()
+			}
+		}
+	}
 }
 
 func getMavenExecutable() string {
@@ -122,12 +225,4 @@ func getGradleExecutable() string {
 		}
 	}
 	return "gradle"
-}
-
-func executeCommand(executable string, args []string) error {
-	cmd := exec.Command(executable, args...)
-	cmd.Stdout = os.Stdout
-	cmd.Stderr = os.Stderr
-	cmd.Stdin = os.Stdin
-	return cmd.Run()
 }
