@@ -4,6 +4,7 @@ import (
 	"encoding/xml"
 	"fmt"
 	"os"
+	"regexp"
 	"strings"
 
 	"github.com/KashifKhn/haft/internal/buildtool"
@@ -102,12 +103,250 @@ func (p *Parser) ParseBytes(data []byte) (*buildtool.Project, error) {
 }
 
 func (p *Parser) Write(path string, project *buildtool.Project) error {
+	exists, err := afero.Exists(p.fs, path)
+	if err != nil {
+		return fmt.Errorf("failed to check file: %w", err)
+	}
+
+	if exists {
+		return p.WriteMinimal(path, project)
+	}
+
+	return p.WriteFull(path, project)
+}
+
+func (p *Parser) WriteFull(path string, project *buildtool.Project) error {
 	mavenProject := p.toMavenProject(project)
 	data, err := p.Marshal(mavenProject)
 	if err != nil {
 		return err
 	}
 	return afero.WriteFile(p.fs, path, data, 0644)
+}
+
+func (p *Parser) WriteMinimal(path string, project *buildtool.Project) error {
+	originalData, err := afero.ReadFile(p.fs, path)
+	if err != nil {
+		return fmt.Errorf("failed to read pom.xml: %w", err)
+	}
+
+	content := string(originalData)
+	mavenProject := p.getMavenProject(project)
+
+	var originalDeps *Dependencies
+	var originalMaven MavenProject
+	if err := xml.Unmarshal(originalData, &originalMaven); err == nil {
+		originalDeps = originalMaven.Dependencies
+	}
+
+	var depsToAdd []Dependency
+	if mavenProject != nil && mavenProject.Dependencies != nil {
+		for _, dep := range mavenProject.Dependencies.Dependency {
+			if !p.hasDependencyInList(originalDeps, dep.GroupId, dep.ArtifactId) {
+				depsToAdd = append(depsToAdd, dep)
+			}
+		}
+	}
+
+	var depsToRemove []Dependency
+	if originalDeps != nil {
+		for _, dep := range originalDeps.Dependency {
+			if mavenProject == nil || mavenProject.Dependencies == nil {
+				depsToRemove = append(depsToRemove, dep)
+			} else if !p.hasDependencyInList(mavenProject.Dependencies, dep.GroupId, dep.ArtifactId) {
+				depsToRemove = append(depsToRemove, dep)
+			}
+		}
+	}
+
+	if len(depsToAdd) == 0 && len(depsToRemove) == 0 {
+		return nil
+	}
+
+	for _, dep := range depsToRemove {
+		content = p.removeDependencyFromContent(content, dep.GroupId, dep.ArtifactId)
+	}
+
+	if len(depsToAdd) > 0 {
+		content = p.insertDependencies(content, depsToAdd)
+	}
+
+	return afero.WriteFile(p.fs, path, []byte(content), 0644)
+}
+
+func (p *Parser) hasDependencyInList(deps *Dependencies, groupId, artifactId string) bool {
+	if deps == nil {
+		return false
+	}
+	for _, dep := range deps.Dependency {
+		if dep.GroupId == groupId && dep.ArtifactId == artifactId {
+			return true
+		}
+	}
+	return false
+}
+
+func (p *Parser) removeDependencyFromContent(content, groupId, artifactId string) string {
+	pattern := fmt.Sprintf(`(?s)<dependency>\s*<groupId>%s</groupId>\s*<artifactId>%s</artifactId>.*?</dependency>`,
+		regexp.QuoteMeta(groupId), regexp.QuoteMeta(artifactId))
+	re := regexp.MustCompile(pattern)
+
+	loc := re.FindStringIndex(content)
+	if loc == nil {
+		return content
+	}
+
+	start := loc[0]
+	end := loc[1]
+
+	leadingNewline := start
+	for leadingNewline > 0 && (content[leadingNewline-1] == ' ' || content[leadingNewline-1] == '\t') {
+		leadingNewline--
+	}
+	if leadingNewline > 0 && content[leadingNewline-1] == '\n' {
+		leadingNewline--
+	}
+
+	trailingNewline := end
+	for trailingNewline < len(content) && (content[trailingNewline] == ' ' || content[trailingNewline] == '\t') {
+		trailingNewline++
+	}
+	if trailingNewline < len(content) && content[trailingNewline] == '\n' {
+		trailingNewline++
+	}
+
+	return content[:leadingNewline] + content[trailingNewline:]
+}
+
+func (p *Parser) insertDependencies(content string, deps []Dependency) string {
+	depsEndIdx := strings.LastIndex(content, "</dependencies>")
+	if depsEndIdx == -1 {
+		return p.insertDependenciesSection(content, deps)
+	}
+
+	indent := p.detectIndent(content, depsEndIdx)
+	var depXML strings.Builder
+	for _, dep := range deps {
+		depXML.WriteString(p.formatDependency(dep, indent))
+	}
+
+	return content[:depsEndIdx] + depXML.String() + content[depsEndIdx:]
+}
+
+func (p *Parser) insertDependenciesSection(content string, deps []Dependency) string {
+	insertPoints := []string{"</properties>", "</parent>", "</version>", "</artifactId>"}
+
+	for _, point := range insertPoints {
+		idx := strings.LastIndex(content, point)
+		if idx != -1 {
+			insertPos := idx + len(point)
+			indent := p.detectBaseIndent(content)
+
+			var section strings.Builder
+			section.WriteString("\n\n")
+			section.WriteString(indent)
+			section.WriteString("<dependencies>")
+			for _, dep := range deps {
+				section.WriteString(p.formatDependency(dep, indent+indent))
+			}
+			section.WriteString("\n")
+			section.WriteString(indent)
+			section.WriteString("</dependencies>")
+
+			return content[:insertPos] + section.String() + content[insertPos:]
+		}
+	}
+
+	return content
+}
+
+func (p *Parser) detectIndent(content string, pos int) string {
+	lineStart := strings.LastIndex(content[:pos], "\n")
+	if lineStart == -1 {
+		return "        "
+	}
+
+	line := content[lineStart+1 : pos]
+	indent := ""
+	for _, ch := range line {
+		if ch == ' ' || ch == '\t' {
+			indent += string(ch)
+		} else {
+			break
+		}
+	}
+
+	if indent == "" {
+		return "        "
+	}
+	return indent
+}
+
+func (p *Parser) detectBaseIndent(content string) string {
+	lines := strings.Split(content, "\n")
+	for _, line := range lines {
+		trimmed := strings.TrimLeft(line, " \t")
+		if strings.HasPrefix(trimmed, "<groupId>") || strings.HasPrefix(trimmed, "<artifactId>") {
+			indent := line[:len(line)-len(trimmed)]
+			if indent != "" {
+				return indent
+			}
+		}
+	}
+	return "    "
+}
+
+func (p *Parser) formatDependency(dep Dependency, indent string) string {
+	var b strings.Builder
+	b.WriteString("\n")
+	b.WriteString(indent)
+	b.WriteString("<dependency>\n")
+	b.WriteString(indent)
+	b.WriteString("    <groupId>")
+	b.WriteString(dep.GroupId)
+	b.WriteString("</groupId>\n")
+	b.WriteString(indent)
+	b.WriteString("    <artifactId>")
+	b.WriteString(dep.ArtifactId)
+	b.WriteString("</artifactId>\n")
+
+	if dep.Version != "" {
+		b.WriteString(indent)
+		b.WriteString("    <version>")
+		b.WriteString(dep.Version)
+		b.WriteString("</version>\n")
+	}
+
+	if dep.Scope != "" {
+		b.WriteString(indent)
+		b.WriteString("    <scope>")
+		b.WriteString(dep.Scope)
+		b.WriteString("</scope>\n")
+	}
+
+	if dep.Optional == "true" {
+		b.WriteString(indent)
+		b.WriteString("    <optional>true</optional>\n")
+	}
+
+	if dep.Type != "" {
+		b.WriteString(indent)
+		b.WriteString("    <type>")
+		b.WriteString(dep.Type)
+		b.WriteString("</type>\n")
+	}
+
+	if dep.Classifier != "" {
+		b.WriteString(indent)
+		b.WriteString("    <classifier>")
+		b.WriteString(dep.Classifier)
+		b.WriteString("</classifier>\n")
+	}
+
+	b.WriteString(indent)
+	b.WriteString("</dependency>")
+
+	return b.String()
 }
 
 func (p *Parser) Marshal(mavenProject *MavenProject) ([]byte, error) {
