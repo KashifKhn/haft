@@ -295,18 +295,20 @@ func (pm *ProcessManager) Restart(ctx context.Context) error {
 	pm.restartCount++
 	pm.mu.Unlock()
 
-	fmt.Fprintln(pm.stdout, "\n\033[33m→ Compiling...\033[0m")
+	fmt.Fprintln(pm.stdout, "\n\033[33m─────────────────────────────────────────\033[0m")
+	fmt.Fprintln(pm.stdout, "\033[33m→ Compiling...\033[0m")
 
 	if err := pm.Compile(ctx); err != nil {
-		fmt.Fprintf(pm.stderr, "\033[31m✗ Compilation failed: %v\033[0m\n", err)
+		fmt.Fprintf(pm.stderr, "\n\033[31m✗ Compilation failed: %v\033[0m\n", err)
 		fmt.Fprintln(pm.stdout, "\033[33m→ Keeping current server running\033[0m")
+		fmt.Fprintln(pm.stdout, "\033[33m─────────────────────────────────────────\033[0m")
 		pm.mu.Lock()
 		pm.setState(StateRunning)
 		pm.mu.Unlock()
 		return err
 	}
 
-	fmt.Fprintln(pm.stdout, "\033[32m✓ Compilation successful\033[0m")
+	fmt.Fprintln(pm.stdout, "\n\033[32m✓ Compilation successful\033[0m")
 	fmt.Fprintln(pm.stdout, "\033[33m→ Stopping server...\033[0m")
 
 	pm.mu.Lock()
@@ -320,6 +322,7 @@ func (pm *ProcessManager) Restart(ctx context.Context) error {
 	}
 
 	fmt.Fprintln(pm.stdout, "\033[33m→ Starting server...\033[0m")
+	fmt.Fprintln(pm.stdout, "\033[33m─────────────────────────────────────────\033[0m")
 
 	return pm.Start()
 }
@@ -337,7 +340,7 @@ func (pm *ProcessManager) buildRunCommand() (string, []string) {
 
 func (pm *ProcessManager) buildMavenRunCommand() (string, []string) {
 	executable := getMavenExecutable()
-	args := []string{"spring-boot:run", "-DskipTests"}
+	args := []string{"spring-boot:run", "-DskipTests", "-B"}
 
 	if pm.profile != "" {
 		args = append(args, fmt.Sprintf("-Dspring-boot.run.profiles=%s", pm.profile))
@@ -381,11 +384,11 @@ func (pm *ProcessManager) buildGradleRunCommand() (string, []string) {
 func (pm *ProcessManager) buildCompileCommand() (string, []string) {
 	switch pm.buildTool {
 	case buildtool.Maven:
-		return getMavenExecutable(), []string{"compile", "-DskipTests", "-q"}
+		return getMavenExecutable(), []string{"compile", "-DskipTests", "-q", "-B"}
 	case buildtool.Gradle, buildtool.GradleKotln:
 		return getGradleExecutable(), []string{"classes", "-x", "test", "-q"}
 	default:
-		return getMavenExecutable(), []string{"compile", "-DskipTests", "-q"}
+		return getMavenExecutable(), []string{"compile", "-DskipTests", "-q", "-B"}
 	}
 }
 
