@@ -6,9 +6,7 @@ import (
 	"io"
 	"os"
 	"os/exec"
-	"runtime"
 	"sync"
-	"syscall"
 	"time"
 
 	"github.com/KashifKhn/haft/internal/buildtool"
@@ -148,9 +146,7 @@ func (pm *ProcessManager) Start() error {
 	cmd.Stderr = pm.stderr
 	cmd.Stdin = nil
 
-	if runtime.GOOS != "windows" {
-		cmd.SysProcAttr = &syscall.SysProcAttr{Setpgid: true}
-	}
+	setSysProcAttr(cmd)
 
 	if err := cmd.Start(); err != nil {
 		pm.mu.Lock()
@@ -240,8 +236,8 @@ func (pm *ProcessManager) gracefulStop(cmd *exec.Cmd) error {
 		done <- cmd.Wait()
 	}()
 
-	if err := pm.sendTermSignal(cmd); err != nil {
-		if killErr := pm.sendKillSignal(cmd); killErr != nil {
+	if err := sendTermSignal(cmd); err != nil {
+		if killErr := sendKillSignal(cmd); killErr != nil {
 			logger.Debug("Failed to force kill process after SIGTERM failed", "error", killErr)
 		}
 	}
@@ -249,7 +245,7 @@ func (pm *ProcessManager) gracefulStop(cmd *exec.Cmd) error {
 	select {
 	case <-done:
 	case <-time.After(2 * time.Second):
-		if err := pm.sendKillSignal(cmd); err != nil {
+		if err := sendKillSignal(cmd); err != nil {
 			logger.Debug("Failed to force kill process after timeout", "error", err)
 		}
 		select {
@@ -264,31 +260,6 @@ func (pm *ProcessManager) gracefulStop(cmd *exec.Cmd) error {
 	pm.mu.Unlock()
 
 	return nil
-}
-
-func (pm *ProcessManager) sendTermSignal(cmd *exec.Cmd) error {
-	if runtime.GOOS == "windows" {
-		return cmd.Process.Kill()
-	}
-	return cmd.Process.Signal(syscall.SIGTERM)
-}
-
-func (pm *ProcessManager) sendKillSignal(cmd *exec.Cmd) error {
-	if cmd == nil || cmd.Process == nil {
-		return nil
-	}
-
-	if runtime.GOOS == "windows" {
-		return cmd.Process.Kill()
-	}
-
-	pgid, err := syscall.Getpgid(cmd.Process.Pid)
-	if err == nil {
-		if killErr := syscall.Kill(-pgid, syscall.SIGKILL); killErr != nil {
-			logger.Debug("Failed to kill process group", "pgid", pgid, "error", killErr)
-		}
-	}
-	return cmd.Process.Kill()
 }
 
 func (pm *ProcessManager) Compile(ctx context.Context) error {
@@ -424,7 +395,7 @@ func (pm *ProcessManager) Kill() error {
 	pm.mu.Unlock()
 
 	if cmd != nil && cmd.Process != nil {
-		if err := pm.sendKillSignal(cmd); err != nil {
+		if err := sendKillSignal(cmd); err != nil {
 			logger.Debug("Failed to kill process", "error", err)
 		}
 	}
