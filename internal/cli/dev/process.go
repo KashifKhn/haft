@@ -340,7 +340,7 @@ func (pm *ProcessManager) buildRunCommand() (string, []string) {
 
 func (pm *ProcessManager) buildMavenRunCommand() (string, []string) {
 	executable := getMavenExecutable()
-	args := []string{"spring-boot:run", "-DskipTests", "-B"}
+	args := []string{"spring-boot:run", "-DskipTests", "-B", "-ntp"}
 
 	if pm.profile != "" {
 		args = append(args, fmt.Sprintf("-Dspring-boot.run.profiles=%s", pm.profile))

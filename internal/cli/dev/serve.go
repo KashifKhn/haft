@@ -3,6 +3,7 @@ package dev
 import (
 	"context"
 	"fmt"
+	"io"
 	"os"
 	"os/signal"
 	"runtime"
@@ -74,17 +75,23 @@ func runServe(profile string, debug bool, port int, noInteractive bool) error {
 		return fmt.Errorf("not a Spring Boot project: %w", err)
 	}
 
+	keyboard := NewKeyboardListener()
+	isInteractive := keyboard.IsInteractive() && !noInteractive
+
+	var stdout, stderr io.Writer = os.Stdout, os.Stderr
+	if isInteractive {
+		stdout = newCRLFWriter(os.Stdout)
+		stderr = newCRLFWriter(os.Stderr)
+	}
+
 	pm := NewProcessManager(ProcessConfig{
 		BuildTool: result.BuildTool,
 		Profile:   profile,
 		Debug:     debug,
 		Port:      port,
-		Stdout:    os.Stdout,
-		Stderr:    os.Stderr,
+		Stdout:    stdout,
+		Stderr:    stderr,
 	})
-
-	keyboard := NewKeyboardListener()
-	isInteractive := keyboard.IsInteractive() && !noInteractive
 
 	trigger := NewTriggerWatcher()
 	if err := trigger.Setup(); err != nil {
@@ -133,7 +140,7 @@ func runServe(profile string, debug bool, port int, noInteractive bool) error {
 			switch cmd {
 			case KeyRestart:
 				if pm.IsBusy() {
-					fmt.Println("\n\033[33m→ Restart already in progress...\033[0m")
+					fmt.Print("\r\n\033[33m→ Restart already in progress...\033[0m\r\n")
 					continue
 				}
 				if err := pm.Restart(ctx); err != nil {
@@ -141,7 +148,7 @@ func runServe(profile string, debug bool, port int, noInteractive bool) error {
 				}
 
 			case KeyQuit:
-				fmt.Println("\n\033[33m→ Shutting down...\033[0m")
+				fmt.Print("\r\n\033[33m→ Shutting down...\033[0m\r\n")
 				if err := pm.Stop(); err != nil {
 					logger.Debug("Error during shutdown", "error", err)
 				}
@@ -159,7 +166,7 @@ func runServe(profile string, debug bool, port int, noInteractive bool) error {
 			if pm.IsBusy() {
 				continue
 			}
-			fmt.Println("\n\033[35m→ External restart triggered\033[0m")
+			fmt.Print("\r\n\033[35m→ External restart triggered\033[0m\r\n")
 			if err := pm.Restart(ctx); err != nil {
 				logger.Debug("External restart failed", "error", err)
 			}
@@ -168,8 +175,8 @@ func runServe(profile string, debug bool, port int, noInteractive bool) error {
 			if pm.State() == StateIdle || pm.State() == StateFailed {
 				if lastErr := pm.LastError(); lastErr != nil {
 					if isInteractive {
-						fmt.Printf("\n\033[31mProcess stopped: %v\033[0m\n", lastErr)
-						fmt.Println("\033[33mPress 'r' to restart or 'q' to quit\033[0m")
+						fmt.Printf("\r\n\033[31mProcess stopped: %v\033[0m\r\n", lastErr)
+						fmt.Print("\033[33mPress 'r' to restart or 'q' to quit\033[0m\r\n")
 						waitForRestartOrQuit(keyboard, sigChan, pm, ctx)
 					} else {
 						return lastErr
@@ -204,7 +211,7 @@ func waitForRestartOrQuit(keyboard *KeyboardListener, sigChan chan os.Signal, pm
 				}
 				return
 			case KeyQuit:
-				fmt.Println("\n\033[33m→ Shutting down...\033[0m")
+				fmt.Print("\r\n\033[33m→ Shutting down...\033[0m\r\n")
 				if err := pm.Stop(); err != nil {
 					logger.Debug("Error during shutdown", "error", err)
 				}
