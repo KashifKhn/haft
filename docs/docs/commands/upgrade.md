@@ -151,4 +151,3 @@ If Haft is installed in multiple locations (e.g., `/usr/local/bin` and `~/.local
 ## See Also
 
 - [Installation](../installation.md) - Initial installation instructions
-- [version](./version.md) - Display current version
