@@ -11,8 +11,8 @@ const config: Config = {
     v4: true,
   },
 
-  url: 'https://kashifkhn.github.io',
-  baseUrl: '/haft/',
+  url: 'https://haft.kashifkhan.dev',
+  baseUrl: '/',
 
   organizationName: 'KashifKhn',
   projectName: 'haft',
