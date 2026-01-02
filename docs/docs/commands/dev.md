@@ -27,6 +27,7 @@ The `dev` command provides a unified interface for common development tasks. It 
 | `build` | `b`, `compile` | Build the project |
 | `test` | `t` | Run tests |
 | `clean` | - | Clean build artifacts |
+| `validate` | `v`, `check` | Validate project configuration and structure |
 | `restart` | - | Trigger restart of running dev server |
 
 ---
@@ -384,6 +385,147 @@ haft dev clean
 |------------|------------------|
 | Maven | `mvn clean` |
 | Gradle | `./gradlew clean` |
+
+---
+
+## haft dev validate
+
+Validate your Spring Boot project configuration and structure.
+
+### Usage
+
+```bash
+haft dev validate [flags]
+haft dev v [flags]      # Alias
+haft dev check [flags]  # Alias
+```
+
+### Description
+
+The `validate` command performs comprehensive validation of your Spring Boot project. It combines custom Haft validation checks with optional build tool validation to ensure your project is properly configured.
+
+### Validation Checks
+
+| Check | Severity | Description |
+|-------|----------|-------------|
+| `build_file` | Error | Build file exists (pom.xml or build.gradle) |
+| `build_file_parse` | Error | Build file parses correctly |
+| `spring_boot_config` | Error | Spring Boot parent/plugin is configured |
+| `java_version` | Warning | Java version is specified (warns for Java 8) |
+| `source_directory` | Error | Source directory exists (src/main/java or src/main/kotlin) |
+| `resources_directory` | Warning | Resources directory exists (src/main/resources) |
+| `main_class` | Error | Main class with @SpringBootApplication found |
+| `config_file` | Warning | Configuration file exists (application.yml/yaml/properties) |
+| `spring_boot_starter` | Warning | At least one Spring Boot starter dependency present |
+| `test_directory` | Info | Test directory exists (src/test/java or src/test/kotlin) |
+| `build_tool_validation` | Error | Maven/Gradle validation passes |
+
+### Flags
+
+| Flag | Short | Description |
+|------|-------|-------------|
+| `--strict` | `-s` | Treat warnings as errors (exit code 1 if warnings exist) |
+| `--skip-build-tool` | - | Skip Maven/Gradle validation (only run Haft checks) |
+| `--json` | - | Output results as JSON (useful for CI pipelines) |
+
+### Examples
+
+```bash
+# Run all validation checks
+haft dev validate
+
+# Run in strict mode (warnings become errors)
+haft dev validate --strict
+haft dev validate -s
+
+# Only run Haft checks (skip mvn validate / gradle help)
+haft dev validate --skip-build-tool
+
+# Output as JSON for CI integration
+haft dev validate --json
+
+# Combine options
+haft dev validate --strict --json
+```
+
+### Output Format
+
+#### Standard Output
+
+```
+Validating project: /path/to/project
+Build tool: Maven
+
+Validation Results:
+  ✓ build_file: Build file exists
+  ✓ build_file_parse: Build file parsed successfully
+  ✓ spring_boot_config: Spring Boot parent configured
+  ⚠ java_version: Java 8 detected - consider upgrading to Java 17+
+  ✓ source_directory: Source directory exists
+  ✓ resources_directory: Resources directory exists
+  ✓ main_class: Main class found: com.example.Application
+  ✓ config_file: Configuration file found: application.yml
+  ✓ spring_boot_starter: Spring Boot starters found
+  ℹ test_directory: Test directory exists
+  ✓ build_tool_validation: Maven validation passed
+
+Summary: 9 passed, 1 warning, 0 errors
+```
+
+#### JSON Output
+
+```json
+{
+  "project_path": "/path/to/project",
+  "build_tool": "Maven",
+  "passed": true,
+  "error_count": 0,
+  "warning_count": 1,
+  "results": [
+    {
+      "check": "build_file",
+      "passed": true,
+      "severity": "error",
+      "message": "Build file exists"
+    }
+  ],
+  "build_tool_pass": true
+}
+```
+
+### Exit Codes
+
+| Code | Meaning |
+|------|---------|
+| 0 | All checks passed (or only warnings in non-strict mode) |
+| 1 | Validation failed (errors found, or warnings in strict mode) |
+
+### Use Cases
+
+**Pre-commit Hook**
+```bash
+#!/bin/bash
+haft dev validate --strict || exit 1
+```
+
+**CI Pipeline**
+```yaml
+- name: Validate project
+  run: haft dev validate --json > validation.json
+```
+
+**Quick Check**
+```bash
+# Fast validation without build tool
+haft dev validate --skip-build-tool
+```
+
+### Build Tool Commands
+
+| Build Tool | Executed Command |
+|------------|------------------|
+| Maven | `mvn validate` |
+| Gradle | `./gradlew help` |
 
 ---
 

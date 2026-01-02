@@ -28,7 +28,7 @@ func TestDevSubcommands(t *testing.T) {
 		subcommands[sub.Name()] = sub
 	}
 
-	expectedSubs := []string{"serve", "build", "test", "clean", "restart"}
+	expectedSubs := []string{"serve", "build", "test", "clean", "restart", "validate"}
 	for _, name := range expectedSubs {
 		assert.Contains(t, subcommands, name, "missing subcommand: %s", name)
 	}
