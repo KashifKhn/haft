@@ -28,6 +28,7 @@ The `dev` command provides a unified interface for common development tasks. It 
 | `test` | `t` | Run tests |
 | `clean` | - | Clean build artifacts |
 | `validate` | `v`, `check` | Validate project configuration and structure |
+| `verify` | `vfy` | Run integration tests and quality checks |
 | `restart` | - | Trigger restart of running dev server |
 
 ---
@@ -526,6 +527,59 @@ haft dev validate --skip-build-tool
 |------------|------------------|
 | Maven | `mvn validate` |
 | Gradle | `./gradlew help` |
+
+---
+
+## haft dev verify
+
+Run integration tests and quality checks.
+
+### Usage
+
+```bash
+haft dev verify [flags]
+haft dev vfy [flags]    # Alias
+```
+
+### Description
+
+The `verify` command runs the full verification lifecycle including compilation, unit tests, integration tests, and quality checks (Checkstyle, SpotBugs, etc.). This is more comprehensive than `haft dev test` which only runs unit tests.
+
+### Flags
+
+| Flag | Short | Description |
+|------|-------|-------------|
+| `--skip-tests` | `-s` | Skip all tests during verification |
+| `--skip-integration` | `-i` | Skip integration tests only |
+| `--profile` | `-p` | Maven/Gradle profile to activate |
+
+### Examples
+
+```bash
+# Run full verification
+haft dev verify
+
+# Skip all tests (only run quality checks)
+haft dev verify --skip-tests
+haft dev verify -s
+
+# Skip integration tests only
+haft dev verify --skip-integration
+haft dev verify -i
+
+# Run with specific profile
+haft dev verify --profile ci
+
+# Combine options
+haft dev verify -i -p prod
+```
+
+### Build Tool Commands
+
+| Build Tool | Executed Command |
+|------------|------------------|
+| Maven | `mvn verify` |
+| Gradle | `./gradlew check` |
 
 ---
 

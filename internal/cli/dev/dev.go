@@ -38,6 +38,7 @@ execute the appropriate underlying commands.`,
 	cmd.AddCommand(newCleanCommand())
 	cmd.AddCommand(newRestartCommand())
 	cmd.AddCommand(newValidateCommand())
+	cmd.AddCommand(newVerifyCommand())
 
 	return cmd
 }
