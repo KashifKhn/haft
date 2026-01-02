@@ -6,7 +6,7 @@ description: Available Spring Boot dependencies and shortcuts
 
 # Dependencies
 
-Haft provides access to all official Spring Boot starters plus 330+ additional dependency shortcuts for popular libraries across 35 categories.
+Haft provides access to all official Spring Boot starters plus 230+ additional dependency shortcuts for popular libraries across 35 categories.
 
 ## Build Tool Support
 
@@ -154,9 +154,9 @@ These are the official Spring Boot starters available during `haft init`:
 
 ---
 
-## Extended Shortcuts (330+)
+## Extended Shortcuts (230+)
 
-Beyond Spring Initializr starters, `haft add` supports 330+ shortcuts for popular libraries:
+Beyond Spring Initializr starters, `haft add` supports 230+ shortcuts for popular libraries:
 
 ### Web & HTTP
 

@@ -71,7 +71,7 @@ This page tracks the development progress of Haft.
   - [x] Auto-fetch latest versions
   - [x] `haft remove <dependency>` — Remove dependencies
   - [x] `haft remove` — Interactive removal picker
-  - [x] 330+ dependency shortcuts (jwt, guava, feign, etc.)
+  - [x] 230+ dependency shortcuts (jwt, guava, feign, etc.)
 
 - [x] **Intelligent Architecture Detection**
   - [x] Layered architecture detection
@@ -222,7 +222,7 @@ See [Contributing](/docs/contributing) for guidelines.
 - Feature: Maven Central API verification for coordinates
 - Feature: Auto-fetch latest version for Maven coordinates
 - Feature: `haft remove` command with interactive picker
-- Feature: 330+ dependency shortcuts (jwt, guava, feign, resilience4j, etc.)
+- Feature: 230+ dependency shortcuts (jwt, guava, feign, resilience4j, etc.)
 - Feature: Suffix matching for remove command
 
 ### v0.1.3

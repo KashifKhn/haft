@@ -49,7 +49,7 @@ haft generate resource User
 
 Not a web form. A beautiful terminal interface with:
 
-- Real-time search across 330+ dependency shortcuts
+- Real-time search across 230+ dependency shortcuts
 - Category filtering (Web, SQL, Security, etc.)
 - Keyboard navigation
 - Back button support (press `Esc`)
