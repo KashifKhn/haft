@@ -22,7 +22,7 @@ haft add <groupId:artifactId:version>
 
 The `add` command modifies your build file (`pom.xml` or `build.gradle`) to add new dependencies. It supports:
 
-- **Interactive mode** — Search and select from 330+ shortcuts
+- **Interactive mode** — Search and select from 230+ shortcuts
 - **Browse mode** — Navigate dependencies by category
 - **Shortcuts** — Common dependencies like `lombok`, `jpa`, `web`, `jwt`
 - **Maven coordinates** — Any dependency as `groupId:artifactId`
@@ -116,7 +116,7 @@ haft add --list
 | `--json` | | Output result as JSON |
 | `--no-interactive` | | Skip interactive prompts |
 
-## Available Shortcuts (330+)
+## Available Shortcuts (230+)
 
 ### Web
 

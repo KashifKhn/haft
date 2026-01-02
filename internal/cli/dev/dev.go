@@ -25,6 +25,9 @@ execute the appropriate underlying commands.`,
   # Clean build artifacts
   haft dev clean
 
+  # Validate project configuration
+  haft dev validate
+
   # Trigger restart (for use with haft dev serve)
   haft dev restart`,
 	}
@@ -34,6 +37,11 @@ execute the appropriate underlying commands.`,
 	cmd.AddCommand(newTestCommand())
 	cmd.AddCommand(newCleanCommand())
 	cmd.AddCommand(newRestartCommand())
+	cmd.AddCommand(newValidateCommand())
+	cmd.AddCommand(newVerifyCommand())
+	cmd.AddCommand(newDepsCommand())
+	cmd.AddCommand(newOutdatedCommand())
+	cmd.AddCommand(newPackageCommand())
 
 	return cmd
 }
