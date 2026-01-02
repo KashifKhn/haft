@@ -29,6 +29,7 @@ The `dev` command provides a unified interface for common development tasks. It 
 | `clean` | - | Clean build artifacts |
 | `validate` | `v`, `check` | Validate project configuration and structure |
 | `verify` | `vfy` | Run integration tests and quality checks |
+| `deps` | `dependencies`, `tree` | Display project dependency tree |
 | `restart` | - | Trigger restart of running dev server |
 
 ---
@@ -580,6 +581,59 @@ haft dev verify -i -p prod
 |------------|------------------|
 | Maven | `mvn verify` |
 | Gradle | `./gradlew check` |
+
+---
+
+## haft dev deps
+
+Display the project's dependency tree.
+
+### Usage
+
+```bash
+haft dev deps [flags]
+haft dev dependencies [flags]  # Alias
+haft dev tree [flags]          # Alias
+```
+
+### Description
+
+The `deps` command displays all direct and transitive dependencies of your project. This is useful for understanding your dependency graph and debugging version conflicts.
+
+### Flags
+
+| Flag | Short | Description |
+|------|-------|-------------|
+| `--configuration` | `-c` | Configuration/scope to show (e.g., compile, runtime, test) |
+| `--verbose` | `-v` | Show verbose dependency information |
+
+### Examples
+
+```bash
+# Show full dependency tree
+haft dev deps
+
+# Show dependencies for specific configuration (Gradle)
+haft dev deps --configuration compileClasspath
+
+# Show dependencies for specific scope (Maven)
+haft dev deps --configuration compile
+haft dev deps -c test
+
+# Show verbose output
+haft dev deps --verbose
+haft dev deps -v
+
+# Combine options
+haft dev deps -c runtime -v
+```
+
+### Build Tool Commands
+
+| Build Tool | Executed Command |
+|------------|------------------|
+| Maven | `mvn dependency:tree` |
+| Gradle | `./gradlew dependencies` |
 
 ---
 

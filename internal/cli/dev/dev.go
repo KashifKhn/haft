@@ -39,6 +39,7 @@ execute the appropriate underlying commands.`,
 	cmd.AddCommand(newRestartCommand())
 	cmd.AddCommand(newValidateCommand())
 	cmd.AddCommand(newVerifyCommand())
+	cmd.AddCommand(newDepsCommand())
 
 	return cmd
 }
