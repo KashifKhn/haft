@@ -25,6 +25,14 @@ const config: Config = {
     locales: ['en'],
   },
 
+  scripts: [
+    {
+      src: 'https://cloud.umami.is/script.js',
+      defer: true,
+      'data-website-id': 'bd96a9a7-e568-40f2-ab08-cce8b92e7a31',
+    },
+  ],
+
   presets: [
     [
       'classic',
