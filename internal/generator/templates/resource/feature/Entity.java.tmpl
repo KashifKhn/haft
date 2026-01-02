@@ -1,45 +1,21 @@
-package {{.FeaturePackage}}.entity;
+package {{.FeaturePackage}}{{if not .FeatureStyleFlat}}.entity{{end}};
 
 import jakarta.persistence.*;
-{{if .HasLombok}}
-import lombok.*;
-{{end}}
-{{if .HasBaseEntity}}
-import {{.BaseEntityImport}};
-{{end}}
-{{if .IDImport}}
-import {{.IDImport}};
-{{end}}
+{{if .HasLombok}}import lombok.*;{{end}}
+{{if .HasBaseEntity}}import {{.BaseEntityImport}};{{end}}
+{{if .IDImport}}import {{.IDImport}};{{end}}
 
 @Entity
 @Table(name = "{{plural .NameLower}}")
-{{if .HasLombok}}
-{{if .Lombok.UseData}}
-@Data
-{{else}}
-@Getter
-@Setter
-{{end}}
-{{if .Lombok.UseNoArgs}}
-@NoArgsConstructor
-{{end}}
-{{if .Lombok.UseAllArgs}}
-@AllArgsConstructor
-{{end}}
-{{if .Lombok.UseBuilder}}
-@Builder
-{{end}}
-{{end}}
-public class {{.Name}}{{if .HasBaseEntity}} extends {{.BaseEntityName}}{{end}} {
+{{if .HasLombok}}{{if .Lombok.UseData}}@Data{{else}}@Getter
+@Setter{{end}}
+{{if .Lombok.UseNoArgs}}@NoArgsConstructor{{end}}
+{{if .Lombok.UseAllArgs}}@AllArgsConstructor{{end}}
+{{if .Lombok.UseBuilder}}@Builder{{end}}{{end}}public class {{.Name}}{{if .HasBaseEntity}} extends {{.BaseEntityName}}{{end}} {
 {{if not .HasBaseEntity}}
     @Id
-    {{if eq .IDType "UUID"}}
-    @GeneratedValue(strategy = GenerationType.UUID)
-    {{else}}
-    @GeneratedValue(strategy = GenerationType.IDENTITY)
-    {{end}}
+{{if eq .IDType "UUID"}}    @GeneratedValue(strategy = GenerationType.UUID){{else}}    @GeneratedValue(strategy = GenerationType.IDENTITY){{end}}
     private {{.IDType}} id;
-{{end}}
 {{if and (not .HasLombok) (not .HasBaseEntity)}}
     public {{.IDType}} getId() {
         return id;
@@ -48,5 +24,5 @@ public class {{.Name}}{{if .HasBaseEntity}} extends {{.BaseEntityName}}{{end}} {
     public void setId({{.IDType}} id) {
         this.id = id;
     }
-{{end}}
+{{end}}{{end}}
 }

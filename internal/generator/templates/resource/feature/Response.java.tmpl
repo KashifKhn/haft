@@ -1,29 +1,13 @@
-package {{.FeaturePackage}}.dto;
+package {{.FeaturePackage}}{{if not .FeatureStyleFlat}}.dto{{end}};
 
-{{if .HasLombok}}
-import lombok.*;
-{{end}}
-{{if .IDImport}}
-import {{.IDImport}};
-{{end}}
+{{if .HasLombok}}import lombok.*;{{end}}
+{{if .IDImport}}import {{.IDImport}};{{end}}
 
-{{if .HasLombok}}
-{{if .Lombok.UseData}}
-@Data
-{{else}}
-@Getter
-@Setter
-{{end}}
-{{if .Lombok.UseNoArgs}}
-@NoArgsConstructor
-{{end}}
-{{if .Lombok.UseAllArgs}}
-@AllArgsConstructor
-{{end}}
-{{if .Lombok.UseBuilder}}
-@Builder
-{{end}}
-{{end}}
+{{if .HasLombok}}{{if .Lombok.UseData}}@Data{{else}}@Getter
+@Setter{{end}}
+{{if .Lombok.UseNoArgs}}@NoArgsConstructor{{end}}
+{{if .Lombok.UseAllArgs}}@AllArgsConstructor{{end}}
+{{if .Lombok.UseBuilder}}@Builder{{end}}{{end}}
 public class {{.ResponseSuffix}} {
 
     private {{.IDType}} id;

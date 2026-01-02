@@ -1,28 +1,25 @@
-package {{.FeaturePackage}}.controller;
+package {{.FeaturePackage}}{{if not .FeatureStyleFlat}}.controller{{end}};
 
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
-{{if .HasValidation}}
-import {{.ValidationImport}}.Valid;
-{{end}}
+{{if .HasValidation}}import {{.ValidationImport}}.Valid;{{end}}
 {{if .HasSwagger}}
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
 {{end}}
+{{if .HasResponseWrapper}}import {{.ResponseWrapperImport}};{{end}}
+{{if not .FeatureStyleFlat}}
 import {{.FeaturePackage}}.service.{{.Name}}Service;
 import {{.FeaturePackage}}.dto.{{.RequestSuffix}};
 import {{.FeaturePackage}}.dto.{{.ResponseSuffix}};
-{{if .HasResponseWrapper}}
-import {{.ResponseWrapperImport}};
 {{end}}
+{{if .IDImport}}import {{.IDImport}};{{end}}
 
 import java.util.List;
 
 @RestController
 @RequestMapping("/api/{{plural .NameLower}}")
-{{if .HasSwagger}}
-@Tag(name = "{{.Name}}", description = "{{.Name}} management APIs")
-{{end}}
+{{if .HasSwagger}}@Tag(name = "{{.Name}}", description = "{{.Name}} management APIs"){{end}}
 public class {{.Name}}{{.ControllerSuffix}} {
 
     private final {{.Name}}Service {{.NameCamel}}Service;
@@ -31,57 +28,31 @@ public class {{.Name}}{{.ControllerSuffix}} {
         this.{{.NameCamel}}Service = {{.NameCamel}}Service;
     }
 
-    {{if .HasSwagger}}
-    @Operation(summary = "Get all {{plural .NameLower}}")
-    {{end}}
+{{if .HasSwagger}}    @Operation(summary = "Get all {{plural .NameLower}}"){{end}}
     @GetMapping
     public ResponseEntity<{{if .HasResponseWrapper}}{{.ResponseWrapperName}}<{{end}}List<{{.ResponseSuffix}}>{{if .HasResponseWrapper}}>{{end}}> getAll() {
-        {{if .HasResponseWrapper}}
-        return ResponseEntity.ok({{.ResponseWrapperName}}.success({{.NameCamel}}Service.findAll()));
-        {{else}}
-        return ResponseEntity.ok({{.NameCamel}}Service.findAll());
-        {{end}}
+{{if .HasResponseWrapper}}        return ResponseEntity.ok({{.ResponseWrapperName}}.success({{.NameCamel}}Service.findAll()));{{else}}        return ResponseEntity.ok({{.NameCamel}}Service.findAll());{{end}}
     }
 
-    {{if .HasSwagger}}
-    @Operation(summary = "Get {{.NameLower}} by ID")
-    {{end}}
+{{if .HasSwagger}}    @Operation(summary = "Get {{.NameLower}} by ID"){{end}}
     @GetMapping("/{id}")
     public ResponseEntity<{{if .HasResponseWrapper}}{{.ResponseWrapperName}}<{{end}}{{.ResponseSuffix}}{{if .HasResponseWrapper}}>{{end}}> getById(@PathVariable {{.IDType}} id) {
-        {{if .HasResponseWrapper}}
-        return ResponseEntity.ok({{.ResponseWrapperName}}.success({{.NameCamel}}Service.findById(id)));
-        {{else}}
-        return ResponseEntity.ok({{.NameCamel}}Service.findById(id));
-        {{end}}
+{{if .HasResponseWrapper}}        return ResponseEntity.ok({{.ResponseWrapperName}}.success({{.NameCamel}}Service.findById(id)));{{else}}        return ResponseEntity.ok({{.NameCamel}}Service.findById(id));{{end}}
     }
 
-    {{if .HasSwagger}}
-    @Operation(summary = "Create a new {{.NameLower}}")
-    {{end}}
+{{if .HasSwagger}}    @Operation(summary = "Create a new {{.NameLower}}"){{end}}
     @PostMapping
     public ResponseEntity<{{if .HasResponseWrapper}}{{.ResponseWrapperName}}<{{end}}{{.ResponseSuffix}}{{if .HasResponseWrapper}}>{{end}}> create({{if .HasValidation}}@Valid {{end}}@RequestBody {{.RequestSuffix}} request) {
-        {{if .HasResponseWrapper}}
-        return ResponseEntity.ok({{.ResponseWrapperName}}.success({{.NameCamel}}Service.create(request)));
-        {{else}}
-        return ResponseEntity.ok({{.NameCamel}}Service.create(request));
-        {{end}}
+{{if .HasResponseWrapper}}        return ResponseEntity.ok({{.ResponseWrapperName}}.success({{.NameCamel}}Service.create(request)));{{else}}        return ResponseEntity.ok({{.NameCamel}}Service.create(request));{{end}}
     }
 
-    {{if .HasSwagger}}
-    @Operation(summary = "Update an existing {{.NameLower}}")
-    {{end}}
+{{if .HasSwagger}}    @Operation(summary = "Update an existing {{.NameLower}}"){{end}}
     @PutMapping("/{id}")
     public ResponseEntity<{{if .HasResponseWrapper}}{{.ResponseWrapperName}}<{{end}}{{.ResponseSuffix}}{{if .HasResponseWrapper}}>{{end}}> update(@PathVariable {{.IDType}} id, {{if .HasValidation}}@Valid {{end}}@RequestBody {{.RequestSuffix}} request) {
-        {{if .HasResponseWrapper}}
-        return ResponseEntity.ok({{.ResponseWrapperName}}.success({{.NameCamel}}Service.update(id, request)));
-        {{else}}
-        return ResponseEntity.ok({{.NameCamel}}Service.update(id, request));
-        {{end}}
+{{if .HasResponseWrapper}}        return ResponseEntity.ok({{.ResponseWrapperName}}.success({{.NameCamel}}Service.update(id, request)));{{else}}        return ResponseEntity.ok({{.NameCamel}}Service.update(id, request));{{end}}
     }
 
-    {{if .HasSwagger}}
-    @Operation(summary = "Delete a {{.NameLower}}")
-    {{end}}
+{{if .HasSwagger}}    @Operation(summary = "Delete a {{.NameLower}}"){{end}}
     @DeleteMapping("/{id}")
     public ResponseEntity<Void> delete(@PathVariable {{.IDType}} id) {
         {{.NameCamel}}Service.delete(id);

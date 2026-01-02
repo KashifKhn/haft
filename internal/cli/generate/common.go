@@ -338,7 +338,8 @@ type TemplateContext struct {
 	FeaturePackage string
 	TestPackage    string
 
-	Architecture string
+	Architecture     string
+	FeatureStyleFlat bool
 
 	HasLombok     bool
 	HasJpa        bool
@@ -394,7 +395,8 @@ func BuildTemplateContextFromProfile(name string, profile *detector.ProjectProfi
 		FeaturePackage: featurePackage,
 		TestPackage:    testPackage,
 
-		Architecture: string(profile.Architecture),
+		Architecture:     string(profile.Architecture),
+		FeatureStyleFlat: profile.FeatureStyle == detector.FeatureStyleFlat,
 
 		HasLombok:     profile.Lombok.Detected,
 		HasJpa:        profile.Database == detector.DatabaseJPA || profile.Database == detector.DatabaseMulti,
@@ -451,6 +453,7 @@ func (ctx TemplateContext) ToMap() map[string]any {
 		"FeaturePackage":        ctx.FeaturePackage,
 		"TestPackage":           ctx.TestPackage,
 		"Architecture":          ctx.Architecture,
+		"FeatureStyleFlat":      ctx.FeatureStyleFlat,
 		"HasLombok":             ctx.HasLombok,
 		"HasJpa":                ctx.HasJpa,
 		"HasValidation":         ctx.HasValidation,

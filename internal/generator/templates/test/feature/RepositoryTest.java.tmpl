@@ -1,4 +1,4 @@
-package {{.TestPackage}}.repository;
+package {{.TestPackage}}{{if not .FeatureStyleFlat}}.repository{{end}};
 
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
@@ -9,13 +9,13 @@ import org.springframework.boot.test.autoconfigure.orm.jpa.TestEntityManager;
 import org.springframework.boot.test.autoconfigure.jdbc.AutoConfigureTestDatabase;
 import org.springframework.boot.test.autoconfigure.jdbc.AutoConfigureTestDatabase.Replace;
 import org.springframework.test.context.ActiveProfiles;
-
-import {{.FeaturePackage}}.repository.{{.Name}}Repository;
-import {{.FeaturePackage}}.entity.{{.Name}};
-{{if ne .IDImport ""}}
+{{if .IDImport}}
 import {{.IDImport}};
 {{end}}
-
+{{if not .FeatureStyleFlat}}
+import {{.FeaturePackage}}.entity.{{.Name}};
+import {{.FeaturePackage}}.repository.{{.Name}}Repository;
+{{end}}
 import java.util.Optional;
 
 import static org.assertj.core.api.Assertions.assertThat;
