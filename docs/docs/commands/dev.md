@@ -30,6 +30,7 @@ The `dev` command provides a unified interface for common development tasks. It 
 | `validate` | `v`, `check` | Validate project configuration and structure |
 | `verify` | `vfy` | Run integration tests and quality checks |
 | `deps` | `dependencies`, `tree` | Display project dependency tree |
+| `outdated` | `updates`, `out` | Check for dependency updates |
 | `restart` | - | Trigger restart of running dev server |
 
 ---
@@ -634,6 +635,76 @@ haft dev deps -c runtime -v
 |------------|------------------|
 | Maven | `mvn dependency:tree` |
 | Gradle | `./gradlew dependencies` |
+
+---
+
+## haft dev outdated
+
+Check for newer versions of your dependencies.
+
+### Usage
+
+```bash
+haft dev outdated [flags]
+haft dev updates [flags]  # Alias
+haft dev out [flags]      # Alias
+```
+
+### Description
+
+The `outdated` command scans your dependencies and reports which ones have newer versions available. This helps keep your project up-to-date and secure.
+
+**Note:** For Gradle projects, this requires the `com.github.ben-manes.versions` plugin to be configured in your build file.
+
+### Flags
+
+| Flag | Short | Description |
+|------|-------|-------------|
+| `--plugins` | `-p` | Include plugin updates (Maven only) |
+| `--snapshots` | `-s` | Include snapshot versions in results |
+
+### Examples
+
+```bash
+# Check for outdated dependencies
+haft dev outdated
+
+# Include plugin updates (Maven only)
+haft dev outdated --plugins
+haft dev outdated -p
+
+# Allow snapshot versions in results
+haft dev outdated --snapshots
+haft dev outdated -s
+
+# Combine options
+haft dev outdated -p -s
+```
+
+### Gradle Plugin Setup
+
+For Gradle projects, add the versions plugin to your `build.gradle`:
+
+```groovy
+plugins {
+    id 'com.github.ben-manes.versions' version '0.51.0'
+}
+```
+
+Or for Kotlin DSL (`build.gradle.kts`):
+
+```kotlin
+plugins {
+    id("com.github.ben-manes.versions") version "0.51.0"
+}
+```
+
+### Build Tool Commands
+
+| Build Tool | Executed Command |
+|------------|------------------|
+| Maven | `mvn versions:display-dependency-updates` |
+| Gradle | `./gradlew dependencyUpdates` |
 
 ---
 

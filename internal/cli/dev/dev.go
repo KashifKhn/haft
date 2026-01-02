@@ -40,6 +40,7 @@ execute the appropriate underlying commands.`,
 	cmd.AddCommand(newValidateCommand())
 	cmd.AddCommand(newVerifyCommand())
 	cmd.AddCommand(newDepsCommand())
+	cmd.AddCommand(newOutdatedCommand())
 
 	return cmd
 }
