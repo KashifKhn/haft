@@ -41,6 +41,7 @@ execute the appropriate underlying commands.`,
 	cmd.AddCommand(newVerifyCommand())
 	cmd.AddCommand(newDepsCommand())
 	cmd.AddCommand(newOutdatedCommand())
+	cmd.AddCommand(newPackageCommand())
 
 	return cmd
 }

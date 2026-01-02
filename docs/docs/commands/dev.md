@@ -31,6 +31,7 @@ The `dev` command provides a unified interface for common development tasks. It 
 | `verify` | `vfy` | Run integration tests and quality checks |
 | `deps` | `dependencies`, `tree` | Display project dependency tree |
 | `outdated` | `updates`, `out` | Check for dependency updates |
+| `package` | `pkg`, `jar` | Create deployable artifact without tests |
 | `restart` | - | Trigger restart of running dev server |
 
 ---
@@ -705,6 +706,60 @@ plugins {
 |------------|------------------|
 | Maven | `mvn versions:display-dependency-updates` |
 | Gradle | `./gradlew dependencyUpdates` |
+
+---
+
+## haft dev package
+
+Create a deployable artifact (JAR/WAR) without running tests.
+
+### Usage
+
+```bash
+haft dev package [flags]
+haft dev pkg [flags]  # Alias
+haft dev jar [flags]  # Alias
+```
+
+### Description
+
+The `package` command creates the deployable artifact quickly by skipping tests by default. This is faster than `haft dev build` when you just need the artifact for deployment or testing.
+
+### Flags
+
+| Flag | Short | Default | Description |
+|------|-------|---------|-------------|
+| `--skip-tests` | `-s` | `true` | Skip running tests |
+| `--clean` | `-c` | `false` | Clean before packaging |
+| `--profile` | `-p` | - | Maven/Gradle profile to activate |
+
+### Examples
+
+```bash
+# Create artifact without tests (default)
+haft dev package
+
+# Create artifact with tests
+haft dev package --skip-tests=false
+
+# Clean before packaging
+haft dev package --clean
+haft dev package -c
+
+# Package with specific profile
+haft dev package --profile prod
+haft dev package -p prod
+
+# Clean build with profile
+haft dev package -c -p prod
+```
+
+### Build Tool Commands
+
+| Build Tool | Executed Command |
+|------------|------------------|
+| Maven | `mvn package -DskipTests` |
+| Gradle | `./gradlew bootJar -x test` |
 
 ---
 
