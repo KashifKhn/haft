@@ -13,6 +13,7 @@ import (
 	routescmd "github.com/KashifKhn/haft/internal/cli/routes"
 	statscmd "github.com/KashifKhn/haft/internal/cli/stats"
 	templatecmd "github.com/KashifKhn/haft/internal/cli/template"
+	upgradecmd "github.com/KashifKhn/haft/internal/cli/upgrade"
 	"github.com/KashifKhn/haft/internal/logger"
 	"github.com/spf13/cobra"
 )
@@ -100,6 +101,7 @@ func init() {
 	rootCmd.AddCommand(routescmd.NewCommand())
 	rootCmd.AddCommand(statscmd.NewCommand())
 	rootCmd.AddCommand(templatecmd.NewCommand())
+	rootCmd.AddCommand(upgradecmd.NewCommand())
 }
 
 var versionCmd = &cobra.Command{
@@ -118,6 +120,7 @@ func GetVersion() string {
 func SetVersion(v string) {
 	version = v
 	rootCmd.Version = v
+	upgradecmd.SetCurrentVersion(v)
 }
 
 func IsVerbose() bool {
