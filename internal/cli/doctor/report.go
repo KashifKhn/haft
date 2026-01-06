@@ -1,0 +1,195 @@
+package doctor
+
+import (
+	"encoding/json"
+	"fmt"
+	"strings"
+
+	"github.com/charmbracelet/lipgloss"
+)
+
+var (
+	titleStyle = lipgloss.NewStyle().
+			Bold(true).
+			Foreground(lipgloss.Color("39"))
+
+	passedStyle = lipgloss.NewStyle().
+			Foreground(lipgloss.Color("42"))
+
+	errorStyle = lipgloss.NewStyle().
+			Foreground(lipgloss.Color("196"))
+
+	warningStyle = lipgloss.NewStyle().
+			Foreground(lipgloss.Color("214"))
+
+	infoStyle = lipgloss.NewStyle().
+			Foreground(lipgloss.Color("39"))
+
+	suggestionStyle = lipgloss.NewStyle().
+			Foreground(lipgloss.Color("141"))
+
+	mutedStyle = lipgloss.NewStyle().
+			Foreground(lipgloss.Color("245"))
+
+	headerStyle = lipgloss.NewStyle().
+			Bold(true).
+			Foreground(lipgloss.Color("255"))
+)
+
+func FormatReport(report *Report, opts Options) string {
+	if opts.JSON {
+		return formatJSON(report)
+	}
+	return formatText(report, opts)
+}
+
+func formatJSON(report *Report) string {
+	data, err := json.MarshalIndent(report, "", "  ")
+	if err != nil {
+		return fmt.Sprintf(`{"error": "%s"}`, err.Error())
+	}
+	return string(data)
+}
+
+func formatText(report *Report, opts Options) string {
+	var sb strings.Builder
+
+	sb.WriteString("\n")
+	sb.WriteString(titleStyle.Render("🏥 Haft Doctor - Project Health Check"))
+	sb.WriteString("\n")
+	sb.WriteString(strings.Repeat("=", 45))
+	sb.WriteString("\n\n")
+
+	sb.WriteString(fmt.Sprintf("Project: %s\n", report.ProjectName))
+	sb.WriteString(fmt.Sprintf("Path: %s\n", report.ProjectPath))
+	if report.BuildTool != "" {
+		sb.WriteString(fmt.Sprintf("Build Tool: %s\n", report.BuildTool))
+	}
+	if report.JavaVersion != "" {
+		sb.WriteString(fmt.Sprintf("Java: %s\n", report.JavaVersion))
+	}
+	if report.SpringVersion != "" {
+		sb.WriteString(fmt.Sprintf("Spring Boot: %s\n", report.SpringVersion))
+	}
+	sb.WriteString("\n")
+
+	passed := filterResults(report.Results, true, "")
+	errors := filterResults(report.Results, false, string(SeverityError))
+	warnings := filterResults(report.Results, false, string(SeverityWarning))
+	infos := filterResults(report.Results, false, string(SeverityInfo))
+	suggestions := filterResults(report.Results, false, string(SeveritySuggestion))
+
+	if len(passed) > 0 {
+		sb.WriteString(headerStyle.Render("Passed Checks:"))
+		sb.WriteString("\n")
+		for _, r := range passed {
+			sb.WriteString(fmt.Sprintf("  %s %s\n",
+				passedStyle.Render("✓"),
+				r.Message,
+			))
+		}
+		sb.WriteString("\n")
+	}
+
+	if len(errors) > 0 {
+		sb.WriteString(headerStyle.Render("Issues:"))
+		sb.WriteString("\n")
+		for _, r := range errors {
+			sb.WriteString(fmt.Sprintf("  %s %s\n",
+				errorStyle.Render("✗"),
+				errorStyle.Render(r.Message),
+			))
+			if r.Details != "" {
+				sb.WriteString(fmt.Sprintf("    %s\n", mutedStyle.Render(r.Details)))
+			}
+			if r.FixHint != "" {
+				sb.WriteString(fmt.Sprintf("    %s %s\n", mutedStyle.Render("→"), r.FixHint))
+			}
+		}
+		sb.WriteString("\n")
+	}
+
+	if len(warnings) > 0 {
+		sb.WriteString(headerStyle.Render("Warnings:"))
+		sb.WriteString("\n")
+		for _, r := range warnings {
+			sb.WriteString(fmt.Sprintf("  %s %s\n",
+				warningStyle.Render("⚠"),
+				warningStyle.Render(r.Message),
+			))
+			if r.Details != "" {
+				sb.WriteString(fmt.Sprintf("    %s\n", mutedStyle.Render(r.Details)))
+			}
+			if r.FixHint != "" {
+				sb.WriteString(fmt.Sprintf("    %s %s\n", mutedStyle.Render("→"), r.FixHint))
+			}
+		}
+		sb.WriteString("\n")
+	}
+
+	if len(infos) > 0 {
+		sb.WriteString(headerStyle.Render("Info:"))
+		sb.WriteString("\n")
+		for _, r := range infos {
+			sb.WriteString(fmt.Sprintf("  %s %s\n",
+				infoStyle.Render("ℹ"),
+				r.Message,
+			))
+			if r.Details != "" {
+				sb.WriteString(fmt.Sprintf("    %s\n", mutedStyle.Render(r.Details)))
+			}
+		}
+		sb.WriteString("\n")
+	}
+
+	if len(suggestions) > 0 {
+		sb.WriteString(headerStyle.Render("Suggestions:"))
+		sb.WriteString("\n")
+		for _, r := range suggestions {
+			sb.WriteString(fmt.Sprintf("  %s %s\n",
+				suggestionStyle.Render("💡"),
+				r.Message,
+			))
+			if r.Details != "" {
+				sb.WriteString(fmt.Sprintf("    %s\n", mutedStyle.Render(r.Details)))
+			}
+			if r.FixHint != "" {
+				sb.WriteString(fmt.Sprintf("    %s %s\n", mutedStyle.Render("→"), r.FixHint))
+			}
+		}
+		sb.WriteString("\n")
+	}
+
+	sb.WriteString(strings.Repeat("-", 45))
+	sb.WriteString("\n")
+	sb.WriteString(fmt.Sprintf("Summary: %s passed",
+		passedStyle.Render(fmt.Sprintf("%d", report.PassedCount))))
+
+	if report.ErrorCount > 0 {
+		sb.WriteString(fmt.Sprintf(", %s",
+			errorStyle.Render(fmt.Sprintf("%d errors", report.ErrorCount))))
+	}
+	if report.WarningCount > 0 {
+		sb.WriteString(fmt.Sprintf(", %s",
+			warningStyle.Render(fmt.Sprintf("%d warnings", report.WarningCount))))
+	}
+	if report.SuggestionCount > 0 {
+		sb.WriteString(fmt.Sprintf(", %s",
+			suggestionStyle.Render(fmt.Sprintf("%d suggestions", report.SuggestionCount))))
+	}
+	sb.WriteString("\n")
+
+	return sb.String()
+}
+
+func filterResults(results []CheckResult, passed bool, severity string) []CheckResult {
+	var filtered []CheckResult
+	for _, r := range results {
+		if passed && r.Passed {
+			filtered = append(filtered, r)
+		} else if !passed && !r.Passed && (severity == "" || string(r.Severity) == severity) {
+			filtered = append(filtered, r)
+		}
+	}
+	return filtered
+}

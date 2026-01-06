@@ -6,6 +6,7 @@ import (
 	addcmd "github.com/KashifKhn/haft/internal/cli/add"
 	completioncmd "github.com/KashifKhn/haft/internal/cli/completion"
 	devcmd "github.com/KashifKhn/haft/internal/cli/dev"
+	doctorcmd "github.com/KashifKhn/haft/internal/cli/doctor"
 	generatecmd "github.com/KashifKhn/haft/internal/cli/generate"
 	infocmd "github.com/KashifKhn/haft/internal/cli/info"
 	initcmd "github.com/KashifKhn/haft/internal/cli/init"
@@ -97,6 +98,7 @@ func init() {
 	rootCmd.AddCommand(removecmd.NewCommand())
 	rootCmd.AddCommand(completioncmd.NewCommand())
 	rootCmd.AddCommand(devcmd.NewCommand())
+	rootCmd.AddCommand(doctorcmd.NewCommand())
 	rootCmd.AddCommand(infocmd.NewCommand())
 	rootCmd.AddCommand(routescmd.NewCommand())
 	rootCmd.AddCommand(statscmd.NewCommand())

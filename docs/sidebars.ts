@@ -16,6 +16,7 @@ const sidebars: SidebarsConfig = {
         'commands/add',
         'commands/remove',
         'commands/dev',
+        'commands/doctor',
         'commands/info',
         'commands/routes',
         'commands/stats',
