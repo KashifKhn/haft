@@ -108,6 +108,7 @@ This page tracks the development progress of Haft.
   - [x] `haft routes --files` — Show file locations
   - [x] `haft stats` — Code statistics with language breakdown
   - [x] `haft stats --cocomo` — COCOMO cost estimates
+  - [x] `haft doctor` — Project health check with 15 checks
   - [x] JSON output support
 
 - [x] **Custom Templates**
@@ -172,6 +173,10 @@ See [Contributing](/docs/contributing) for guidelines.
 
 ### v0.4.0 (Current)
 
+- Feature: `haft doctor` - Comprehensive project health check with 15 checks across 6 categories
+- Feature: `haft doctor --json` - JSON output for CI/CD integration
+- Feature: `haft doctor --strict` - Exit code 1 on warnings
+- Feature: `haft doctor --category` - Filter checks by category
 - Feature: `haft generate security` - Generate security configuration with JWT, Session, and OAuth2 support
 - Feature: Intelligent dependency checking for security dependencies
 - Feature: User/Role entity detection and optional generation
