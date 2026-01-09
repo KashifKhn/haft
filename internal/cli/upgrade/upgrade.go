@@ -5,7 +5,6 @@ import (
 	"fmt"
 	"os"
 
-	"github.com/KashifKhn/haft/internal/logger"
 	"github.com/spf13/cobra"
 )
 
@@ -80,7 +79,6 @@ func runUpgrade(cmd *cobra.Command, args []string) error {
 	targetVersion, _ := cmd.Flags().GetString("version")
 	jsonOutput, _ := cmd.Flags().GetBool("json")
 
-	log := logger.Default()
 	result := &UpgradeResult{}
 
 	platform, err := GetPlatformInfo()
@@ -94,7 +92,9 @@ func runUpgrade(cmd *cobra.Command, args []string) error {
 	result.CurrentVersion = NormalizeVersion(currentVersion)
 
 	if !jsonOutput {
-		log.Info("Checking for updates...")
+		printLogo()
+		printTagline()
+		printHeader("Upgrade")
 	}
 
 	var latestVersion string
@@ -118,7 +118,7 @@ func runUpgrade(cmd *cobra.Command, args []string) error {
 		if jsonOutput {
 			return outputJSON(result)
 		}
-		log.Success(fmt.Sprintf("You're already on the latest version (%s)", result.CurrentVersion))
+		printAlreadyLatest(result.CurrentVersion)
 		return nil
 	}
 
@@ -127,58 +127,47 @@ func runUpgrade(cmd *cobra.Command, args []string) error {
 			return outputJSON(result)
 		}
 		if isNewer {
-			log.Info("Current version", "version", result.CurrentVersion)
-			log.Info("Latest version", "version", result.LatestVersion)
-			log.Success("Update available! Run 'haft upgrade' to install.")
+			printUpdateAvailable(result.CurrentVersion, result.LatestVersion)
 		} else {
-			log.Info(fmt.Sprintf("You're on version %s (latest: %s)", result.CurrentVersion, result.LatestVersion))
+			printAlreadyLatest(result.CurrentVersion)
 		}
 		return nil
 	}
 
 	if !jsonOutput {
-		if isNewer {
-			log.Info("Current version", "version", result.CurrentVersion)
-			log.Info("Latest version", "version", result.LatestVersion)
-		} else {
-			log.Info("Forcing reinstall of", "version", result.LatestVersion)
+		printMethod("curl")
+		printVersionTransition(result.CurrentVersion, result.LatestVersion)
+	}
+
+	progressCallback := func(downloaded, total int64) {
+		if !jsonOutput {
+			clearLine()
+			fmt.Print("  Downloading... " + printProgress(downloaded, total, 20))
 		}
-		log.Info("Platform", "os", platform.OS, "arch", platform.Arch)
 	}
 
-	if !jsonOutput {
-		log.Info("Downloading", "version", latestVersion)
-	}
-
-	downloadResult, err := DownloadRelease(latestVersion, platform)
+	downloadResult, err := DownloadReleaseWithProgress(latestVersion, platform, progressCallback)
 	if err != nil {
+		if !jsonOutput {
+			fmt.Println()
+		}
 		return outputError(jsonOutput, result, fmt.Errorf("download failed: %w", err))
 	}
 	defer CleanupDownload(downloadResult)
 
 	if !jsonOutput {
-		log.Debug("Downloaded", "size", formatBytes(downloadResult.Size))
+		clearLine()
+		printStepComplete("Downloaded " + formatBytes(downloadResult.Size))
 	}
 
 	checksums, err := FetchChecksums(latestVersion)
-	if err != nil {
-		if !jsonOutput {
-			log.Warning("Could not fetch checksums, skipping verification")
-		}
-	} else if checksums != nil {
+	if err == nil && checksums != nil {
 		archiveName := platform.GetArchiveName(latestVersion)
 		if expectedHash, ok := checksums[archiveName]; ok {
 			if err := VerifyChecksum(downloadResult.FilePath, expectedHash); err != nil {
 				return outputError(jsonOutput, result, fmt.Errorf("checksum verification failed: %w", err))
 			}
-			if !jsonOutput {
-				log.Debug("Checksum verified")
-			}
 		}
-	}
-
-	if !jsonOutput {
-		log.Info("Extracting binary...")
 	}
 
 	binaryPath, err := ExtractBinary(downloadResult.FilePath, platform)
@@ -201,15 +190,8 @@ func runUpgrade(cmd *cobra.Command, args []string) error {
 	for _, installPath := range installations {
 		if _, err := os.Stat(installPath); err == nil {
 			backup, err := CreateBackup(installPath)
-			if err != nil {
-				if !jsonOutput {
-					log.Warning("Failed to create backup", "path", installPath, "error", err)
-				}
-			} else {
+			if err == nil {
 				backups = append(backups, backup)
-				if !jsonOutput {
-					log.Debug("Created backup", "path", installPath)
-				}
 			}
 		}
 	}
@@ -220,20 +202,12 @@ func runUpgrade(cmd *cobra.Command, args []string) error {
 		}
 	}()
 
-	if !jsonOutput {
-		log.Info("Installing new version...")
-	}
-
 	installed, installErrors := InstallToMultipleLocations(binaryPath, installations)
 	result.InstalledPaths = installed
 
 	if len(installed) == 0 {
 		for _, backup := range backups {
-			if restoreErr := RestoreBackup(backup); restoreErr != nil {
-				if !jsonOutput {
-					log.Error("Failed to restore backup", "error", restoreErr)
-				}
-			}
+			RestoreBackup(backup)
 		}
 
 		errMsg := "installation failed at all locations"
@@ -243,24 +217,11 @@ func runUpgrade(cmd *cobra.Command, args []string) error {
 		return outputError(jsonOutput, result, fmt.Errorf("%s", errMsg))
 	}
 
-	if !jsonOutput {
-		log.Info("Verifying installation...")
-	}
-
 	verifyPath := installed[0]
 	if err := VerifyInstallation(verifyPath); err != nil {
-		if !jsonOutput {
-			log.Warning("Verification failed, restoring backup...")
-		}
-
 		for _, backup := range backups {
-			if restoreErr := RestoreBackup(backup); restoreErr != nil {
-				if !jsonOutput {
-					log.Error("Failed to restore backup", "error", restoreErr)
-				}
-			}
+			RestoreBackup(backup)
 		}
-
 		return outputError(jsonOutput, result, fmt.Errorf("installation verification failed: %w", err))
 	}
 
@@ -270,21 +231,8 @@ func runUpgrade(cmd *cobra.Command, args []string) error {
 		return outputJSON(result)
 	}
 
-	log.Success(fmt.Sprintf("Successfully upgraded from %s to %s", result.CurrentVersion, result.LatestVersion))
-
-	if len(installed) > 1 {
-		log.Info("Updated installations:")
-		for _, path := range installed {
-			log.Info("  " + path)
-		}
-	}
-
-	if len(installErrors) > 0 {
-		log.Warning("Some installations failed:")
-		for _, err := range installErrors {
-			log.Warning("  " + err.Error())
-		}
-	}
+	printStepComplete("Upgrade complete")
+	printDone()
 
 	return nil
 }
