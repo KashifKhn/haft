@@ -159,10 +159,10 @@ func PrintKeyCommands() {
 
 func PrintBanner() {
 	fmt.Print("\r\n")
-	fmt.Print("\033[36m╭─────────────────────────────────────────╮\033[0m\r\n")
-	fmt.Print("\033[36m│\033[0m  \033[1;35mHaft Dev Server\033[0m                       \033[36m│\033[0m\r\n")
-	fmt.Print("\033[36m│\033[0m  Press \033[33mr\033[0m to restart, \033[33mq\033[0m to quit         \033[36m│\033[0m\r\n")
-	fmt.Print("\033[36m│\033[0m  Press \033[33mh\033[0m for more commands               \033[36m│\033[0m\r\n")
-	fmt.Print("\033[36m╰─────────────────────────────────────────╯\033[0m\r\n")
+	fmt.Print("\033[36m╭─────────────────────────────────────╮\033[0m\r\n")
+	fmt.Print("\033[36m│\033[0m  \033[1;35mHaft Dev Server\033[0m                    \033[36m│\033[0m\r\n")
+	fmt.Print("\033[36m│\033[0m  Press \033[33mr\033[0m to restart, \033[33mq\033[0m to quit      \033[36m│\033[0m\r\n")
+	fmt.Print("\033[36m│\033[0m  Press \033[33mh\033[0m for more commands          \033[36m│\033[0m\r\n")
+	fmt.Print("\033[36m╰─────────────────────────────────────╯\033[0m\r\n")
 	fmt.Print("\r\n")
 }
