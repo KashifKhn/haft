@@ -207,7 +207,7 @@ func runUpgrade(cmd *cobra.Command, args []string) error {
 
 	if len(installed) == 0 {
 		for _, backup := range backups {
-			RestoreBackup(backup)
+			_ = RestoreBackup(backup)
 		}
 
 		errMsg := "installation failed at all locations"
@@ -220,7 +220,7 @@ func runUpgrade(cmd *cobra.Command, args []string) error {
 	verifyPath := installed[0]
 	if err := VerifyInstallation(verifyPath); err != nil {
 		for _, backup := range backups {
-			RestoreBackup(backup)
+			_ = RestoreBackup(backup)
 		}
 		return outputError(jsonOutput, result, fmt.Errorf("installation verification failed: %w", err))
 	}
