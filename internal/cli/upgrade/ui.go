@@ -17,27 +17,24 @@ var (
 )
 
 func printLogo() {
-	chevron := cyan.Render("   ▄▄")
-	cursor := cyan.Render("█")
-
 	lines := []struct {
 		left  string
 		text  string
 		right string
 	}{
-		{"   ▄▄", "  ██  ██   ████   ████████  ████████", "█"},
-		{"  ▀▀▀▄", " ██  ██  ██  ██  ██           ██", "█"},
-		{"     █", " ██████  ██████  █████        ██", "█"},
-		{"  ▄▄▄▀", " ██  ██  ██  ██  ██           ██", "█"},
-		{"   ▀▀", "  ██  ██  ██  ██  ██           ██", "█"},
+		{"   ▄▄ ", " ██  ██   ████   ████████  ████████", "█"},
+		{"  ▀▀▀▄", " ██  ██  ██  ██  ██           ██   ", "█"},
+		{"     █", " ██████  ██████  █████        ██   ", "█"},
+		{"  ▄▄▄▀", " ██  ██  ██  ██  ██           ██   ", "█"},
+		{"   ▀▀ ", " ██  ██  ██  ██  ██           ██   ", "█"},
 	}
 
 	fmt.Println()
 	for _, line := range lines {
-		chevron = cyan.Render(line.left)
+		chevron := cyan.Render(line.left)
 		text := bold.Render(line.text)
-		cursor = cyan.Render(line.right)
-		fmt.Printf("%s %s      %s\n", chevron, text, cursor)
+		cursor := cyan.Render(line.right)
+		fmt.Printf("%s%s   %s\n", chevron, text, cursor)
 	}
 	fmt.Println()
 }
