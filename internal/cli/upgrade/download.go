@@ -22,7 +22,13 @@ type DownloadResult struct {
 	BinaryPath string
 }
 
+type ProgressCallback func(downloaded, total int64)
+
 func DownloadRelease(version string, platform *PlatformInfo) (*DownloadResult, error) {
+	return DownloadReleaseWithProgress(version, platform, nil)
+}
+
+func DownloadReleaseWithProgress(version string, platform *PlatformInfo, progress ProgressCallback) (*DownloadResult, error) {
 	tmpDir, err := os.MkdirTemp("", "haft-upgrade-*")
 	if err != nil {
 		return nil, fmt.Errorf("failed to create temp directory: %w", err)
@@ -32,7 +38,7 @@ func DownloadRelease(version string, platform *PlatformInfo) (*DownloadResult, e
 	archivePath := filepath.Join(tmpDir, archiveName)
 	downloadURL := platform.GetDownloadURL(version)
 
-	if err := downloadFile(downloadURL, archivePath); err != nil {
+	if err := downloadFileWithProgress(downloadURL, archivePath, progress); err != nil {
 		os.RemoveAll(tmpDir)
 		return nil, fmt.Errorf("failed to download release: %w", err)
 	}
@@ -57,6 +63,10 @@ func DownloadRelease(version string, platform *PlatformInfo) (*DownloadResult, e
 }
 
 func downloadFile(url, destPath string) error {
+	return downloadFileWithProgress(url, destPath, nil)
+}
+
+func downloadFileWithProgress(url, destPath string, progress ProgressCallback) error {
 	client := &http.Client{Timeout: RequestTimeout * 10}
 
 	req, err := http.NewRequest("GET", url, nil)
@@ -86,9 +96,31 @@ func downloadFile(url, destPath string) error {
 	}
 	defer out.Close()
 
-	_, err = io.Copy(out, resp.Body)
-	if err != nil {
-		return fmt.Errorf("failed to write file: %w", err)
+	if progress != nil && resp.ContentLength > 0 {
+		var downloaded int64
+		buf := make([]byte, 32*1024)
+		for {
+			n, err := resp.Body.Read(buf)
+			if n > 0 {
+				_, writeErr := out.Write(buf[:n])
+				if writeErr != nil {
+					return fmt.Errorf("failed to write file: %w", writeErr)
+				}
+				downloaded += int64(n)
+				progress(downloaded, resp.ContentLength)
+			}
+			if err == io.EOF {
+				break
+			}
+			if err != nil {
+				return fmt.Errorf("failed to read response: %w", err)
+			}
+		}
+	} else {
+		_, err = io.Copy(out, resp.Body)
+		if err != nil {
+			return fmt.Errorf("failed to write file: %w", err)
+		}
 	}
 
 	return nil
