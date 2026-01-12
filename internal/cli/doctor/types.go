@@ -18,6 +18,7 @@ const (
 	CategorySecurity     Category = "security"
 	CategoryDependencies Category = "dependencies"
 	CategoryBestPractice Category = "best-practice"
+	CategoryDocker       Category = "docker"
 )
 
 type CheckResult struct {

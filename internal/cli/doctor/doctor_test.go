@@ -571,3 +571,212 @@ func TestFilterByCategory(t *testing.T) {
 	securityResults := filterByCategory(results, CategorySecurity)
 	assert.Len(t, securityResults, 1)
 }
+
+func TestCheckDockerfile_NotPresent(t *testing.T) {
+	fs := setupFs(t)
+	mkdirAll(t, fs, "/project")
+
+	checker := NewChecker(fs, "/project")
+	result := checker.checkDockerfile()
+
+	assert.True(t, result.Passed)
+	assert.Contains(t, result.Message, "No Dockerfile")
+}
+
+func TestCheckDockerfile_MultiStageOptimized(t *testing.T) {
+	fs := setupFs(t)
+	dockerfile := `FROM maven:3.9-eclipse-temurin-17 AS build
+WORKDIR /app
+COPY pom.xml .
+RUN mvn dependency:go-offline
+COPY src ./src
+RUN mvn clean package -DskipTests
+
+FROM eclipse-temurin:17-jre-alpine
+WORKDIR /app
+COPY --from=build /app/target/*.jar app.jar
+USER 1000
+EXPOSE 8080
+HEALTHCHECK --interval=30s --timeout=3s CMD wget -qO- http://localhost:8080/actuator/health || exit 1
+ENTRYPOINT ["java", "-jar", "app.jar"]`
+	writeFile(t, fs, "/project/Dockerfile", dockerfile)
+	writeFile(t, fs, "/project/.dockerignore", ".git\ntarget/\n")
+
+	checker := NewChecker(fs, "/project")
+	result := checker.checkDockerfile()
+
+	assert.True(t, result.Passed)
+	assert.Contains(t, result.Message, "multi-stage")
+}
+
+func TestCheckDockerfile_MissingBestPractices(t *testing.T) {
+	fs := setupFs(t)
+	dockerfile := `FROM eclipse-temurin:latest
+COPY . .
+RUN mvn clean package
+ENTRYPOINT ["java", "-jar", "target/app.jar"]`
+	writeFile(t, fs, "/project/Dockerfile", dockerfile)
+
+	checker := NewChecker(fs, "/project")
+	result := checker.checkDockerfile()
+
+	assert.False(t, result.Passed)
+	assert.Equal(t, SeverityWarning, result.Severity)
+	assert.Contains(t, result.Details, ":latest")
+}
+
+func TestCheckDockerfile_NoUserInstruction(t *testing.T) {
+	fs := setupFs(t)
+	dockerfile := `FROM eclipse-temurin:17-jre
+WORKDIR /app
+COPY target/*.jar app.jar
+ENTRYPOINT ["java", "-jar", "app.jar"]`
+	writeFile(t, fs, "/project/Dockerfile", dockerfile)
+	writeFile(t, fs, "/project/.dockerignore", ".git\n")
+
+	checker := NewChecker(fs, "/project")
+	result := checker.checkDockerfile()
+
+	assert.False(t, result.Passed)
+	assert.Contains(t, result.Details, "EXPOSE")
+}
+
+func TestCheckDockerCompose_NotPresent(t *testing.T) {
+	fs := setupFs(t)
+	mkdirAll(t, fs, "/project")
+
+	checker := NewChecker(fs, "/project")
+	result := checker.checkDockerCompose()
+
+	assert.True(t, result.Passed)
+	assert.Contains(t, result.Message, "No Docker Compose")
+}
+
+func TestCheckDockerCompose_Valid(t *testing.T) {
+	fs := setupFs(t)
+	compose := `version: '3.8'
+services:
+  app:
+    build: .
+    ports:
+      - "8080:8080"
+    environment:
+      - DB_PASSWORD=${DB_PASSWORD}
+    healthcheck:
+      test: ["CMD", "wget", "-qO-", "http://localhost:8080/actuator/health"]
+      interval: 30s
+    restart: unless-stopped
+    depends_on:
+      - db
+  db:
+    image: postgres:15-alpine
+    environment:
+      - POSTGRES_PASSWORD=${DB_PASSWORD}
+    restart: unless-stopped`
+	writeFile(t, fs, "/project/docker-compose.yml", compose)
+
+	checker := NewChecker(fs, "/project")
+	result := checker.checkDockerCompose()
+
+	assert.True(t, result.Passed)
+	assert.Contains(t, result.Message, "Docker Compose configured")
+}
+
+func TestCheckDockerCompose_HardcodedPassword(t *testing.T) {
+	fs := setupFs(t)
+	compose := `version: '3.8'
+services:
+  db:
+    image: postgres:15
+    environment:
+      POSTGRES_PASSWORD: mysecretpassword`
+	writeFile(t, fs, "/project/docker-compose.yml", compose)
+
+	checker := NewChecker(fs, "/project")
+	result := checker.checkDockerCompose()
+
+	assert.False(t, result.Passed)
+	assert.Equal(t, SeverityWarning, result.Severity)
+	assert.Contains(t, result.Details, "hardcoded")
+}
+
+func TestCheckDockerignore_NotPresentWithDockerfile(t *testing.T) {
+	fs := setupFs(t)
+	dockerfile := `FROM eclipse-temurin:17-jre
+COPY target/*.jar app.jar`
+	writeFile(t, fs, "/project/Dockerfile", dockerfile)
+
+	checker := NewChecker(fs, "/project")
+	result := checker.checkDockerignore()
+
+	assert.False(t, result.Passed)
+	assert.Equal(t, SeverityWarning, result.Severity)
+	assert.Contains(t, result.Message, "No .dockerignore")
+}
+
+func TestCheckDockerignore_Valid(t *testing.T) {
+	fs := setupFs(t)
+	writeFile(t, fs, "/project/Dockerfile", "FROM eclipse-temurin:17")
+	dockerignore := `.git
+target/
+build/
+.idea/
+*.log
+.env`
+	writeFile(t, fs, "/project/.dockerignore", dockerignore)
+
+	checker := NewChecker(fs, "/project")
+	result := checker.checkDockerignore()
+
+	assert.True(t, result.Passed)
+	assert.Contains(t, result.Message, "configured")
+}
+
+func TestCheckDockerignore_MissingPatterns(t *testing.T) {
+	fs := setupFs(t)
+	writeFile(t, fs, "/project/Dockerfile", "FROM eclipse-temurin:17")
+	dockerignore := `.idea/
+*.log`
+	writeFile(t, fs, "/project/.dockerignore", dockerignore)
+
+	checker := NewChecker(fs, "/project")
+	result := checker.checkDockerignore()
+
+	assert.True(t, result.Passed)
+	assert.Equal(t, SeverityInfo, result.Severity)
+	assert.Contains(t, result.Details, ".git")
+}
+
+func TestSuggestDocker_Missing(t *testing.T) {
+	fs := setupFs(t)
+	writeFile(t, fs, "/project/pom.xml", "<project></project>")
+
+	checker := NewChecker(fs, "/project")
+	result := checker.suggestDocker()
+
+	assert.False(t, result.Passed)
+	assert.Equal(t, SeveritySuggestion, result.Severity)
+	assert.Contains(t, result.FixHint, "haft dockerize")
+}
+
+func TestSuggestDocker_Present(t *testing.T) {
+	fs := setupFs(t)
+	writeFile(t, fs, "/project/pom.xml", "<project></project>")
+	writeFile(t, fs, "/project/Dockerfile", "FROM eclipse-temurin:17")
+
+	checker := NewChecker(fs, "/project")
+	result := checker.suggestDocker()
+
+	assert.True(t, result.Passed)
+}
+
+func TestFilterByCategory_Docker(t *testing.T) {
+	results := []CheckResult{
+		{Name: "dockerfile", Category: CategoryDocker},
+		{Name: "compose", Category: CategoryDocker},
+		{Name: "security", Category: CategorySecurity},
+	}
+
+	dockerResults := filterByCategory(results, CategoryDocker)
+	assert.Len(t, dockerResults, 2)
+}

@@ -27,6 +27,7 @@ The doctor command performs comprehensive health checks including:
   - Configuration files
   - Security best practices
   - Dependency recommendations
+  - Docker configuration (Dockerfile, docker-compose, .dockerignore)
 
 It helps identify problems early and suggests improvements.`,
 		Example: `  # Run full health check
@@ -40,7 +41,7 @@ It helps identify problems early and suggests improvements.`,
 
   # Filter by category
   haft doctor --category security
-  haft doctor --category build`,
+  haft doctor --category docker`,
 		RunE: func(cmd *cobra.Command, args []string) error {
 			return runDoctor(Options{
 				JSON:     jsonOutput,
@@ -52,7 +53,7 @@ It helps identify problems early and suggests improvements.`,
 
 	cmd.Flags().BoolVar(&jsonOutput, "json", false, "Output results as JSON")
 	cmd.Flags().BoolVar(&strict, "strict", false, "Exit with code 1 on any warning")
-	cmd.Flags().StringVar(&category, "category", "", "Filter by category (build, source, config, security, dependencies, best-practice)")
+	cmd.Flags().StringVar(&category, "category", "", "Filter by category (build, source, config, security, dependencies, best-practice, docker)")
 
 	return cmd
 }
