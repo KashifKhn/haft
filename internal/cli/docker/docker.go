@@ -277,7 +277,7 @@ func runDockerize(cmd *cobra.Command, args []string) error {
 			cfg.DatabaseInfo = &info
 		} else {
 			if jsonOutput {
-				return output.Error("INVALID_DB", "Invalid database type", fmt.Sprintf("Valid options: postgresql, mysql, mariadb, mongodb, redis, none"))
+				return output.Error("INVALID_DB", "Invalid database type", "Valid options: postgresql, mysql, mariadb, mongodb, redis, none")
 			}
 			return fmt.Errorf("invalid database type: %s. Valid options: postgresql, mysql, mariadb, mongodb, redis, none", dbFlag)
 		}

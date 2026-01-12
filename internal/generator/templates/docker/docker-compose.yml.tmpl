@@ -11,14 +11,14 @@ services:
     environment:
       - SPRING_DATASOURCE_URL={{.SpringURL}}
 {{- if eq .DatabaseType "postgres"}}
-      - SPRING_DATASOURCE_USERNAME=postgres
-      - SPRING_DATASOURCE_PASSWORD=postgres
+      - SPRING_DATASOURCE_USERNAME=${DB_USERNAME:-postgres}
+      - SPRING_DATASOURCE_PASSWORD=${DB_PASSWORD:-changeme}
 {{- else if eq .DatabaseType "mysql"}}
-      - SPRING_DATASOURCE_USERNAME=mysql
-      - SPRING_DATASOURCE_PASSWORD=mysql
+      - SPRING_DATASOURCE_USERNAME=${DB_USERNAME:-root}
+      - SPRING_DATASOURCE_PASSWORD=${DB_PASSWORD:-changeme}
 {{- else if eq .DatabaseType "mariadb"}}
-      - SPRING_DATASOURCE_USERNAME=mariadb
-      - SPRING_DATASOURCE_PASSWORD=mariadb
+      - SPRING_DATASOURCE_USERNAME=${DB_USERNAME:-root}
+      - SPRING_DATASOURCE_PASSWORD=${DB_PASSWORD:-changeme}
 {{- else if eq .DatabaseType "mongodb"}}
       - SPRING_DATA_MONGODB_URI={{.SpringURL}}
 {{- else if eq .DatabaseType "redis"}}
@@ -36,37 +36,35 @@ services:
     container_name: {{.AppNameLower}}-{{.DatabaseType}}
 {{- if eq .DatabaseType "postgres"}}
     environment:
-{{- range $key, $value := .DatabaseEnv}}
-      - {{$key}}={{$value}}
-{{- end}}
+      - POSTGRES_USER=${DB_USERNAME:-postgres}
+      - POSTGRES_PASSWORD=${DB_PASSWORD:-changeme}
+      - POSTGRES_DB={{.AppNameLower}}
     ports:
       - "5432:5432"
     volumes:
       - {{.VolumeName}}:{{.VolumePath}}
     healthcheck:
-      test: ["CMD-SHELL", "pg_isready -U postgres"]
+      test: ["CMD-SHELL", "pg_isready -U ${DB_USERNAME:-postgres}"]
       interval: 10s
       timeout: 5s
       retries: 5
 {{- else if eq .DatabaseType "mysql"}}
     environment:
-{{- range $key, $value := .DatabaseEnv}}
-      - {{$key}}={{$value}}
-{{- end}}
+      - MYSQL_ROOT_PASSWORD=${DB_PASSWORD:-changeme}
+      - MYSQL_DATABASE={{.AppNameLower}}
     ports:
       - "3306:3306"
     volumes:
       - {{.VolumeName}}:{{.VolumePath}}
     healthcheck:
-      test: ["CMD", "mysqladmin", "ping", "-h", "localhost", "-u", "root", "-proot"]
+      test: ["CMD", "mysqladmin", "ping", "-h", "localhost"]
       interval: 10s
       timeout: 5s
       retries: 5
 {{- else if eq .DatabaseType "mariadb"}}
     environment:
-{{- range $key, $value := .DatabaseEnv}}
-      - {{$key}}={{$value}}
-{{- end}}
+      - MARIADB_ROOT_PASSWORD=${DB_PASSWORD:-changeme}
+      - MARIADB_DATABASE={{.AppNameLower}}
     ports:
       - "3306:3306"
     volumes:
@@ -78,9 +76,8 @@ services:
       retries: 5
 {{- else if eq .DatabaseType "mongodb"}}
     environment:
-{{- range $key, $value := .DatabaseEnv}}
-      - {{$key}}={{$value}}
-{{- end}}
+      - MONGO_INITDB_ROOT_USERNAME=${DB_USERNAME:-mongo}
+      - MONGO_INITDB_ROOT_PASSWORD=${DB_PASSWORD:-changeme}
     ports:
       - "27017:27017"
     volumes:
@@ -102,9 +99,7 @@ services:
       retries: 5
 {{- else if eq .DatabaseType "cassandra"}}
     environment:
-{{- range $key, $value := .DatabaseEnv}}
-      - {{$key}}={{$value}}
-{{- end}}
+      - CASSANDRA_CLUSTER_NAME={{.AppNameLower}}
     ports:
       - "9042:9042"
     volumes:
