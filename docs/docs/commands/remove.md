@@ -194,6 +194,14 @@ git diff pom.xml      # Maven
 git diff build.gradle # Gradle
 ```
 
+## Editor Integration
+
+Use this command from your editor:
+
+- **Neovim**: `:HaftRemove` or `:HaftRemove lombok` ([docs →](/docs/integrations/neovim/usage#dependency-management-commands))
+- **VS Code**: Coming soon ([preview →](/docs/integrations/vscode))
+- **IntelliJ IDEA**: Coming soon ([preview →](/docs/integrations/intellij))
+
 ## See Also
 
 - [haft add](/docs/commands/add) — Add dependencies

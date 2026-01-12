@@ -1,0 +1,41 @@
+package {{.SchedulerPackage}};
+
+import org.springframework.scheduling.annotation.Scheduled;
+import org.springframework.stereotype.Component;
+{{- if .HasLombok}}
+import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
+{{- else}}
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+{{- end}}
+
+{{- if .HasLombok}}
+@Slf4j
+@RequiredArgsConstructor
+{{- end}}
+@Component
+public class {{.Name}}Task {
+
+{{- if not .HasLombok}}
+    private static final Logger log = LoggerFactory.getLogger({{.Name}}Task.class);
+{{- end}}
+
+{{- if eq .ScheduleType "cron"}}
+    @Scheduled(cron = "{{.CronExpression}}")
+{{- else if eq .ScheduleType "fixedRate"}}
+    @Scheduled(fixedRate = {{.FixedRate}})
+{{- else if eq .ScheduleType "fixedDelay"}}
+    @Scheduled(fixedDelay = {{.FixedDelay}}, initialDelay = {{.InitialDelay}})
+{{- end}}
+    public void execute() {
+        log.info("{{.Name}}Task started");
+        try {
+            // TODO: Implement your scheduled task logic here
+            
+        } catch (Exception e) {
+            log.error("{{.Name}}Task failed", e);
+        }
+        log.info("{{.Name}}Task completed");
+    }
+}

@@ -22,6 +22,7 @@ type PickerModel struct {
 	filtered      []int
 	cursor        int
 	searchQuery   string
+	searchMode    bool
 	submitted     bool
 	cancelled     bool
 	viewportStart int
@@ -109,40 +110,62 @@ func (m PickerModel) Init() tea.Cmd {
 func (m PickerModel) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 	switch msg := msg.(type) {
 	case tea.KeyMsg:
-		switch msg.String() {
-		case "up", "k":
-			m.moveCursor(-1)
-		case "down", "j":
-			m.moveCursor(1)
-		case "pgup":
-			m.moveCursor(-m.viewportSize)
-		case "pgdown":
-			m.moveCursor(m.viewportSize)
-		case " ", "x":
-			m.toggleCurrent()
-		case "enter":
-			if m.countSelected() > 0 {
-				m.submitted = true
-				return m, tea.Quit
-			}
-		case "esc", "q", "ctrl+c":
-			m.cancelled = true
-			return m, tea.Quit
-		case "a":
-			m.selectAllVisible()
-		case "n":
-			m.selectNone()
-		case "backspace":
-			if len(m.searchQuery) > 0 {
-				m.searchQuery = m.searchQuery[:len(m.searchQuery)-1]
-				m.applyFilter()
-			}
-		default:
-			if len(msg.String()) == 1 && msg.String() >= " " {
-				m.searchQuery += msg.String()
-				m.applyFilter()
-			}
+		if m.searchMode {
+			return m.handleSearchInput(msg)
 		}
+		return m.handleNavigation(msg)
+	}
+	return m, nil
+}
+
+func (m PickerModel) handleSearchInput(msg tea.KeyMsg) (tea.Model, tea.Cmd) {
+	switch msg.String() {
+	case "esc":
+		m.searchMode = false
+		m.searchQuery = ""
+		m.resetFilter()
+	case "enter":
+		m.searchMode = false
+	case "backspace":
+		if len(m.searchQuery) > 0 {
+			m.searchQuery = m.searchQuery[:len(m.searchQuery)-1]
+			m.applyFilter()
+		}
+	default:
+		if len(msg.String()) == 1 {
+			m.searchQuery += msg.String()
+			m.applyFilter()
+		}
+	}
+	return m, nil
+}
+
+func (m PickerModel) handleNavigation(msg tea.KeyMsg) (tea.Model, tea.Cmd) {
+	switch msg.String() {
+	case "up", "k":
+		m.moveCursor(-1)
+	case "down", "j":
+		m.moveCursor(1)
+	case "pgup":
+		m.moveCursor(-m.viewportSize)
+	case "pgdown":
+		m.moveCursor(m.viewportSize)
+	case " ", "x":
+		m.toggleCurrent()
+	case "enter":
+		if m.countSelected() > 0 {
+			m.submitted = true
+			return m, tea.Quit
+		}
+	case "esc", "q", "ctrl+c":
+		m.cancelled = true
+		return m, tea.Quit
+	case "a":
+		m.selectAllVisible()
+	case "n":
+		m.selectNone()
+	case "/":
+		m.searchMode = true
 	}
 	return m, nil
 }
@@ -205,18 +228,19 @@ func (m PickerModel) View() string {
 	b.WriteString(styles.RenderTitle("Add Dependencies"))
 	b.WriteString("\n")
 
-	b.WriteString(styles.Focused.Render("Search: "))
-	if m.searchQuery == "" {
-		b.WriteString(styles.Subtle.Render("type to filter..."))
-	} else {
-		b.WriteString(m.searchQuery)
+	if m.searchMode {
+		b.WriteString(styles.Focused.Render("/ ") + m.searchQuery + "▌\n")
+	} else if m.searchQuery != "" {
+		b.WriteString(styles.Subtle.Render(fmt.Sprintf("Filter: %s ", m.searchQuery)))
+		b.WriteString(styles.Subtle.Render(fmt.Sprintf("(%d results)\n", len(m.filtered))))
 	}
-	b.WriteString("▌\n")
 
 	if len(m.filtered) == 0 {
 		b.WriteString(styles.Subtle.Render("\n  No matching dependencies found\n"))
+	} else if m.searchQuery == "" {
+		b.WriteString(styles.Subtle.Render(fmt.Sprintf("  %d dependencies\n\n", len(m.filtered))))
 	} else {
-		b.WriteString(styles.Subtle.Render(fmt.Sprintf("  %d results\n\n", len(m.filtered))))
+		b.WriteString("\n")
 	}
 
 	end := m.viewportStart + m.viewportSize
@@ -234,27 +258,26 @@ func (m PickerModel) View() string {
 			b.WriteString(styles.CategoryStyle.Render(currentCategory) + "\n")
 		}
 
-		cursor := "  "
-		if m.cursor == i {
-			cursor = styles.Arrow + " "
-		}
-
 		checkbox := "[ ]"
 		if item.selected {
 			checkbox = "[" + styles.CheckMark + "]"
 		}
 
-		var nameStyle string
+		var line string
 		if m.cursor == i {
-			nameStyle = styles.ActiveItem.Render(item.name)
+			nameStyle := styles.ActiveItem.Render(item.name)
+			aliasText := styles.Subtle.Render(fmt.Sprintf("(%s)", item.alias))
+			line = fmt.Sprintf("%s %s %s %s", styles.Focused.Render(">"), checkbox, nameStyle, aliasText)
 		} else if item.selected {
-			nameStyle = styles.Selected.Render(item.name)
+			nameStyle := styles.Selected.Render(item.name)
+			aliasText := styles.Subtle.Render(fmt.Sprintf("(%s)", item.alias))
+			line = fmt.Sprintf("  %s %s %s", checkbox, nameStyle, aliasText)
 		} else {
-			nameStyle = styles.InactiveItem.Render(item.name)
+			nameStyle := styles.InactiveItem.Render(item.name)
+			aliasText := styles.Subtle.Render(fmt.Sprintf("(%s)", item.alias))
+			line = fmt.Sprintf("  %s %s %s", checkbox, nameStyle, aliasText)
 		}
-
-		aliasText := styles.Subtle.Render(fmt.Sprintf("(%s)", item.alias))
-		b.WriteString(fmt.Sprintf("%s%s %s %s\n", cursor, checkbox, nameStyle, aliasText))
+		b.WriteString(line + "\n")
 
 		if m.cursor == i && item.description != "" {
 			b.WriteString(fmt.Sprintf("       %s\n", styles.Subtle.Render(item.description)))
@@ -264,7 +287,11 @@ func (m PickerModel) View() string {
 	selectedCount := m.countSelected()
 	b.WriteString(fmt.Sprintf("\n%s\n", styles.Subtle.Render(fmt.Sprintf("Selected: %d", selectedCount))))
 
-	b.WriteString(styles.RenderHelp("↑/↓: navigate • space: toggle • a: all • n: none • enter: add • esc: cancel"))
+	if m.searchMode {
+		b.WriteString(styles.RenderHelp("type to search • enter: apply filter • esc: cancel search"))
+	} else {
+		b.WriteString(styles.RenderHelp("↑/↓: navigate • space: toggle • a: all • n: none • /: search • enter: add • q: quit"))
+	}
 
 	return b.String()
 }

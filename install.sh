@@ -92,9 +92,35 @@ detect_rosetta() {
 }
 
 get_latest_version() {
-    curl -sL "https://api.github.com/repos/${REPO}/releases/latest" | 
-        grep '"tag_name":' | 
-        sed -E 's/.*"v?([^"]+)".*/\1/'
+    max_retries=3
+    retry_delay=2
+    attempt=1
+    
+    while [ $attempt -le $max_retries ]; do
+        response=$(curl -sL -w "\n%{http_code}" "https://api.github.com/repos/${REPO}/releases/latest")
+        http_code=$(echo "$response" | tail -n1)
+        body=$(echo "$response" | sed '$d')
+        
+        if [ "$http_code" = "200" ]; then
+            version=$(echo "$body" | grep '"tag_name":' | sed -E 's/.*"v?([^"]+)".*/\1/')
+            if [ -n "$version" ]; then
+                echo "$version"
+                return 0
+            fi
+        fi
+        
+        if [ "$http_code" = "502" ] || [ "$http_code" = "503" ] || [ "$http_code" = "504" ]; then
+            if [ $attempt -lt $max_retries ]; then
+                sleep $retry_delay
+            fi
+            attempt=$((attempt + 1))
+            continue
+        fi
+        
+        break
+    done
+    
+    echo ""
 }
 
 check_existing_version() {

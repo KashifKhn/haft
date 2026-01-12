@@ -28,7 +28,7 @@ my-app/
 │           └── com/example/myapp/
 │               └── MyAppApplicationTests.java
 ├── .gitignore
-├── .haft.yaml
+├── .haft.json
 ├── mvnw
 ├── mvnw.cmd
 └── pom.xml
@@ -55,7 +55,7 @@ my-app/
 │   └── wrapper/
 │       └── gradle-wrapper.properties
 ├── .gitignore
-├── .haft.yaml
+├── .haft.json
 ├── build.gradle          # or build.gradle.kts for Kotlin DSL
 ├── settings.gradle       # or settings.gradle.kts for Kotlin DSL
 ├── gradlew

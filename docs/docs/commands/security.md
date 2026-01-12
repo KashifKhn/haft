@@ -374,6 +374,14 @@ WARN  File exists, skipping file=SecurityConfig.java
 
 Use `--refresh` to force re-scan project profile if your project structure has changed.
 
+## Editor Integration
+
+Use this command from your editor:
+
+- **Neovim**: Not yet available in haft.nvim (CLI only)
+- **VS Code**: Coming soon ([preview →](/docs/integrations/vscode))
+- **IntelliJ IDEA**: Coming soon ([preview →](/docs/integrations/intellij))
+
 ## See Also
 
 - [haft generate](/docs/commands/generate) - All generation commands

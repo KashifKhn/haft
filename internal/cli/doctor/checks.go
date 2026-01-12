@@ -67,6 +67,10 @@ func (c *Checker) RunAllChecks() []CheckResult {
 	results = append(results, c.suggestValidation())
 	results = append(results, c.suggestOpenAPI())
 	results = append(results, c.checkLombokConfig())
+	results = append(results, c.checkDockerfile())
+	results = append(results, c.checkDockerCompose())
+	results = append(results, c.checkDockerignore())
+	results = append(results, c.suggestDocker())
 
 	return results
 }
@@ -580,4 +584,222 @@ func (c *Checker) checkLombokConfig() CheckResult {
 	result.Details = "Consider adding lombok.config for consistent behavior"
 	result.FixHint = "Create lombok.config with: config.stopBubbling = true"
 	return result
+}
+
+func (c *Checker) checkDockerfile() CheckResult {
+	result := CheckResult{
+		Name:     "dockerfile",
+		Category: CategoryDocker,
+		Severity: SeverityInfo,
+	}
+
+	dockerfilePath := filepath.Join(c.projectPath, "Dockerfile")
+	content, err := afero.ReadFile(c.fs, dockerfilePath)
+	if err != nil {
+		result.Passed = true
+		result.Message = "No Dockerfile found"
+		result.Details = "Consider containerizing your application"
+		result.FixHint = "Run: haft dockerize"
+		return result
+	}
+
+	contentStr := string(content)
+	var issues []string
+
+	if !strings.Contains(contentStr, "FROM") {
+		issues = append(issues, "missing FROM instruction")
+	}
+
+	if strings.Contains(contentStr, "COPY . .") && !c.fileExists(".dockerignore") {
+		issues = append(issues, "COPY . . without .dockerignore")
+	}
+
+	if strings.Contains(strings.ToLower(contentStr), "root") && !strings.Contains(contentStr, "USER") {
+		issues = append(issues, "running as root (no USER instruction)")
+	}
+
+	if !strings.Contains(contentStr, "EXPOSE") {
+		issues = append(issues, "no EXPOSE instruction")
+	}
+
+	if !strings.Contains(contentStr, "HEALTHCHECK") && !strings.Contains(contentStr, "healthcheck") {
+		issues = append(issues, "no HEALTHCHECK instruction")
+	}
+
+	if strings.Contains(contentStr, ":latest") {
+		issues = append(issues, "using :latest tag (not reproducible)")
+	}
+
+	if len(issues) > 0 {
+		result.Passed = false
+		result.Severity = SeverityWarning
+		result.Message = "Dockerfile has issues"
+		result.Details = strings.Join(issues, ", ")
+		result.FixHint = "Run: haft dockerize to generate optimized Dockerfile"
+		return result
+	}
+
+	hasMultistage := strings.Count(contentStr, "FROM ") > 1 || strings.Contains(contentStr, " AS ")
+	if hasMultistage {
+		result.Passed = true
+		result.Message = "Dockerfile configured (multi-stage build)"
+		return result
+	}
+
+	result.Passed = true
+	result.Message = "Dockerfile configured"
+	return result
+}
+
+func (c *Checker) checkDockerCompose() CheckResult {
+	result := CheckResult{
+		Name:     "docker_compose",
+		Category: CategoryDocker,
+		Severity: SeverityInfo,
+	}
+
+	composeFiles := []string{"docker-compose.yml", "docker-compose.yaml", "compose.yml", "compose.yaml"}
+	var composePath string
+	var content []byte
+
+	for _, file := range composeFiles {
+		path := filepath.Join(c.projectPath, file)
+		if data, err := afero.ReadFile(c.fs, path); err == nil {
+			composePath = file
+			content = data
+			break
+		}
+	}
+
+	if composePath == "" {
+		if c.fileExists("Dockerfile") {
+			result.Passed = true
+			result.Severity = SeveritySuggestion
+			result.Message = "No docker-compose.yml found"
+			result.Details = "docker-compose simplifies multi-container setup"
+			result.FixHint = "Run: haft dockerize to generate docker-compose.yml"
+			return result
+		}
+		result.Passed = true
+		result.Message = "No Docker Compose configuration"
+		return result
+	}
+
+	contentStr := string(content)
+	var issues []string
+
+	if !strings.Contains(contentStr, "version") && !strings.Contains(contentStr, "services") {
+		issues = append(issues, "invalid compose file format")
+	}
+
+	if strings.Contains(contentStr, "password:") || strings.Contains(contentStr, "PASSWORD:") {
+		if !strings.Contains(contentStr, "${") && !strings.Contains(contentStr, ".env") {
+			issues = append(issues, "hardcoded passwords detected")
+		}
+	}
+
+	if !strings.Contains(contentStr, "healthcheck") && !strings.Contains(contentStr, "health_check") {
+		issues = append(issues, "no healthcheck defined")
+	}
+
+	if !strings.Contains(contentStr, "restart:") {
+		issues = append(issues, "no restart policy defined")
+	}
+
+	if len(issues) > 0 {
+		result.Passed = false
+		result.Severity = SeverityWarning
+		result.Message = "docker-compose.yml has issues"
+		result.Details = strings.Join(issues, ", ")
+		result.FixHint = "Review docker-compose.yml or run: haft dockerize"
+		return result
+	}
+
+	result.Passed = true
+	result.Message = "Docker Compose configured (" + composePath + ")"
+	return result
+}
+
+func (c *Checker) checkDockerignore() CheckResult {
+	result := CheckResult{
+		Name:     "dockerignore",
+		Category: CategoryDocker,
+		Severity: SeverityInfo,
+	}
+
+	if !c.fileExists("Dockerfile") {
+		result.Passed = true
+		result.Message = "No Dockerfile (skipping .dockerignore check)"
+		return result
+	}
+
+	dockerignorePath := filepath.Join(c.projectPath, ".dockerignore")
+	content, err := afero.ReadFile(c.fs, dockerignorePath)
+	if err != nil {
+		result.Passed = false
+		result.Severity = SeverityWarning
+		result.Message = "No .dockerignore found"
+		result.Details = "Missing .dockerignore increases build context size"
+		result.FixHint = "Run: haft dockerize to generate .dockerignore"
+		return result
+	}
+
+	contentStr := string(content)
+	var missing []string
+
+	essentialPatterns := []struct {
+		pattern string
+		name    string
+	}{
+		{".git", ".git directory"},
+		{"target", "build artifacts (target/)"},
+		{"build", "build artifacts (build/)"},
+		{".idea", "IDE files"},
+		{"*.log", "log files"},
+	}
+
+	for _, p := range essentialPatterns {
+		if !strings.Contains(contentStr, p.pattern) {
+			missing = append(missing, p.name)
+		}
+	}
+
+	if len(missing) > 0 {
+		result.Passed = true
+		result.Severity = SeverityInfo
+		result.Message = ".dockerignore may be incomplete"
+		result.Details = "Consider excluding: " + strings.Join(missing, ", ")
+		result.FixHint = "Run: haft dockerize to generate comprehensive .dockerignore"
+		return result
+	}
+
+	result.Passed = true
+	result.Message = ".dockerignore configured"
+	return result
+}
+
+func (c *Checker) suggestDocker() CheckResult {
+	result := CheckResult{
+		Name:     "suggest_docker",
+		Category: CategoryDocker,
+		Severity: SeveritySuggestion,
+	}
+
+	if c.fileExists("Dockerfile") {
+		result.Passed = true
+		result.Message = "Docker configuration exists"
+		return result
+	}
+
+	result.Passed = false
+	result.Message = "Consider adding Docker support"
+	result.Details = "Containerization improves deployment consistency"
+	result.FixHint = "Run: haft dockerize"
+	return result
+}
+
+func (c *Checker) fileExists(name string) bool {
+	path := filepath.Join(c.projectPath, name)
+	exists, _ := afero.Exists(c.fs, path)
+	return exists
 }

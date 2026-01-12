@@ -2,6 +2,7 @@ package upgrade
 
 import (
 	"encoding/json"
+	"errors"
 	"fmt"
 	"net/http"
 	"strconv"
@@ -13,6 +14,8 @@ const (
 	GitHubAPIURL   = "https://api.github.com/repos/%s/%s/releases/latest"
 	RequestTimeout = 30 * time.Second
 	UserAgent      = "haft-cli"
+	MaxRetries     = 3
+	RetryDelay     = 2 * time.Second
 )
 
 type GitHubRelease struct {
@@ -32,14 +35,40 @@ type Version struct {
 	Original   string
 }
 
+func isRetryableStatusCode(statusCode int) bool {
+	return statusCode == http.StatusBadGateway ||
+		statusCode == http.StatusServiceUnavailable ||
+		statusCode == http.StatusGatewayTimeout
+}
+
 func GetLatestVersion() (string, error) {
 	url := fmt.Sprintf(GitHubAPIURL, RepoOwner, RepoName)
-
 	client := &http.Client{Timeout: RequestTimeout}
 
+	var lastErr error
+	for attempt := 0; attempt < MaxRetries; attempt++ {
+		if attempt > 0 {
+			time.Sleep(RetryDelay)
+		}
+
+		release, err := fetchLatestRelease(client, url)
+		if err == nil {
+			return release.TagName, nil
+		}
+
+		lastErr = err
+		if !isRetryableError(err) {
+			return "", err
+		}
+	}
+
+	return "", fmt.Errorf("failed after %d retries: %w", MaxRetries, lastErr)
+}
+
+func fetchLatestRelease(client *http.Client, url string) (*GitHubRelease, error) {
 	req, err := http.NewRequest("GET", url, nil)
 	if err != nil {
-		return "", fmt.Errorf("failed to create request: %w", err)
+		return nil, fmt.Errorf("failed to create request: %w", err)
 	}
 
 	req.Header.Set("User-Agent", UserAgent)
@@ -47,32 +76,53 @@ func GetLatestVersion() (string, error) {
 
 	resp, err := client.Do(req)
 	if err != nil {
-		return "", fmt.Errorf("failed to fetch latest release: %w", err)
+		return nil, &retryableError{err: fmt.Errorf("failed to fetch latest release: %w", err)}
 	}
 	defer resp.Body.Close()
 
 	if resp.StatusCode == http.StatusNotFound {
-		return "", fmt.Errorf("no releases found for %s/%s", RepoOwner, RepoName)
+		return nil, fmt.Errorf("no releases found for %s/%s", RepoOwner, RepoName)
 	}
 
 	if resp.StatusCode == http.StatusForbidden {
-		return "", fmt.Errorf("GitHub API rate limit exceeded. Please try again later")
+		return nil, fmt.Errorf("GitHub API rate limit exceeded. Please try again later")
+	}
+
+	if isRetryableStatusCode(resp.StatusCode) {
+		return nil, &retryableError{err: fmt.Errorf("GitHub API returned status %d", resp.StatusCode)}
 	}
 
 	if resp.StatusCode != http.StatusOK {
-		return "", fmt.Errorf("GitHub API returned status %d", resp.StatusCode)
+		return nil, fmt.Errorf("GitHub API returned status %d", resp.StatusCode)
 	}
 
 	var release GitHubRelease
 	if err := json.NewDecoder(resp.Body).Decode(&release); err != nil {
-		return "", fmt.Errorf("failed to parse release info: %w", err)
+		return nil, fmt.Errorf("failed to parse release info: %w", err)
 	}
 
 	if release.TagName == "" {
-		return "", fmt.Errorf("no version tag found in release")
+		return nil, fmt.Errorf("no version tag found in release")
 	}
 
-	return release.TagName, nil
+	return &release, nil
+}
+
+type retryableError struct {
+	err error
+}
+
+func (e *retryableError) Error() string {
+	return e.err.Error()
+}
+
+func (e *retryableError) Unwrap() error {
+	return e.err
+}
+
+func isRetryableError(err error) bool {
+	var re *retryableError
+	return err != nil && (errors.As(err, &re))
 }
 
 func ParseVersion(v string) (*Version, error) {

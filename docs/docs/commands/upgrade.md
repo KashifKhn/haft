@@ -148,6 +148,14 @@ If Haft is installed in multiple locations (e.g., `/usr/local/bin` and `~/.local
 | 0 | Success (upgraded or already up to date) |
 | 1 | Error occurred |
 
+## Editor Integration
+
+Use this command from your editor:
+
+- **Neovim**: Not yet available in haft.nvim (CLI only)
+- **VS Code**: Coming soon ([preview →](/docs/integrations/vscode))
+- **IntelliJ IDEA**: Coming soon ([preview →](/docs/integrations/intellij))
+
 ## See Also
 
 - [Installation](../installation.md) - Initial installation instructions

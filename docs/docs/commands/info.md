@@ -198,6 +198,14 @@ With `--json --loc --deps`:
 }
 ```
 
+## Editor Integration
+
+Use this command from your editor:
+
+- **Neovim**: `:HaftInfo` ([docs →](/docs/integrations/neovim/usage#project-information-commands))
+- **VS Code**: Coming soon ([preview →](/docs/integrations/vscode))
+- **IntelliJ IDEA**: Coming soon ([preview →](/docs/integrations/intellij))
+
 ## See Also
 
 - [haft stats](/docs/commands/stats) - Full code statistics with language breakdown

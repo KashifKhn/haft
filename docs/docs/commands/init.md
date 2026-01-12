@@ -148,7 +148,7 @@ my-app/
 │           └── com/example/myapp/
 │               └── MyAppApplicationTests.java
 ├── .gitignore
-├── .haft.yaml
+├── .haft.json
 ├── mvnw
 ├── mvnw.cmd
 └── pom.xml
@@ -173,7 +173,7 @@ my-app/
 │   └── wrapper/
 │       └── gradle-wrapper.properties
 ├── .gitignore
-├── .haft.yaml
+├── .haft.json
 ├── build.gradle          # or build.gradle.kts for Kotlin DSL
 ├── settings.gradle       # or settings.gradle.kts for Kotlin DSL
 ├── gradlew
@@ -186,6 +186,14 @@ my-app/
 |------|-------------|
 | `0` | Success |
 | `1` | Error (invalid flags, generation failed) |
+
+## Editor Integration
+
+Use this command from your editor:
+
+- **Neovim**: Not yet available in haft.nvim (CLI only)
+- **VS Code**: Coming soon ([preview →](/docs/integrations/vscode))
+- **IntelliJ IDEA**: Coming soon ([preview →](/docs/integrations/intellij))
 
 ## See Also
 

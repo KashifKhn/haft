@@ -16,7 +16,6 @@ const sidebars: SidebarsConfig = {
         'commands/add',
         'commands/remove',
         'commands/dev',
-        'commands/doctor',
         'commands/info',
         'commands/routes',
         'commands/stats',
@@ -33,6 +32,7 @@ const sidebars: SidebarsConfig = {
         'guides/wizard-navigation',
         'guides/dependencies',
         'guides/project-structure',
+        'guides/custom-templates',
       ],
     },
     {
@@ -42,6 +42,42 @@ const sidebars: SidebarsConfig = {
       items: [
         'reference/configuration',
         'reference/templates',
+      ],
+    },
+    {
+      type: 'category',
+      label: 'Editor Integrations',
+      collapsed: true,
+      link: {
+        type: 'doc',
+        id: 'integrations/overview',
+      },
+      items: [
+        {
+          type: 'category',
+          label: 'Neovim',
+          collapsed: true,
+          link: {
+            type: 'doc',
+            id: 'integrations/neovim/index',
+          },
+          items: [
+            'integrations/neovim/installation',
+            'integrations/neovim/configuration',
+            'integrations/neovim/usage',
+            'integrations/neovim/troubleshooting',
+          ],
+        },
+        {
+          type: 'doc',
+          id: 'integrations/vscode/index',
+          label: 'VS Code',
+        },
+        {
+          type: 'doc',
+          id: 'integrations/intellij/index',
+          label: 'IntelliJ IDEA',
+        },
       ],
     },
     'contributing',

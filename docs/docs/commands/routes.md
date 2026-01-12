@@ -147,6 +147,14 @@ In terminal output, HTTP methods are color-coded:
 - Review API surface area for security audits
 - Generate API documentation snippets
 
+## Editor Integration
+
+Use this command from your editor:
+
+- **Neovim**: `:HaftRoutes` ([docs →](/docs/integrations/neovim/usage#project-information-commands))
+- **VS Code**: Coming soon ([preview →](/docs/integrations/vscode))
+- **IntelliJ IDEA**: Coming soon ([preview →](/docs/integrations/intellij))
+
 ## See Also
 
 - [haft info](/docs/commands/info) - Project information

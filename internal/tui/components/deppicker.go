@@ -384,31 +384,27 @@ func (m DepPickerModel) View() string {
 		}
 
 		dep := m.categories[item.categoryIdx].Dependencies[item.depIdx]
-		cursor := "  "
-		if m.cursor == i {
-			cursor = styles.Arrow + " "
-		}
 
 		checkbox := "[ ]"
 		if dep.Selected {
 			checkbox = "[" + styles.CheckMark + "]"
 		}
 
-		var nameStyle, descStyle string
+		var line string
 		if m.cursor == i {
-			nameStyle = styles.ActiveItem.Render(dep.Name)
-			descStyle = styles.Subtle.Render(dep.Description)
+			nameStyle := styles.ActiveItem.Render(dep.Name)
+			line = fmt.Sprintf("%s %s %s", styles.Focused.Render(">"), checkbox, nameStyle)
 		} else if dep.Selected {
-			nameStyle = styles.Selected.Render(dep.Name)
-			descStyle = styles.Subtle.Render(dep.Description)
+			nameStyle := styles.Selected.Render(dep.Name)
+			line = fmt.Sprintf("  %s %s", checkbox, nameStyle)
 		} else {
-			nameStyle = styles.InactiveItem.Render(dep.Name)
-			descStyle = styles.Subtle.Render(dep.Description)
+			nameStyle := styles.InactiveItem.Render(dep.Name)
+			line = fmt.Sprintf("  %s %s", checkbox, nameStyle)
 		}
 
-		b.WriteString(fmt.Sprintf("%s%s %s\n", cursor, checkbox, nameStyle))
+		b.WriteString(line + "\n")
 		if dep.Description != "" && m.cursor == i {
-			b.WriteString(fmt.Sprintf("       %s\n", descStyle))
+			b.WriteString(fmt.Sprintf("      %s\n", styles.Subtle.Render(dep.Description)))
 		}
 	}
 

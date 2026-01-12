@@ -1,0 +1,48 @@
+# syntax=docker/dockerfile:1
+
+# Build stage
+FROM eclipse-temurin:{{.JavaVersion}}-jdk-alpine AS builder
+WORKDIR /app
+
+{{- if .HasWrapper}}
+
+# Copy Gradle wrapper
+COPY gradlew .
+COPY gradle gradle
+RUN chmod +x gradlew
+{{- end}}
+
+# Copy build files and download dependencies (cached layer)
+COPY build.gradle* settings.gradle* ./
+RUN {{if .HasWrapper}}./gradlew{{else}}gradle{{end}} dependencies --no-daemon || true
+
+# Copy source and build
+COPY src src
+RUN {{if .HasWrapper}}./gradlew{{else}}gradle{{end}} bootJar --no-daemon -x test
+
+# Extract layers for better caching
+RUN java -Djarmode=layertools -jar build/libs/*.jar extract --destination build/extracted || \
+    (mkdir -p build/extracted/application && cp build/libs/*.jar build/extracted/application/app.jar)
+
+# Runtime stage
+FROM eclipse-temurin:{{.JavaVersion}}-jre-alpine AS runtime
+WORKDIR /app
+
+# Security: run as non-root user
+RUN addgroup -g 1001 spring && adduser -u 1001 -G spring -D spring
+USER spring:spring
+
+# Copy layers (most stable to least stable)
+COPY --from=builder --chown=spring:spring /app/build/extracted/dependencies/ ./
+COPY --from=builder --chown=spring:spring /app/build/extracted/spring-boot-loader/ ./
+COPY --from=builder --chown=spring:spring /app/build/extracted/snapshot-dependencies/ ./
+COPY --from=builder --chown=spring:spring /app/build/extracted/application/ ./
+
+# Health check
+HEALTHCHECK --interval=30s --timeout=10s --start-period=40s --retries=3 \
+    CMD wget --no-verbose --tries=1 --spider http://localhost:{{.Port}}/actuator/health || exit 1
+
+EXPOSE {{.Port}}
+
+# Run the application
+ENTRYPOINT ["java", "org.springframework.boot.loader.launch.JarLauncher"]
