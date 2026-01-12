@@ -28,6 +28,7 @@ haft g <subcommand> [name] [flags]  # alias
 | `haft generate exception` | `haft g ex` | Generate global exception handler |
 | `haft generate config` | `haft g cfg` | Generate configuration classes |
 | `haft generate security` | `haft g sec` | Generate security configuration (JWT, Session, OAuth2) |
+| `haft generate scheduler` | `haft g sch` | Generate scheduled task with @Scheduled |
 
 ## Smart Detection
 
@@ -904,10 +905,19 @@ Names are automatically converted to PascalCase:
 - `user-profile` → `UserProfile`
 - `user_account` → `UserAccount`
 
+## Editor Integration
+
+Use generate commands directly from your editor:
+
+- **Neovim**: `:HaftGenerateResource User` ([docs →](/docs/integrations/neovim/usage#code-generation-commands))
+- **VS Code**: Coming soon ([preview →](/docs/integrations/vscode))
+- **IntelliJ IDEA**: Coming soon ([preview →](/docs/integrations/intellij))
+
 ## See Also
 
 - [haft init](/docs/commands/init) - Initialize a new project
 - [haft add](/docs/commands/add) - Add dependencies
 - [haft template](/docs/commands/template) - Customize templates
 - [haft generate security](/docs/commands/security) - Security configuration
+- [haft generate scheduler](/docs/commands/generate-scheduler) - Scheduled tasks
 - [Project Structure](/docs/guides/project-structure) - Where files are generated

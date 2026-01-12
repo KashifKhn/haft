@@ -119,6 +119,7 @@ This page tracks the development progress of Haft.
   - [x] Database auto-detection (PostgreSQL, MySQL, MariaDB, MongoDB, Redis, Cassandra)
   - [x] Interactive database picker for JPA projects
   - [x] Java version and port auto-detection
+  - [x] Docker health checks in `haft doctor` (Dockerfile, docker-compose, .dockerignore validation)
 
 - [x] **Custom Templates**
   - [x] Project-level templates (`.haft/templates/`)
@@ -167,6 +168,11 @@ We believe developers should stay in their editor. The first integration will be
     - [x] OAuth2 authentication (Google, GitHub, Facebook)
     - [x] Intelligent dependency checking
     - [x] User entity detection
+  - [x] Scheduled task generation (`haft generate scheduler`)
+    - [x] Cron expression support
+    - [x] Fixed rate scheduling
+    - [x] Fixed delay scheduling
+    - [x] SchedulingConfig auto-generation
 
 ## Contributing
 
@@ -186,11 +192,13 @@ See [Contributing](/docs/contributing) for guidelines.
 - Feature: Multi-stage Dockerfile with layer extraction for Maven and Gradle projects
 - Feature: Database auto-detection and docker-compose service generation (PostgreSQL, MySQL, MariaDB, MongoDB, Redis, Cassandra)
 - Feature: Interactive database selection when JPA detected without driver
-- Feature: `haft doctor` - Comprehensive project health check with 15 checks across 6 categories
+- Feature: `haft doctor` - Comprehensive project health check with 15+ checks across 7 categories
 - Feature: `haft doctor --json` - JSON output for CI/CD integration
 - Feature: `haft doctor --strict` - Exit code 1 on warnings
-- Feature: `haft doctor --category` - Filter checks by category
+- Feature: `haft doctor --category` - Filter checks by category (including docker)
+- Feature: Docker health checks in doctor (Dockerfile, docker-compose, .dockerignore validation)
 - Feature: `haft generate security` - Generate security configuration with JWT, Session, and OAuth2 support
+- Feature: `haft generate scheduler` - Generate @Scheduled task classes with cron, fixedRate, fixedDelay
 - Feature: Intelligent dependency checking for security dependencies
 - Feature: User/Role entity detection and optional generation
 - Feature: Architecture-aware security file placement
@@ -274,4 +282,4 @@ See [Contributing](/docs/contributing) for guidelines.
 
 ---
 
-*Last updated: December 2024*
+*Last updated: January 2026*
