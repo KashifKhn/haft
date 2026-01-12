@@ -177,7 +177,9 @@ func runServe(profile string, debug bool, port int, noInteractive bool) error {
 					if isInteractive {
 						fmt.Printf("\r\n\033[31mProcess stopped: %v\033[0m\r\n", lastErr)
 						fmt.Print("\033[33mPress 'r' to restart or 'q' to quit\033[0m\r\n")
-						waitForRestartOrQuit(keyboard, sigChan, pm, ctx)
+						if shouldQuit := waitForRestartOrQuit(keyboard, sigChan, pm, ctx); shouldQuit {
+							return nil
+						}
 					} else {
 						return lastErr
 					}
@@ -193,7 +195,7 @@ func runServe(profile string, debug bool, port int, noInteractive bool) error {
 	}
 }
 
-func waitForRestartOrQuit(keyboard *KeyboardListener, sigChan chan os.Signal, pm *ProcessManager, ctx context.Context) {
+func waitForRestartOrQuit(keyboard *KeyboardListener, sigChan chan os.Signal, pm *ProcessManager, ctx context.Context) bool {
 	for {
 		select {
 		case sig := <-sigChan:
@@ -201,21 +203,22 @@ func waitForRestartOrQuit(keyboard *KeyboardListener, sigChan chan os.Signal, pm
 			if err := pm.Stop(); err != nil {
 				logger.Debug("Error during shutdown", "error", err)
 			}
-			return
+			return true
 
 		case cmd := <-keyboard.Commands():
 			switch cmd {
 			case KeyRestart:
+				pm.ClearLastError()
 				if err := pm.Restart(ctx); err != nil {
 					logger.Debug("Restart failed", "error", err)
 				}
-				return
+				return false
 			case KeyQuit:
 				fmt.Print("\r\n\033[33m→ Shutting down...\033[0m\r\n")
 				if err := pm.Stop(); err != nil {
 					logger.Debug("Error during shutdown", "error", err)
 				}
-				return
+				return true
 			case KeyHelp:
 				PrintKeyCommands()
 			case KeyClear:

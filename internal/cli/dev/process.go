@@ -111,6 +111,12 @@ func (pm *ProcessManager) LastError() error {
 	return pm.lastError
 }
 
+func (pm *ProcessManager) ClearLastError() {
+	pm.mu.Lock()
+	defer pm.mu.Unlock()
+	pm.lastError = nil
+}
+
 func (pm *ProcessManager) RestartCount() int {
 	pm.mu.Lock()
 	defer pm.mu.Unlock()
