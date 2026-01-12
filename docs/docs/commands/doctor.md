@@ -212,6 +212,14 @@ Filter checks by category using `--category`:
 - `dependencies` - Dependency recommendations
 - `best-practice` - Best practice suggestions
 
+## Editor Integration
+
+Use this command from your editor:
+
+- **Neovim**: Not yet available in haft.nvim (CLI only)
+- **VS Code**: Coming soon ([preview →](/docs/integrations/vscode))
+- **IntelliJ IDEA**: Coming soon ([preview →](/docs/integrations/intellij))
+
 ## See Also
 
 - [haft dev validate](/docs/commands/dev#haft-dev-validate) - Build tool validation

@@ -397,6 +397,14 @@ Ensure Spring Boot Actuator is enabled for health endpoints:
 haft add actuator
 ```
 
+## Editor Integration
+
+Use this command from your editor:
+
+- **Neovim**: Not yet available in haft.nvim (CLI only)
+- **VS Code**: Coming soon ([preview →](/docs/integrations/vscode))
+- **IntelliJ IDEA**: Coming soon ([preview →](/docs/integrations/intellij))
+
 ## See Also
 
 - [haft dev serve](/docs/commands/dev) — Development mode with hot-reload

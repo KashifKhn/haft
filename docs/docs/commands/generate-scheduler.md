@@ -245,3 +245,16 @@ public class CleanupTask {
 4. **Logging**: Use structured logging to track task execution
 
 5. **Long-running tasks**: Consider using `fixedDelay` instead of `fixedRate` to prevent overlapping executions
+
+## Editor Integration
+
+Use this command from your editor:
+
+- **Neovim**: Not yet available in haft.nvim (CLI only)
+- **VS Code**: Coming soon ([preview →](/docs/integrations/vscode))
+- **IntelliJ IDEA**: Coming soon ([preview →](/docs/integrations/intellij))
+
+## See Also
+
+- [haft generate](/docs/commands/generate) - All generation commands
+- [haft generate config](/docs/commands/generate#haft-generate-config) - Generate configuration classes

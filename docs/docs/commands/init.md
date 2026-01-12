@@ -187,6 +187,14 @@ my-app/
 | `0` | Success |
 | `1` | Error (invalid flags, generation failed) |
 
+## Editor Integration
+
+Use this command from your editor:
+
+- **Neovim**: Not yet available in haft.nvim (CLI only)
+- **VS Code**: Coming soon ([preview →](/docs/integrations/vscode))
+- **IntelliJ IDEA**: Coming soon ([preview →](/docs/integrations/intellij))
+
 ## See Also
 
 - [Wizard Navigation](/docs/guides/wizard-navigation) — Keyboard shortcuts

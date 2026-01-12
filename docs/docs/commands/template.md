@@ -299,6 +299,14 @@ haft template validate
 haft generate resource User
 ```
 
+## Editor Integration
+
+Use this command from your editor:
+
+- **Neovim**: Not yet available in haft.nvim (CLI only)
+- **VS Code**: Coming soon ([preview →](/docs/integrations/vscode))
+- **IntelliJ IDEA**: Coming soon ([preview →](/docs/integrations/intellij))
+
 ## See Also
 
 - [Templates Reference](/docs/reference/templates) — Template variables and functions

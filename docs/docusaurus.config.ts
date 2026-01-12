@@ -71,6 +71,25 @@ const config: Config = {
           label: 'Docs',
         },
         {
+          type: 'dropdown',
+          label: 'Integrations',
+          position: 'left',
+          items: [
+            {
+              label: 'Neovim',
+              to: '/docs/integrations/neovim',
+            },
+            {
+              label: 'VS Code',
+              to: '/docs/integrations/vscode',
+            },
+            {
+              label: 'IntelliJ IDEA',
+              to: '/docs/integrations/intellij',
+            },
+          ],
+        },
+        {
           href: 'https://github.com/KashifKhn/haft',
           label: 'GitHub',
           position: 'right',
@@ -129,7 +148,7 @@ const config: Config = {
     prism: {
       theme: prismThemes.github,
       darkTheme: prismThemes.dracula,
-      additionalLanguages: ['bash', 'java', 'go', 'yaml', 'json'],
+      additionalLanguages: ['bash', 'java', 'go', 'yaml', 'json', 'lua', 'vim'],
     },
   } satisfies Preset.ThemeConfig,
 };

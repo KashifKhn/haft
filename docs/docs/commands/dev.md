@@ -801,6 +801,14 @@ haft dev build -c -s --profile prod
 haft dev clean
 ```
 
+## Editor Integration
+
+The `haft dev restart` command is designed for editor integration. Use it from your editor:
+
+- **Neovim**: See [Plugin Integration](#plugin-integration) section above
+- **VS Code**: Coming soon ([preview →](/docs/integrations/vscode))
+- **IntelliJ IDEA**: Coming soon ([preview →](/docs/integrations/intellij))
+
 ## See Also
 
 - [haft init](/docs/commands/init) - Initialize new projects

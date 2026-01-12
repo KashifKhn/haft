@@ -182,6 +182,14 @@ echo 'fpath=(~/.zsh/completions $fpath)' >> ~/.zshrc
 haft completion zsh > ~/.zsh/completions/_haft
 ```
 
+## Editor Integration
+
+Shell completion is a CLI feature. For editor integration:
+
+- **Neovim**: haft.nvim provides native command completion via Telescope ([docs →](/docs/integrations/neovim/usage#telescope-integration))
+- **VS Code**: Coming soon ([preview →](/docs/integrations/vscode))
+- **IntelliJ IDEA**: Coming soon ([preview →](/docs/integrations/intellij))
+
 ## See Also
 
 - [Installation](/docs/installation#shell-completions) - Installation guide with completion setup

@@ -717,6 +717,14 @@ WARN ⚠ Skipped (already exists) dependency=org.projectlombok:lombok
 INFO ℹ No new dependencies added (all already exist)
 ```
 
+## Editor Integration
+
+Use this command from your editor:
+
+- **Neovim**: `:HaftAdd` or `:HaftAdd lombok validation` ([docs →](/docs/integrations/neovim/usage#dependency-management-commands))
+- **VS Code**: Coming soon ([preview →](/docs/integrations/vscode))
+- **IntelliJ IDEA**: Coming soon ([preview →](/docs/integrations/intellij))
+
 ## See Also
 
 - [haft remove](/docs/commands/remove) — Remove dependencies
