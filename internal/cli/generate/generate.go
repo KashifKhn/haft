@@ -46,7 +46,11 @@ All generators auto-detect your project configuration from your build file (pom.
 
   # Generate security configuration
   haft generate security
-  haft g sec --jwt`,
+  haft g sec --jwt
+
+  # Generate scheduled task
+  haft generate scheduler cleanup
+  haft g sch report --cron "0 0 8 * * *"`,
 	}
 
 	cmd.AddCommand(newResourceCommand())
@@ -58,6 +62,7 @@ All generators auto-detect your project configuration from your build file (pom.
 	cmd.AddCommand(newExceptionCommand())
 	cmd.AddCommand(newConfigCommand())
 	cmd.AddCommand(newSecurityCommand())
+	cmd.AddCommand(newSchedulerCommand())
 
 	return cmd
 }
