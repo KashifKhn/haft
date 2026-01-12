@@ -1,0 +1,48 @@
+# syntax=docker/dockerfile:1
+
+# Build stage
+FROM eclipse-temurin:{{.JavaVersion}}-jdk-alpine AS builder
+WORKDIR /app
+
+{{- if .HasWrapper}}
+
+# Copy Maven wrapper
+COPY mvnw .
+COPY .mvn .mvn
+RUN chmod +x mvnw
+{{- end}}
+
+# Copy pom.xml and download dependencies (cached layer)
+COPY pom.xml .
+RUN {{if .HasWrapper}}./mvnw{{else}}mvn{{end}} dependency:go-offline -B
+
+# Copy source and build
+COPY src src
+RUN {{if .HasWrapper}}./mvnw{{else}}mvn{{end}} package -DskipTests -B
+
+# Extract layers for better caching
+RUN java -Djarmode=layertools -jar target/*.jar extract --destination target/extracted || \
+    (mkdir -p target/extracted/application && cp target/*.jar target/extracted/application/app.jar)
+
+# Runtime stage
+FROM eclipse-temurin:{{.JavaVersion}}-jre-alpine AS runtime
+WORKDIR /app
+
+# Security: run as non-root user
+RUN addgroup -g 1001 spring && adduser -u 1001 -G spring -D spring
+USER spring:spring
+
+# Copy layers (most stable to least stable)
+COPY --from=builder --chown=spring:spring /app/target/extracted/dependencies/ ./
+COPY --from=builder --chown=spring:spring /app/target/extracted/spring-boot-loader/ ./
+COPY --from=builder --chown=spring:spring /app/target/extracted/snapshot-dependencies/ ./
+COPY --from=builder --chown=spring:spring /app/target/extracted/application/ ./
+
+# Health check
+HEALTHCHECK --interval=30s --timeout=10s --start-period=40s --retries=3 \
+    CMD wget --no-verbose --tries=1 --spider http://localhost:{{.Port}}/actuator/health || exit 1
+
+EXPOSE {{.Port}}
+
+# Run the application
+ENTRYPOINT ["java", "org.springframework.boot.loader.launch.JarLauncher"]

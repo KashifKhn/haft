@@ -1,0 +1,130 @@
+services:
+  app:
+    build: .
+    container_name: {{.AppNameLower}}
+    ports:
+      - "{{.Port}}:{{.Port}}"
+{{- if .HasDatabase}}
+    depends_on:
+      {{.DatabaseType}}:
+        condition: service_healthy
+    environment:
+      - SPRING_DATASOURCE_URL={{.SpringURL}}
+{{- if eq .DatabaseType "postgres"}}
+      - SPRING_DATASOURCE_USERNAME=postgres
+      - SPRING_DATASOURCE_PASSWORD=postgres
+{{- else if eq .DatabaseType "mysql"}}
+      - SPRING_DATASOURCE_USERNAME=mysql
+      - SPRING_DATASOURCE_PASSWORD=mysql
+{{- else if eq .DatabaseType "mariadb"}}
+      - SPRING_DATASOURCE_USERNAME=mariadb
+      - SPRING_DATASOURCE_PASSWORD=mariadb
+{{- else if eq .DatabaseType "mongodb"}}
+      - SPRING_DATA_MONGODB_URI={{.SpringURL}}
+{{- else if eq .DatabaseType "redis"}}
+      - SPRING_DATA_REDIS_HOST=redis
+      - SPRING_DATA_REDIS_PORT=6379
+{{- end}}
+{{- end}}
+    networks:
+      - {{.AppNameLower}}-network
+    restart: unless-stopped
+{{- if .HasDatabase}}
+
+  {{.DatabaseType}}:
+    image: {{.DatabaseImage}}
+    container_name: {{.AppNameLower}}-{{.DatabaseType}}
+{{- if eq .DatabaseType "postgres"}}
+    environment:
+{{- range $key, $value := .DatabaseEnv}}
+      - {{$key}}={{$value}}
+{{- end}}
+    ports:
+      - "5432:5432"
+    volumes:
+      - {{.VolumeName}}:{{.VolumePath}}
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U postgres"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+{{- else if eq .DatabaseType "mysql"}}
+    environment:
+{{- range $key, $value := .DatabaseEnv}}
+      - {{$key}}={{$value}}
+{{- end}}
+    ports:
+      - "3306:3306"
+    volumes:
+      - {{.VolumeName}}:{{.VolumePath}}
+    healthcheck:
+      test: ["CMD", "mysqladmin", "ping", "-h", "localhost", "-u", "root", "-proot"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+{{- else if eq .DatabaseType "mariadb"}}
+    environment:
+{{- range $key, $value := .DatabaseEnv}}
+      - {{$key}}={{$value}}
+{{- end}}
+    ports:
+      - "3306:3306"
+    volumes:
+      - {{.VolumeName}}:{{.VolumePath}}
+    healthcheck:
+      test: ["CMD", "healthcheck.sh", "--connect", "--innodb_initialized"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+{{- else if eq .DatabaseType "mongodb"}}
+    environment:
+{{- range $key, $value := .DatabaseEnv}}
+      - {{$key}}={{$value}}
+{{- end}}
+    ports:
+      - "27017:27017"
+    volumes:
+      - {{.VolumeName}}:{{.VolumePath}}
+    healthcheck:
+      test: ["CMD", "mongosh", "--eval", "db.adminCommand('ping')"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+{{- else if eq .DatabaseType "redis"}}
+    ports:
+      - "6379:6379"
+    volumes:
+      - {{.VolumeName}}:{{.VolumePath}}
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+{{- else if eq .DatabaseType "cassandra"}}
+    environment:
+{{- range $key, $value := .DatabaseEnv}}
+      - {{$key}}={{$value}}
+{{- end}}
+    ports:
+      - "9042:9042"
+    volumes:
+      - {{.VolumeName}}:{{.VolumePath}}
+    healthcheck:
+      test: ["CMD-SHELL", "cqlsh -e 'describe cluster'"]
+      interval: 30s
+      timeout: 10s
+      retries: 5
+{{- end}}
+    networks:
+      - {{.AppNameLower}}-network
+    restart: unless-stopped
+{{- end}}
+
+networks:
+  {{.AppNameLower}}-network:
+    driver: bridge
+{{- if .HasDatabase}}
+
+volumes:
+  {{.VolumeName}}:
+{{- end}}

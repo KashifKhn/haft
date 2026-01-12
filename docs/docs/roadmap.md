@@ -111,6 +111,15 @@ This page tracks the development progress of Haft.
   - [x] `haft doctor` — Project health check with 15 checks
   - [x] JSON output support
 
+- [x] **Docker Support**
+  - [x] `haft dockerize` — Generate Docker configuration files
+  - [x] Multi-stage Dockerfile generation (Maven & Gradle)
+  - [x] docker-compose.yml with database services
+  - [x] .dockerignore generation
+  - [x] Database auto-detection (PostgreSQL, MySQL, MariaDB, MongoDB, Redis, Cassandra)
+  - [x] Interactive database picker for JPA projects
+  - [x] Java version and port auto-detection
+
 - [x] **Custom Templates**
   - [x] Project-level templates (`.haft/templates/`)
   - [x] Global user-level templates (`~/.haft/templates/`)
@@ -173,6 +182,10 @@ See [Contributing](/docs/contributing) for guidelines.
 
 ### v0.4.0 (Current)
 
+- Feature: `haft dockerize` - Generate optimized Docker configuration files (Dockerfile, docker-compose.yml, .dockerignore)
+- Feature: Multi-stage Dockerfile with layer extraction for Maven and Gradle projects
+- Feature: Database auto-detection and docker-compose service generation (PostgreSQL, MySQL, MariaDB, MongoDB, Redis, Cassandra)
+- Feature: Interactive database selection when JPA detected without driver
 - Feature: `haft doctor` - Comprehensive project health check with 15 checks across 6 categories
 - Feature: `haft doctor --json` - JSON output for CI/CD integration
 - Feature: `haft doctor --strict` - Exit code 1 on warnings
