@@ -2,18 +2,18 @@ package detector
 
 import (
 	"crypto/md5"
+	"encoding/json"
 	"fmt"
 	"os"
 	"path/filepath"
 	"time"
 
 	"github.com/spf13/afero"
-	"gopkg.in/yaml.v3"
 )
 
 const (
 	CacheDir      = ".haft"
-	ProfileFile   = "profile.yaml"
+	ProfileFile   = "profile.json"
 	ChecksumFile  = "checksum"
 	DefaultMaxAge = 24 * time.Hour
 )
@@ -64,7 +64,7 @@ func (c *ProfileCache) Save(profile *ProjectProfile) error {
 
 	profile.DetectedAt = time.Now()
 
-	data, err := yaml.Marshal(profile)
+	data, err := json.MarshalIndent(profile, "", "  ")
 	if err != nil {
 		return fmt.Errorf("failed to marshal profile: %w", err)
 	}
@@ -102,7 +102,7 @@ func (c *ProfileCache) Load() (*ProjectProfile, error) {
 	}
 
 	var profile ProjectProfile
-	if err := yaml.Unmarshal(data, &profile); err != nil {
+	if err := json.Unmarshal(data, &profile); err != nil {
 		return nil, fmt.Errorf("failed to unmarshal profile: %w", err)
 	}
 

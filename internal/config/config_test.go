@@ -178,7 +178,7 @@ func TestLoadProjectConfigInvalidYAML(t *testing.T) {
 	cm := NewConfigManager(fs, "/project", "/home/user")
 
 	configPath := filepath.Join("/project", ProjectConfigFile)
-	err := afero.WriteFile(fs, configPath, []byte("invalid: yaml: content: ["), 0644)
+	err := afero.WriteFile(fs, configPath, []byte("{invalid json content"), 0644)
 	require.NoError(t, err)
 
 	_, err = cm.LoadProjectConfig()
@@ -194,7 +194,7 @@ func TestLoadGlobalConfigInvalidYAML(t *testing.T) {
 	require.NoError(t, err)
 
 	configPath := filepath.Join(configDir, GlobalConfigFile)
-	err = afero.WriteFile(fs, configPath, []byte("invalid: yaml: content: ["), 0644)
+	err = afero.WriteFile(fs, configPath, []byte("{invalid json content"), 0644)
 	require.NoError(t, err)
 
 	_, err = cm.LoadGlobalConfig()

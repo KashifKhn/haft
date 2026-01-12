@@ -190,7 +190,7 @@ See [Contributing](/docs/contributing) for guidelines.
 - Feature: User-friendly `${var}` placeholder syntax for templates
 - Feature: Comment-based conditionals (`@if HasLombok`, `@else`, `@endif`)
 - Feature: **Intelligent architecture detection** — Auto-detects Layered, Feature, Hexagonal, Clean, Modular, and Flat architectures
-- Feature: **Profile caching** — First scan cached to `.haft/profile.yaml` for instant subsequent runs
+- Feature: **Profile caching** — First scan cached to `.haft/profile.json` for instant subsequent runs
 - Feature: **Test class generation** — Generates ServiceTest, ControllerTest, RepositoryTest, EntityTest
 - Feature: `--skip-tests` flag to skip test generation
 - Feature: `--refresh` flag to force re-scan project profile

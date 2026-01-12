@@ -308,7 +308,7 @@ func DetectProjectProfileWithRefresh(forceRefresh bool) (*detector.ProjectProfil
 	if !forceRefresh && cache.IsValid() {
 		profile, err := cache.Load()
 		if err == nil && profile != nil {
-			log.Debug("Using cached profile from .haft/profile.yaml")
+			log.Debug("Using cached profile from .haft/profile.json")
 			return profile, nil
 		}
 	}
@@ -323,7 +323,7 @@ func DetectProjectProfileWithRefresh(forceRefresh bool) (*detector.ProjectProfil
 	if err := cache.Save(profile); err != nil {
 		log.Debug("Failed to cache profile", "error", err.Error())
 	} else {
-		log.Debug("Profile cached to .haft/profile.yaml")
+		log.Debug("Profile cached to .haft/profile.json")
 	}
 
 	return profile, nil

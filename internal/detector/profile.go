@@ -3,55 +3,55 @@ package detector
 import "time"
 
 type ProjectProfile struct {
-	DetectedAt  time.Time `yaml:"detected_at"`
-	ProjectRoot string    `yaml:"project_root"`
+	DetectedAt  time.Time `json:"detected_at"`
+	ProjectRoot string    `json:"project_root"`
 
-	Architecture   ArchitectureType `yaml:"architecture"`
-	ArchConfidence float64          `yaml:"arch_confidence"`
-	ArchLocked     bool             `yaml:"arch_locked"`
-	FeatureStyle   FeatureStyle     `yaml:"feature_style"`
+	Architecture   ArchitectureType `json:"architecture"`
+	ArchConfidence float64          `json:"arch_confidence"`
+	ArchLocked     bool             `json:"arch_locked"`
+	FeatureStyle   FeatureStyle     `json:"feature_style"`
 
-	BasePackage string `yaml:"base_package"`
-	SourceRoot  string `yaml:"source_root"`
-	TestRoot    string `yaml:"test_root"`
+	BasePackage string `json:"base_package"`
+	SourceRoot  string `json:"source_root"`
+	TestRoot    string `json:"test_root"`
 
-	BaseEntity     *BaseClassInfo `yaml:"base_entity,omitempty"`
-	BaseRepository *BaseClassInfo `yaml:"base_repository,omitempty"`
-	BaseService    *BaseClassInfo `yaml:"base_service,omitempty"`
+	BaseEntity     *BaseClassInfo `json:"base_entity,omitempty"`
+	BaseRepository *BaseClassInfo `json:"base_repository,omitempty"`
+	BaseService    *BaseClassInfo `json:"base_service,omitempty"`
 
-	ResponseWrapper *WrapperInfo `yaml:"response_wrapper,omitempty"`
-	PageWrapper     *WrapperInfo `yaml:"page_wrapper,omitempty"`
+	ResponseWrapper *WrapperInfo `json:"response_wrapper,omitempty"`
+	PageWrapper     *WrapperInfo `json:"page_wrapper,omitempty"`
 
-	DTONaming        DTONamingStyle `yaml:"dto_naming"`
-	DTONamingLocked  bool           `yaml:"dto_naming_locked"`
-	ControllerSuffix string         `yaml:"controller_suffix"`
-	ServiceSuffix    string         `yaml:"service_suffix"`
+	DTONaming        DTONamingStyle `json:"dto_naming"`
+	DTONamingLocked  bool           `json:"dto_naming_locked"`
+	ControllerSuffix string         `json:"controller_suffix"`
+	ServiceSuffix    string         `json:"service_suffix"`
 
-	IDType       string `yaml:"id_type"`
-	IDAnnotation string `yaml:"id_annotation"`
-	IDLocked     bool   `yaml:"id_locked"`
+	IDType       string `json:"id_type"`
+	IDAnnotation string `json:"id_annotation"`
+	IDLocked     bool   `json:"id_locked"`
 
-	Mapper       MapperType `yaml:"mapper"`
-	MapperLocked bool       `yaml:"mapper_locked"`
+	Mapper       MapperType `json:"mapper"`
+	MapperLocked bool       `json:"mapper_locked"`
 
-	Exceptions ExceptionProfile `yaml:"exceptions"`
+	Exceptions ExceptionProfile `json:"exceptions"`
 
-	Lombok LombokProfile `yaml:"lombok"`
+	Lombok LombokProfile `json:"lombok"`
 
-	HasSwagger   bool         `yaml:"has_swagger"`
-	SwaggerStyle SwaggerStyle `yaml:"swagger_style"`
+	HasSwagger   bool         `json:"has_swagger"`
+	SwaggerStyle SwaggerStyle `json:"swagger_style"`
 
-	HasValidation   bool            `yaml:"has_validation"`
-	ValidationStyle ValidationStyle `yaml:"validation_style"`
+	HasValidation   bool            `json:"has_validation"`
+	ValidationStyle ValidationStyle `json:"validation_style"`
 
-	Testing TestProfile `yaml:"testing"`
+	Testing TestProfile `json:"testing"`
 
-	Database       DatabaseType `yaml:"database"`
-	DatabaseLocked bool         `yaml:"database_locked"`
+	Database       DatabaseType `json:"database"`
+	DatabaseLocked bool         `json:"database_locked"`
 
-	FeatureModules []string `yaml:"feature_modules,omitempty"`
+	FeatureModules []string `json:"feature_modules,omitempty"`
 
-	LockedFields []string `yaml:"locked_fields,omitempty"`
+	LockedFields []string `json:"locked_fields,omitempty"`
 }
 
 func NewEmptyProfile() *ProjectProfile {

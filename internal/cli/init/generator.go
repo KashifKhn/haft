@@ -87,11 +87,11 @@ func generateProject(cfg ProjectConfig, projectDir string, jsonOutput bool) erro
 	}
 	if err := writeHaftConfig(fs, projectDir, cfg); err != nil {
 		if jsonOutput {
-			return output.Error("CONFIG_FAILED", "failed to write .haft.yaml", err.Error())
+			return output.Error("CONFIG_FAILED", "failed to write .haft.json", err.Error())
 		}
-		return fmt.Errorf("failed to write .haft.yaml: %w", err)
+		return fmt.Errorf("failed to write .haft.json: %w", err)
 	}
-	filesCreated = append(filesCreated, filepath.Join(projectDir, ".haft.yaml"))
+	filesCreated = append(filesCreated, filepath.Join(projectDir, ".haft.json"))
 
 	gitInitialized := false
 	if cfg.InitGit {

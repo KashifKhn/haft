@@ -1,86 +1,86 @@
 package config
 
 import (
+	"encoding/json"
 	"os"
 	"path/filepath"
 
 	"github.com/spf13/afero"
-	"gopkg.in/yaml.v3"
 )
 
 const (
-	ProjectConfigFile = ".haft.yaml"
+	ProjectConfigFile = ".haft.json"
 	GlobalConfigDir   = ".config/haft"
-	GlobalConfigFile  = "config.yaml"
+	GlobalConfigFile  = "config.json"
 )
 
 type ProjectConfig struct {
-	Version      string            `yaml:"version"`
-	Project      ProjectSettings   `yaml:"project"`
-	Spring       SpringSettings    `yaml:"spring"`
-	Java         JavaSettings      `yaml:"java"`
-	Build        BuildSettings     `yaml:"build"`
-	Architecture ArchSettings      `yaml:"architecture"`
-	Database     DatabaseSettings  `yaml:"database"`
-	Generators   GeneratorSettings `yaml:"generators"`
+	Version      string            `json:"version"`
+	Project      ProjectSettings   `json:"project"`
+	Spring       SpringSettings    `json:"spring"`
+	Java         JavaSettings      `json:"java"`
+	Build        BuildSettings     `json:"build"`
+	Architecture ArchSettings      `json:"architecture"`
+	Database     DatabaseSettings  `json:"database"`
+	Generators   GeneratorSettings `json:"generators"`
 }
 
 type ProjectSettings struct {
-	Name        string `yaml:"name"`
-	Group       string `yaml:"group"`
-	Artifact    string `yaml:"artifact"`
-	Description string `yaml:"description"`
-	Package     string `yaml:"package"`
+	Name        string `json:"name"`
+	Group       string `json:"group"`
+	Artifact    string `json:"artifact"`
+	Description string `json:"description"`
+	Package     string `json:"package"`
 }
 
 type SpringSettings struct {
-	Version string `yaml:"version"`
+	Version string `json:"version"`
 }
 
 type JavaSettings struct {
-	Version string `yaml:"version"`
+	Version string `json:"version"`
 }
 
 type BuildSettings struct {
-	Tool string `yaml:"tool"`
+	Tool string `json:"tool"`
 }
 
 type ArchSettings struct {
-	Style string `yaml:"style"`
+	Style string `json:"style"`
 }
 
 type DatabaseSettings struct {
-	Type string `yaml:"type"`
+	Type string `json:"type"`
 }
 
 type GeneratorSettings struct {
-	DTO   DTOSettings  `yaml:"dto"`
-	Tests TestSettings `yaml:"tests"`
+	DTO   DTOSettings  `json:"dto"`
+	Tests TestSettings `json:"tests"`
 }
 
 type DTOSettings struct {
-	Style string `yaml:"style"`
+	Style string `json:"style"`
 }
 
 type TestSettings struct {
-	Enabled bool `yaml:"enabled"`
+	Enabled bool `json:"enabled"`
 }
 
 type GlobalConfig struct {
-	Defaults DefaultSettings `yaml:"defaults"`
-	Output   OutputSettings  `yaml:"output"`
+	Defaults DefaultSettings `json:"defaults"`
+	Output   OutputSettings  `json:"output"`
 }
 
 type DefaultSettings struct {
-	JavaVersion  string `yaml:"java_version"`
-	BuildTool    string `yaml:"build_tool"`
-	Architecture string `yaml:"architecture"`
-	SpringBoot   string `yaml:"spring_boot"`
+	JavaVersion  string `json:"java_version"`
+	BuildTool    string `json:"build_tool"`
+	Architecture string `json:"architecture"`
+	SpringBoot   string `json:"spring_boot"`
 }
 
 type OutputSettings struct {
-	Colors  bool `yaml:"colors"`
-	Verbose bool `yaml:"verbose"`
+	Colors  bool `json:"colors"`
+	Verbose bool `json:"verbose"`
 }
 
 type ConfigManager struct {
@@ -124,7 +124,7 @@ func (cm *ConfigManager) LoadProjectConfig() (*ProjectConfig, error) {
 	}
 
 	var config ProjectConfig
-	if err := yaml.Unmarshal(data, &config); err != nil {
+	if err := json.Unmarshal(data, &config); err != nil {
 		return nil, err
 	}
 
@@ -134,7 +134,7 @@ func (cm *ConfigManager) LoadProjectConfig() (*ProjectConfig, error) {
 func (cm *ConfigManager) SaveProjectConfig(config *ProjectConfig) error {
 	configPath := filepath.Join(cm.projectDir, ProjectConfigFile)
 
-	data, err := yaml.Marshal(config)
+	data, err := json.MarshalIndent(config, "", "  ")
 	if err != nil {
 		return err
 	}
@@ -160,7 +160,7 @@ func (cm *ConfigManager) LoadGlobalConfig() (*GlobalConfig, error) {
 	}
 
 	var config GlobalConfig
-	if err := yaml.Unmarshal(data, &config); err != nil {
+	if err := json.Unmarshal(data, &config); err != nil {
 		return nil, err
 	}
 
@@ -175,7 +175,7 @@ func (cm *ConfigManager) SaveGlobalConfig(config *GlobalConfig) error {
 		return err
 	}
 
-	data, err := yaml.Marshal(config)
+	data, err := json.MarshalIndent(config, "", "  ")
 	if err != nil {
 		return err
 	}

@@ -80,57 +80,57 @@ const (
 )
 
 type Field struct {
-	Name        string   `yaml:"name"`
-	Type        string   `yaml:"type"`
-	Annotations []string `yaml:"annotations,omitempty"`
+	Name        string   `json:"name"`
+	Type        string   `json:"type"`
+	Annotations []string `json:"annotations,omitempty"`
 }
 
 type BaseClassInfo struct {
-	Name       string  `yaml:"name"`
-	Package    string  `yaml:"package"`
-	FullPath   string  `yaml:"full_path"`
-	Fields     []Field `yaml:"fields,omitempty"`
-	IDType     string  `yaml:"id_type,omitempty"`
-	IDStrategy string  `yaml:"id_strategy,omitempty"`
+	Name       string  `json:"name"`
+	Package    string  `json:"package"`
+	FullPath   string  `json:"full_path"`
+	Fields     []Field `json:"fields,omitempty"`
+	IDType     string  `json:"id_type,omitempty"`
+	IDStrategy string  `json:"id_strategy,omitempty"`
 }
 
 type WrapperInfo struct {
-	Name           string   `yaml:"name"`
-	Package        string   `yaml:"package"`
-	FullPath       string   `yaml:"full_path"`
-	IsGeneric      bool     `yaml:"is_generic"`
-	Fields         []string `yaml:"fields,omitempty"`
-	FactoryMethods []string `yaml:"factory_methods,omitempty"`
+	Name           string   `json:"name"`
+	Package        string   `json:"package"`
+	FullPath       string   `json:"full_path"`
+	IsGeneric      bool     `json:"is_generic"`
+	Fields         []string `json:"fields,omitempty"`
+	FactoryMethods []string `json:"factory_methods,omitempty"`
 }
 
 type ExceptionInfo struct {
-	Name    string `yaml:"name"`
-	Package string `yaml:"package"`
+	Name    string `json:"name"`
+	Package string `json:"package"`
 }
 
 type ExceptionProfile struct {
-	HasGlobalHandler bool            `yaml:"has_global_handler"`
-	HandlerPackage   string          `yaml:"handler_package,omitempty"`
-	CustomExceptions []ExceptionInfo `yaml:"custom_exceptions,omitempty"`
+	HasGlobalHandler bool            `json:"has_global_handler"`
+	HandlerPackage   string          `json:"handler_package,omitempty"`
+	CustomExceptions []ExceptionInfo `json:"custom_exceptions,omitempty"`
 }
 
 type LombokProfile struct {
-	Detected        bool `yaml:"detected"`
-	UseData         bool `yaml:"use_data"`
-	UseBuilder      bool `yaml:"use_builder"`
-	UseAccessors    bool `yaml:"use_accessors"`
-	UseSlf4j        bool `yaml:"use_slf4j"`
-	UseRequiredArgs bool `yaml:"use_required_args"`
-	UseAllArgs      bool `yaml:"use_all_args"`
-	UseNoArgs       bool `yaml:"use_no_args"`
+	Detected        bool `json:"detected"`
+	UseData         bool `json:"use_data"`
+	UseBuilder      bool `json:"use_builder"`
+	UseAccessors    bool `json:"use_accessors"`
+	UseSlf4j        bool `json:"use_slf4j"`
+	UseRequiredArgs bool `json:"use_required_args"`
+	UseAllArgs      bool `json:"use_all_args"`
+	UseNoArgs       bool `json:"use_no_args"`
 }
 
 type TestProfile struct {
-	Framework         string `yaml:"framework"`
-	HasMockito        bool   `yaml:"has_mockito"`
-	HasTestcontainers bool   `yaml:"has_testcontainers"`
-	HasRestAssured    bool   `yaml:"has_rest_assured"`
-	StructureMirror   bool   `yaml:"structure_mirror"`
+	Framework         string `json:"framework"`
+	HasMockito        bool   `json:"has_mockito"`
+	HasTestcontainers bool   `json:"has_testcontainers"`
+	HasRestAssured    bool   `json:"has_rest_assured"`
+	StructureMirror   bool   `json:"structure_mirror"`
 }
 
 type JavaFile struct {

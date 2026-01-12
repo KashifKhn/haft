@@ -75,7 +75,7 @@ Haft caches the detected project profile for instant subsequent runs:
 
 ```
 .haft/
-├── profile.yaml    # Cached detection results
+├── profile.json    # Cached detection results
 └── checksum        # Source file checksum for invalidation
 ```
 

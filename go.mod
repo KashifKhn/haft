@@ -8,11 +8,12 @@ require (
 	github.com/charmbracelet/bubbletea v1.3.10
 	github.com/charmbracelet/lipgloss v1.1.0
 	github.com/charmbracelet/log v0.4.2
+	github.com/mattn/go-isatty v0.0.20
 	github.com/spf13/afero v1.15.0
 	github.com/spf13/cobra v1.10.2
 	github.com/stretchr/testify v1.11.1
+	golang.org/x/term v0.38.0
 	golang.org/x/text v0.30.0
-	gopkg.in/yaml.v3 v3.0.1
 )
 
 require (
@@ -32,7 +33,6 @@ require (
 	github.com/inconshreveable/mousetrap v1.1.0 // indirect
 	github.com/json-iterator/go v1.1.12 // indirect
 	github.com/lucasb-eyer/go-colorful v1.2.0 // indirect
-	github.com/mattn/go-isatty v0.0.20 // indirect
 	github.com/mattn/go-localereader v0.0.1 // indirect
 	github.com/mattn/go-runewidth v0.0.19 // indirect
 	github.com/modern-go/concurrent v0.0.0-20180306012644-bacd9c7ef1dd // indirect
@@ -48,6 +48,6 @@ require (
 	golang.org/x/exp v0.0.0-20231006140011-7918f672742d // indirect
 	golang.org/x/sync v0.17.0 // indirect
 	golang.org/x/sys v0.39.0 // indirect
-	golang.org/x/term v0.38.0 // indirect
 	gopkg.in/yaml.v2 v2.4.0 // indirect
+	gopkg.in/yaml.v3 v3.0.1 // indirect
 )

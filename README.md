@@ -89,7 +89,7 @@ Haft doesn't just generate boilerplate — it **learns from your codebase** and 
 
 ### Profile Caching
 
-First run scans your project and caches the profile to `.haft/profile.yaml`. Subsequent runs are **instant**.
+First run scans your project and caches the profile to `.haft/profile.json`. Subsequent runs are **instant**.
 
 ```bash
 # First run (~200ms) - scans and caches
@@ -372,7 +372,7 @@ haft stats --cocomo    # COCOMO cost estimates
 - **Intelligent Detection** — Learns from your codebase patterns
 - **Architecture Aware** — Supports Layered, Feature, Hexagonal, Clean, Modular
 - **Test Generation** — Unit and integration tests with Mockito, MockMvc
-- **Profile Caching** — Instant subsequent runs with `.haft/profile.yaml`
+- **Profile Caching** — Instant subsequent runs with `.haft/profile.json`
 - **Interactive TUI** — Beautiful terminal interface with keyboard navigation
 - **Offline First** — No internet required, all metadata bundled
 - **Smart Defaults** — Sensible defaults that match industry standards
