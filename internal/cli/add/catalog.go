@@ -427,7 +427,7 @@ var dependencyCatalog = map[string]CatalogEntry{
 	"openai": {
 		Name:        "Spring AI OpenAI",
 		Description: "OpenAI (ChatGPT, GPT-4) integration",
-		Category:    "AI",
+		Category:    "AI & Machine Learning",
 		Dependencies: []buildtool.Dependency{
 			{GroupId: "org.springframework.ai", ArtifactId: "spring-ai-openai-spring-boot-starter"},
 		},
@@ -435,7 +435,7 @@ var dependencyCatalog = map[string]CatalogEntry{
 	"anthropic": {
 		Name:        "Spring AI Anthropic",
 		Description: "Anthropic Claude integration",
-		Category:    "AI",
+		Category:    "AI & Machine Learning",
 		Dependencies: []buildtool.Dependency{
 			{GroupId: "org.springframework.ai", ArtifactId: "spring-ai-anthropic-spring-boot-starter"},
 		},
@@ -443,7 +443,7 @@ var dependencyCatalog = map[string]CatalogEntry{
 	"ollama": {
 		Name:        "Spring AI Ollama",
 		Description: "Ollama local LLM integration",
-		Category:    "AI",
+		Category:    "AI & Machine Learning",
 		Dependencies: []buildtool.Dependency{
 			{GroupId: "org.springframework.ai", ArtifactId: "spring-ai-ollama-spring-boot-starter"},
 		},
@@ -451,7 +451,7 @@ var dependencyCatalog = map[string]CatalogEntry{
 	"azure-openai": {
 		Name:        "Spring AI Azure OpenAI",
 		Description: "Azure OpenAI integration",
-		Category:    "AI",
+		Category:    "AI & Machine Learning",
 		Dependencies: []buildtool.Dependency{
 			{GroupId: "org.springframework.ai", ArtifactId: "spring-ai-azure-openai-spring-boot-starter"},
 		},
@@ -459,7 +459,7 @@ var dependencyCatalog = map[string]CatalogEntry{
 	"bedrock": {
 		Name:        "Spring AI Amazon Bedrock",
 		Description: "Amazon Bedrock AI integration",
-		Category:    "AI",
+		Category:    "AI & Machine Learning",
 		Dependencies: []buildtool.Dependency{
 			{GroupId: "org.springframework.ai", ArtifactId: "spring-ai-bedrock-ai-spring-boot-starter"},
 		},
@@ -467,7 +467,7 @@ var dependencyCatalog = map[string]CatalogEntry{
 	"vertex-ai": {
 		Name:        "Spring AI Vertex AI",
 		Description: "Google Vertex AI Gemini integration",
-		Category:    "AI",
+		Category:    "AI & Machine Learning",
 		Dependencies: []buildtool.Dependency{
 			{GroupId: "org.springframework.ai", ArtifactId: "spring-ai-vertex-ai-gemini-spring-boot-starter"},
 		},
@@ -475,7 +475,7 @@ var dependencyCatalog = map[string]CatalogEntry{
 	"mistral": {
 		Name:        "Spring AI Mistral",
 		Description: "Mistral AI integration",
-		Category:    "AI",
+		Category:    "AI & Machine Learning",
 		Dependencies: []buildtool.Dependency{
 			{GroupId: "org.springframework.ai", ArtifactId: "spring-ai-mistral-ai-spring-boot-starter"},
 		},
@@ -483,7 +483,7 @@ var dependencyCatalog = map[string]CatalogEntry{
 	"pgvector": {
 		Name:        "PGVector",
 		Description: "PostgreSQL vector database for AI",
-		Category:    "AI",
+		Category:    "AI & Machine Learning",
 		Dependencies: []buildtool.Dependency{
 			{GroupId: "org.springframework.ai", ArtifactId: "spring-ai-pgvector-store-spring-boot-starter"},
 		},
@@ -1771,7 +1771,7 @@ var dependencyCatalog = map[string]CatalogEntry{
 	"google-maps": {
 		Name:        "Google Maps",
 		Description: "Google Maps Server SDK (Geocoding, Directions, Places)",
-		Category:    "Maps",
+		Category:    "Maps & Geo",
 		Dependencies: []buildtool.Dependency{
 			{GroupId: "com.google.maps", ArtifactId: "google-maps-services", Version: "2.2.0"},
 		},
@@ -1779,7 +1779,7 @@ var dependencyCatalog = map[string]CatalogEntry{
 	"mapbox": {
 		Name:        "Mapbox",
 		Description: "Mapbox Java SDK (Navigation, Search, Maps)",
-		Category:    "Maps",
+		Category:    "Maps & Geo",
 		Dependencies: []buildtool.Dependency{
 			{GroupId: "com.mapbox.mapboxsdk", ArtifactId: "mapbox-sdk-services", Version: "6.15.0"},
 		},
@@ -1787,7 +1787,7 @@ var dependencyCatalog = map[string]CatalogEntry{
 	"graphhopper": {
 		Name:        "GraphHopper",
 		Description: "Open-source routing engine (Directions API)",
-		Category:    "Maps",
+		Category:    "Maps & Geo",
 		Dependencies: []buildtool.Dependency{
 			{GroupId: "com.graphhopper", ArtifactId: "graphhopper-core", Version: "8.0"},
 		},
@@ -1795,7 +1795,7 @@ var dependencyCatalog = map[string]CatalogEntry{
 	"h3": {
 		Name:        "H3",
 		Description: "Uber's Hexagonal Hierarchical Spatial Index",
-		Category:    "Maps",
+		Category:    "Maps & Geo",
 		Dependencies: []buildtool.Dependency{
 			{GroupId: "com.uber", ArtifactId: "h3", Version: "4.1.1"},
 		},
@@ -1803,7 +1803,7 @@ var dependencyCatalog = map[string]CatalogEntry{
 	"jts": {
 		Name:        "JTS Topology Suite",
 		Description: "Geometry and spatial operations",
-		Category:    "Maps",
+		Category:    "Maps & Geo",
 		Dependencies: []buildtool.Dependency{
 			{GroupId: "org.locationtech.jts", ArtifactId: "jts-core", Version: "1.19.0"},
 		},
@@ -1811,7 +1811,7 @@ var dependencyCatalog = map[string]CatalogEntry{
 	"geotools": {
 		Name:        "GeoTools",
 		Description: "Geospatial data tools (Shapefiles, CRS)",
-		Category:    "Maps",
+		Category:    "Maps & Geo",
 		Dependencies: []buildtool.Dependency{
 			{GroupId: "org.geotools", ArtifactId: "gt-main", Version: "30.2"},
 		},
@@ -1819,7 +1819,7 @@ var dependencyCatalog = map[string]CatalogEntry{
 	"ip2location": {
 		Name:        "IP2Location",
 		Description: "IP Address to Geo-location lookup",
-		Category:    "Maps",
+		Category:    "Maps & Geo",
 		Dependencies: []buildtool.Dependency{
 			{GroupId: "com.ip2location", ArtifactId: "ip2location-java", Version: "8.11.1"},
 		},
@@ -1827,7 +1827,7 @@ var dependencyCatalog = map[string]CatalogEntry{
 	"maxmind": {
 		Name:        "MaxMind GeoIP2",
 		Description: "MaxMind GeoIP2 Database integration",
-		Category:    "Maps",
+		Category:    "Maps & Geo",
 		Dependencies: []buildtool.Dependency{
 			{GroupId: "com.maxmind.geoip2", ArtifactId: "geoip2", Version: "4.2.0"},
 		},
@@ -2075,7 +2075,7 @@ var dependencyCatalog = map[string]CatalogEntry{
 	"spark": {
 		Name:        "Apache Spark",
 		Description: "Apache Spark Java API",
-		Category:    "Data",
+		Category:    "Data Processing",
 		Dependencies: []buildtool.Dependency{
 			{GroupId: "org.apache.spark", ArtifactId: "spark-core_2.13", Version: "3.5.0"},
 		},
@@ -2083,7 +2083,7 @@ var dependencyCatalog = map[string]CatalogEntry{
 	"flink": {
 		Name:        "Apache Flink",
 		Description: "Stream processing framework",
-		Category:    "Data",
+		Category:    "Data Processing",
 		Dependencies: []buildtool.Dependency{
 			{GroupId: "org.apache.flink", ArtifactId: "flink-java", Version: "1.18.1"},
 		},
@@ -2091,7 +2091,7 @@ var dependencyCatalog = map[string]CatalogEntry{
 	"hadoop": {
 		Name:        "Apache Hadoop",
 		Description: "Hadoop client libraries",
-		Category:    "Data",
+		Category:    "Data Processing",
 		Dependencies: []buildtool.Dependency{
 			{GroupId: "org.apache.hadoop", ArtifactId: "hadoop-client", Version: "3.3.6"},
 		},
@@ -2099,7 +2099,7 @@ var dependencyCatalog = map[string]CatalogEntry{
 	"djl": {
 		Name:        "Deep Java Library",
 		Description: "Amazon's ML toolkit for Java",
-		Category:    "AI",
+		Category:    "AI & Machine Learning",
 		Dependencies: []buildtool.Dependency{
 			{GroupId: "ai.djl", ArtifactId: "api", Version: "0.27.0"},
 		},
@@ -2107,7 +2107,7 @@ var dependencyCatalog = map[string]CatalogEntry{
 	"weka": {
 		Name:        "Weka",
 		Description: "Machine Learning algorithms collection",
-		Category:    "AI",
+		Category:    "AI & Machine Learning",
 		Dependencies: []buildtool.Dependency{
 			{GroupId: "nz.ac.waikato.cms.weka", ArtifactId: "weka-stable", Version: "3.8.6"},
 		},
@@ -2115,7 +2115,7 @@ var dependencyCatalog = map[string]CatalogEntry{
 	"corenlp": {
 		Name:        "Stanford CoreNLP",
 		Description: "Natural Language Processing",
-		Category:    "AI",
+		Category:    "AI & Machine Learning",
 		Dependencies: []buildtool.Dependency{
 			{GroupId: "edu.stanford.nlp", ArtifactId: "stanford-corenlp", Version: "4.5.6"},
 		},
@@ -2123,7 +2123,7 @@ var dependencyCatalog = map[string]CatalogEntry{
 	"langchain4j": {
 		Name:        "LangChain4j",
 		Description: "LangChain for Java (LLM orchestration)",
-		Category:    "AI",
+		Category:    "AI & Machine Learning",
 		Dependencies: []buildtool.Dependency{
 			{GroupId: "dev.langchain4j", ArtifactId: "langchain4j", Version: "0.28.0"},
 		},
@@ -2131,7 +2131,7 @@ var dependencyCatalog = map[string]CatalogEntry{
 	"pinecone": {
 		Name:        "Pinecone",
 		Description: "Pinecone vector database client",
-		Category:    "AI",
+		Category:    "AI & Machine Learning",
 		Dependencies: []buildtool.Dependency{
 			{GroupId: "io.pinecone", ArtifactId: "pinecone-client", Version: "1.0.0"},
 		},
@@ -2139,7 +2139,7 @@ var dependencyCatalog = map[string]CatalogEntry{
 	"weaviate": {
 		Name:        "Weaviate",
 		Description: "Weaviate vector database client",
-		Category:    "AI",
+		Category:    "AI & Machine Learning",
 		Dependencies: []buildtool.Dependency{
 			{GroupId: "io.weaviate", ArtifactId: "client", Version: "4.5.1"},
 		},
@@ -2147,7 +2147,7 @@ var dependencyCatalog = map[string]CatalogEntry{
 	"qdrant": {
 		Name:        "Qdrant",
 		Description: "Qdrant vector database client",
-		Category:    "AI",
+		Category:    "AI & Machine Learning",
 		Dependencies: []buildtool.Dependency{
 			{GroupId: "io.qdrant", ArtifactId: "client", Version: "1.7.2"},
 		},
@@ -2155,7 +2155,7 @@ var dependencyCatalog = map[string]CatalogEntry{
 	"chroma": {
 		Name:        "Chroma",
 		Description: "Chroma vector database client",
-		Category:    "AI",
+		Category:    "AI & Machine Learning",
 		Dependencies: []buildtool.Dependency{
 			{GroupId: "dev.langchain4j", ArtifactId: "langchain4j-chroma", Version: "0.28.0"},
 		},
@@ -2428,7 +2428,7 @@ var dependencyCatalog = map[string]CatalogEntry{
 	"tablesaw": {
 		Name:        "Tablesaw",
 		Description: "Java Dataframes (Pandas equivalent)",
-		Category:    "Data",
+		Category:    "Data Processing",
 		Dependencies: []buildtool.Dependency{
 			{GroupId: "tech.tablesaw", ArtifactId: "tablesaw-core", Version: "0.43.1"},
 		},
@@ -2436,7 +2436,7 @@ var dependencyCatalog = map[string]CatalogEntry{
 	"commons-math": {
 		Name:        "Apache Commons Math",
 		Description: "Math and statistics library",
-		Category:    "Data",
+		Category:    "Data Processing",
 		Dependencies: []buildtool.Dependency{
 			{GroupId: "org.apache.commons", ArtifactId: "commons-math3", Version: "3.6.1"},
 		},
@@ -2444,7 +2444,7 @@ var dependencyCatalog = map[string]CatalogEntry{
 	"nd4j": {
 		Name:        "ND4J",
 		Description: "N-Dimensional Arrays (NumPy equivalent)",
-		Category:    "Data",
+		Category:    "Data Processing",
 		Dependencies: []buildtool.Dependency{
 			{GroupId: "org.nd4j", ArtifactId: "nd4j-native-platform", Version: "1.0.0-M2.1"},
 		},
@@ -2452,7 +2452,7 @@ var dependencyCatalog = map[string]CatalogEntry{
 	"joda-money": {
 		Name:        "Joda-Money",
 		Description: "Currency and money handling",
-		Category:    "Data",
+		Category:    "Data Processing",
 		Dependencies: []buildtool.Dependency{
 			{GroupId: "org.joda", ArtifactId: "joda-money", Version: "1.0.4"},
 		},
@@ -2460,7 +2460,7 @@ var dependencyCatalog = map[string]CatalogEntry{
 	"jgrapht": {
 		Name:        "JGraphT",
 		Description: "Graph theory data structures and algorithms",
-		Category:    "Data",
+		Category:    "Data Processing",
 		Dependencies: []buildtool.Dependency{
 			{GroupId: "org.jgrapht", ArtifactId: "jgrapht-core", Version: "1.5.2"},
 		},

@@ -44,6 +44,10 @@ func TestNewCommandFlags(t *testing.T) {
 
 	jsonFlag := cmd.Flags().Lookup("json")
 	assert.NotNil(t, jsonFlag)
+
+	forceFlag := cmd.Flags().Lookup("force")
+	assert.NotNil(t, forceFlag)
+	assert.Equal(t, "f", forceFlag.Shorthand)
 }
 
 func TestDatabaseDriversDefinition(t *testing.T) {
@@ -766,6 +770,79 @@ func TestGenerateDockerFilesSkipsExisting(t *testing.T) {
 	assert.FileExists(t, filepath.Join(tmpDir, "docker-compose.yml"))
 }
 
+func TestGenerateDockerFilesForceOverwrite(t *testing.T) {
+	originalCwd, _ := os.Getwd()
+	defer func() { _ = os.Chdir(originalCwd) }()
+
+	tmpDir, err := os.MkdirTemp("", "test-docker-force-*")
+	require.NoError(t, err)
+	defer os.RemoveAll(tmpDir)
+
+	pomContent := `<?xml version="1.0" encoding="UTF-8"?>
+<project>
+    <modelVersion>4.0.0</modelVersion>
+    <groupId>com.example</groupId>
+    <artifactId>demo</artifactId>
+    <version>1.0.0</version>
+</project>`
+	require.NoError(t, os.WriteFile(
+		filepath.Join(tmpDir, "pom.xml"),
+		[]byte(pomContent),
+		0644,
+	))
+
+	existingDockerfile := "existing dockerfile content"
+	require.NoError(t, os.WriteFile(
+		filepath.Join(tmpDir, "Dockerfile"),
+		[]byte(existingDockerfile),
+		0644,
+	))
+
+	existingCompose := "existing compose content"
+	require.NoError(t, os.WriteFile(
+		filepath.Join(tmpDir, "docker-compose.yml"),
+		[]byte(existingCompose),
+		0644,
+	))
+
+	existingIgnore := "existing ignore content"
+	require.NoError(t, os.WriteFile(
+		filepath.Join(tmpDir, ".dockerignore"),
+		[]byte(existingIgnore),
+		0644,
+	))
+
+	require.NoError(t, os.Chdir(tmpDir))
+
+	cfg := DockerConfig{
+		AppName:         "demo",
+		JavaVersion:     "21",
+		Port:            8080,
+		BuildTool:       buildtool.Maven,
+		HasWrapper:      false,
+		GenerateCompose: true,
+		Force:           true,
+	}
+
+	err = generateDockerFiles(cfg, tmpDir, false)
+	require.NoError(t, err)
+
+	dockerfile, err := os.ReadFile(filepath.Join(tmpDir, "Dockerfile"))
+	require.NoError(t, err)
+	assert.NotEqual(t, existingDockerfile, string(dockerfile))
+	assert.Contains(t, string(dockerfile), "eclipse-temurin")
+
+	compose, err := os.ReadFile(filepath.Join(tmpDir, "docker-compose.yml"))
+	require.NoError(t, err)
+	assert.NotEqual(t, existingCompose, string(compose))
+	assert.Contains(t, string(compose), "services:")
+
+	ignore, err := os.ReadFile(filepath.Join(tmpDir, ".dockerignore"))
+	require.NoError(t, err)
+	assert.NotEqual(t, existingIgnore, string(ignore))
+	assert.Contains(t, string(ignore), "target")
+}
+
 func TestSelectWrapperInit(t *testing.T) {
 	wrapper := selectWrapper{}
 	cmd := wrapper.Init()
@@ -786,4 +863,187 @@ func TestDetectJavaVersionWithOverride(t *testing.T) {
 func TestDetectJavaVersionDefault(t *testing.T) {
 	result := normalizeJavaVersion("")
 	assert.Equal(t, "21", result)
+}
+
+func TestMergeDockerComposeWithDatabase(t *testing.T) {
+	originalCwd, _ := os.Getwd()
+	defer func() { _ = os.Chdir(originalCwd) }()
+
+	tmpDir, err := os.MkdirTemp("", "test-docker-merge-*")
+	require.NoError(t, err)
+	defer os.RemoveAll(tmpDir)
+
+	pomContent := `<?xml version="1.0" encoding="UTF-8"?>
+<project>
+    <modelVersion>4.0.0</modelVersion>
+    <groupId>com.example</groupId>
+    <artifactId>demo</artifactId>
+    <version>1.0.0</version>
+</project>`
+	require.NoError(t, os.WriteFile(
+		filepath.Join(tmpDir, "pom.xml"),
+		[]byte(pomContent),
+		0644,
+	))
+
+	existingCompose := `services:
+  app:
+    build: .
+    container_name: demo
+    ports:
+      - "8080:8080"
+    environment:
+      - CUSTOM_VAR=custom_value
+    networks:
+      - demo-network
+    restart: unless-stopped
+
+networks:
+  demo-network:
+    driver: bridge
+`
+	require.NoError(t, os.WriteFile(
+		filepath.Join(tmpDir, "docker-compose.yml"),
+		[]byte(existingCompose),
+		0644,
+	))
+
+	require.NoError(t, os.Chdir(tmpDir))
+
+	cfg := DockerConfig{
+		AppName:         "demo",
+		JavaVersion:     "21",
+		Port:            8080,
+		BuildTool:       buildtool.Maven,
+		HasWrapper:      false,
+		GenerateCompose: true,
+		DatabaseType:    "postgresql",
+		DatabaseInfo: &DatabaseInfo{
+			Type:       "postgres",
+			Image:      "postgres:16-alpine",
+			Port:       5432,
+			EnvPrefix:  "POSTGRES",
+			SpringURL:  "jdbc:postgresql://postgres:5432/demo",
+			VolumePath: "/var/lib/postgresql/data",
+			EnvVars: map[string]string{
+				"POSTGRES_DB":       "demo",
+				"POSTGRES_USER":     "postgres",
+				"POSTGRES_PASSWORD": "postgres",
+			},
+		},
+	}
+
+	err = generateDockerFiles(cfg, tmpDir, false)
+	require.NoError(t, err)
+
+	content, err := os.ReadFile(filepath.Join(tmpDir, "docker-compose.yml"))
+	require.NoError(t, err)
+
+	composeStr := string(content)
+	assert.Contains(t, composeStr, "CUSTOM_VAR")
+	assert.Contains(t, composeStr, "postgres:")
+	assert.Contains(t, composeStr, "POSTGRES_DB")
+	assert.Contains(t, composeStr, "postgres_data")
+	assert.Contains(t, composeStr, "depends_on")
+}
+
+func TestMergeDockerComposePreservesCustomizations(t *testing.T) {
+	originalCwd, _ := os.Getwd()
+	defer func() { _ = os.Chdir(originalCwd) }()
+
+	tmpDir, err := os.MkdirTemp("", "test-docker-preserve-*")
+	require.NoError(t, err)
+	defer os.RemoveAll(tmpDir)
+
+	pomContent := `<?xml version="1.0" encoding="UTF-8"?>
+<project>
+    <modelVersion>4.0.0</modelVersion>
+    <groupId>com.example</groupId>
+    <artifactId>myapp</artifactId>
+    <version>1.0.0</version>
+</project>`
+	require.NoError(t, os.WriteFile(
+		filepath.Join(tmpDir, "pom.xml"),
+		[]byte(pomContent),
+		0644,
+	))
+
+	existingCompose := `services:
+  app:
+    build:
+      context: .
+      dockerfile: Dockerfile.custom
+    container_name: myapp-custom
+    ports:
+      - "9000:9000"
+    environment:
+      - JAVA_OPTS=-Xmx512m
+      - CUSTOM_CONFIG=production
+    volumes:
+      - ./config:/app/config
+    networks:
+      - myapp-network
+    restart: always
+
+  postgres:
+    image: postgres:15-alpine
+    environment:
+      - POSTGRES_DB=olddb
+    ports:
+      - "5433:5432"
+    volumes:
+      - custom_postgres_data:/var/lib/postgresql/data
+
+networks:
+  myapp-network:
+    driver: bridge
+
+volumes:
+  custom_postgres_data:
+`
+	require.NoError(t, os.WriteFile(
+		filepath.Join(tmpDir, "docker-compose.yml"),
+		[]byte(existingCompose),
+		0644,
+	))
+
+	require.NoError(t, os.Chdir(tmpDir))
+
+	cfg := DockerConfig{
+		AppName:         "myapp",
+		JavaVersion:     "21",
+		Port:            8080,
+		BuildTool:       buildtool.Maven,
+		HasWrapper:      false,
+		GenerateCompose: true,
+		DatabaseType:    "postgresql",
+		DatabaseInfo: &DatabaseInfo{
+			Type:       "postgres",
+			Image:      "postgres:16-alpine",
+			Port:       5432,
+			EnvPrefix:  "POSTGRES",
+			SpringURL:  "jdbc:postgresql://postgres:5432/myapp",
+			VolumePath: "/var/lib/postgresql/data",
+			EnvVars: map[string]string{
+				"POSTGRES_DB":       "myapp",
+				"POSTGRES_USER":     "postgres",
+				"POSTGRES_PASSWORD": "postgres",
+			},
+		},
+	}
+
+	err = generateDockerFiles(cfg, tmpDir, false)
+	require.NoError(t, err)
+
+	content, err := os.ReadFile(filepath.Join(tmpDir, "docker-compose.yml"))
+	require.NoError(t, err)
+
+	composeStr := string(content)
+	assert.Contains(t, composeStr, "Dockerfile.custom")
+	assert.Contains(t, composeStr, "myapp-custom")
+	assert.Contains(t, composeStr, "JAVA_OPTS")
+	assert.Contains(t, composeStr, "CUSTOM_CONFIG")
+	assert.Contains(t, composeStr, "./config:/app/config")
+	assert.Contains(t, composeStr, "postgres:")
+	assert.Contains(t, composeStr, "custom_postgres_data")
 }

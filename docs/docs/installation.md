@@ -105,7 +105,7 @@ haft version
 You should see output like:
 
 ```
-haft version v0.3.0
+haft version vX.Y.Z
 ```
 
 ## Shell Completions
