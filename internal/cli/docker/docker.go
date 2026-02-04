@@ -15,6 +15,7 @@ import (
 	tea "github.com/charmbracelet/bubbletea"
 	"github.com/spf13/afero"
 	"github.com/spf13/cobra"
+	"gopkg.in/yaml.v3"
 )
 
 type DatabaseInfo struct {
@@ -149,6 +150,7 @@ type DockerConfig struct {
 	DatabaseType    string
 	DatabaseInfo    *DatabaseInfo
 	GenerateCompose bool
+	Force           bool
 }
 
 type DockerOutput struct {
@@ -203,6 +205,9 @@ Database services supported:
   # Override Java version
   haft dockerize --java 21
 
+  # Force overwrite existing files
+  haft dockerize --force
+
   # Non-interactive mode
   haft dockerize --no-interactive
 
@@ -217,6 +222,7 @@ Database services supported:
 	cmd.Flags().Bool("no-compose", false, "Skip docker-compose.yml generation")
 	cmd.Flags().Bool("no-interactive", false, "Skip interactive prompts")
 	cmd.Flags().Bool("json", false, "Output result as JSON")
+	cmd.Flags().BoolP("force", "f", false, "Overwrite existing files")
 
 	return cmd
 }
@@ -228,6 +234,7 @@ func runDockerize(cmd *cobra.Command, args []string) error {
 	portFlag, _ := cmd.Flags().GetInt("port")
 	javaFlag, _ := cmd.Flags().GetString("java")
 	dbFlag, _ := cmd.Flags().GetString("db")
+	force, _ := cmd.Flags().GetBool("force")
 
 	log := logger.Default()
 	fs := afero.NewOsFs()
@@ -263,6 +270,7 @@ func runDockerize(cmd *cobra.Command, args []string) error {
 		BuildTool:       result.BuildTool,
 		HasWrapper:      hasWrapper(cwd, result.BuildTool),
 		GenerateCompose: !noCompose,
+		Force:           force,
 	}
 
 	detectedDB := detectDatabaseFromDependencies(project.Dependencies)
@@ -285,8 +293,12 @@ func runDockerize(cmd *cobra.Command, args []string) error {
 		info := databaseDrivers[detectedDB]
 		cfg.DatabaseType = detectedDB
 		cfg.DatabaseInfo = &info
-	} else if hasJPA && !noInteractive {
-		selectedDB, err := runDatabasePicker()
+	} else if !noInteractive {
+		promptMsg := "Select a database for docker-compose:"
+		if hasJPA {
+			promptMsg = "JPA detected but no database driver found. Select a database for docker-compose:"
+		}
+		selectedDB, err := runDatabasePicker(promptMsg)
 		if err != nil {
 			if strings.Contains(err.Error(), "cancelled") {
 				if jsonOutput {
@@ -332,7 +344,7 @@ func generateDockerFiles(cfg DockerConfig, cwd string, jsonOutput bool) error {
 	data := buildDockerTemplateData(cfg)
 
 	dockerfilePath := filepath.Join(cwd, "Dockerfile")
-	if engine.FileExists(dockerfilePath) {
+	if engine.FileExists(dockerfilePath) && !cfg.Force {
 		if !jsonOutput {
 			log.Warning("File exists, skipping", "file", "Dockerfile")
 		}
@@ -356,7 +368,7 @@ func generateDockerFiles(cfg DockerConfig, cwd string, jsonOutput bool) error {
 	}
 
 	dockerignorePath := filepath.Join(cwd, ".dockerignore")
-	if engine.FileExists(dockerignorePath) {
+	if engine.FileExists(dockerignorePath) && !cfg.Force {
 		if !jsonOutput {
 			log.Warning("File exists, skipping", "file", ".dockerignore")
 		}
@@ -377,10 +389,29 @@ func generateDockerFiles(cfg DockerConfig, cwd string, jsonOutput bool) error {
 	if cfg.GenerateCompose {
 		composePath := filepath.Join(cwd, "docker-compose.yml")
 		if engine.FileExists(composePath) {
-			if !jsonOutput {
-				log.Warning("File exists, skipping", "file", "docker-compose.yml")
+			if cfg.Force {
+				if err := engine.RenderAndWrite("docker/docker-compose.yml.tmpl", composePath, data); err != nil {
+					if jsonOutput {
+						return output.Error("GENERATION_ERROR", "Failed to generate docker-compose.yml", err.Error())
+					}
+					return fmt.Errorf("failed to generate docker-compose.yml: %w", err)
+				}
+				if !jsonOutput {
+					log.Success("Overwritten", "file", "docker-compose.yml")
+				}
+				generated = append(generated, "docker-compose.yml")
+			} else {
+				if err := mergeDockerCompose(cfg, composePath, data, engine, jsonOutput); err != nil {
+					if jsonOutput {
+						return output.Error("MERGE_ERROR", "Failed to merge docker-compose.yml", err.Error())
+					}
+					return fmt.Errorf("failed to merge docker-compose.yml: %w", err)
+				}
+				if !jsonOutput {
+					log.Success("Updated", "file", "docker-compose.yml")
+				}
+				generated = append(generated, "docker-compose.yml")
 			}
-			skipped = append(skipped, "docker-compose.yml")
 		} else {
 			if err := engine.RenderAndWrite("docker/docker-compose.yml.tmpl", composePath, data); err != nil {
 				if jsonOutput {
@@ -428,6 +459,158 @@ func generateDockerFiles(cfg DockerConfig, cwd string, jsonOutput bool) error {
 	}
 
 	return nil
+}
+
+func mergeDockerCompose(cfg DockerConfig, composePath string, data map[string]any, engine *generator.Engine, jsonOutput bool) error {
+	log := logger.Default()
+
+	existingContent, err := os.ReadFile(composePath)
+	if err != nil {
+		return fmt.Errorf("failed to read existing docker-compose.yml: %w", err)
+	}
+
+	var existing map[string]interface{}
+	if err := yaml.Unmarshal(existingContent, &existing); err != nil {
+		return fmt.Errorf("failed to parse existing docker-compose.yml: %w", err)
+	}
+
+	newContent, err := engine.RenderTemplate("docker/docker-compose.yml.tmpl", data)
+	if err != nil {
+		return fmt.Errorf("failed to render new docker-compose.yml: %w", err)
+	}
+
+	var newCompose map[string]interface{}
+	if err := yaml.Unmarshal([]byte(newContent), &newCompose); err != nil {
+		return fmt.Errorf("failed to parse new docker-compose.yml: %w", err)
+	}
+
+	merged := mergeComposeData(existing, newCompose, cfg, jsonOutput, log)
+
+	mergedYAML, err := yaml.Marshal(merged)
+	if err != nil {
+		return fmt.Errorf("failed to marshal merged docker-compose.yml: %w", err)
+	}
+
+	if err := os.WriteFile(composePath, mergedYAML, 0644); err != nil {
+		return fmt.Errorf("failed to write merged docker-compose.yml: %w", err)
+	}
+
+	return nil
+}
+
+func mergeComposeData(existing, newCompose map[string]interface{}, cfg DockerConfig, jsonOutput bool, log *logger.Logger) map[string]interface{} {
+	if existing["services"] == nil {
+		return newCompose
+	}
+
+	existingServices := existing["services"].(map[string]interface{})
+	newServices := newCompose["services"].(map[string]interface{})
+
+	appNameLower := strings.ToLower(cfg.AppName)
+	appNameLower = regexp.MustCompile(`[^a-z0-9]`).ReplaceAllString(appNameLower, "")
+	if appNameLower == "" {
+		appNameLower = "app"
+	}
+
+	for serviceName, serviceData := range newServices {
+		if serviceName == "app" || serviceName == appNameLower {
+			if existingApp, exists := existingServices["app"]; exists {
+				existingServices["app"] = mergeServiceData(existingApp.(map[string]interface{}), serviceData.(map[string]interface{}))
+				if !jsonOutput {
+					log.Info("Merged app service configuration")
+				}
+			} else if existingApp, exists := existingServices[appNameLower]; exists && appNameLower != "app" {
+				existingServices[appNameLower] = mergeServiceData(existingApp.(map[string]interface{}), serviceData.(map[string]interface{}))
+				if !jsonOutput {
+					log.Info("Merged app service configuration")
+				}
+			} else {
+				existingServices["app"] = serviceData
+			}
+		} else {
+			if _, exists := existingServices[serviceName]; !exists {
+				existingServices[serviceName] = serviceData
+				if !jsonOutput {
+					log.Info("Added database service", "service", serviceName)
+				}
+			} else {
+				existingServices[serviceName] = mergeServiceData(existingServices[serviceName].(map[string]interface{}), serviceData.(map[string]interface{}))
+				if !jsonOutput {
+					log.Info("Updated database service", "service", serviceName)
+				}
+			}
+		}
+	}
+
+	if newCompose["volumes"] != nil {
+		if existing["volumes"] == nil {
+			existing["volumes"] = newCompose["volumes"]
+		} else {
+			existingVolumes := existing["volumes"].(map[string]interface{})
+			newVolumes := newCompose["volumes"].(map[string]interface{})
+			for volumeName, volumeData := range newVolumes {
+				if _, exists := existingVolumes[volumeName]; !exists {
+					existingVolumes[volumeName] = volumeData
+				}
+			}
+		}
+	}
+
+	if newCompose["networks"] != nil {
+		if existing["networks"] == nil {
+			existing["networks"] = newCompose["networks"]
+		}
+	}
+
+	return existing
+}
+
+func mergeServiceData(existing, new map[string]interface{}) map[string]interface{} {
+	for key, value := range new {
+		if key == "environment" || key == "depends_on" {
+			if existing[key] == nil {
+				existing[key] = value
+			} else {
+				existing[key] = mergeEnvironmentOrDependsOn(existing[key], value)
+			}
+		} else if key != "build" && key != "image" && key != "container_name" {
+			existing[key] = value
+		}
+	}
+	return existing
+}
+
+func mergeEnvironmentOrDependsOn(existing, new interface{}) interface{} {
+	switch existingVal := existing.(type) {
+	case []interface{}:
+		newVal := new.([]interface{})
+		existingSet := make(map[string]bool)
+		for _, item := range existingVal {
+			if str, ok := item.(string); ok {
+				key := strings.Split(str, "=")[0]
+				existingSet[key] = true
+			}
+		}
+		for _, item := range newVal {
+			if str, ok := item.(string); ok {
+				key := strings.Split(str, "=")[0]
+				if !existingSet[key] {
+					existingVal = append(existingVal, item)
+				}
+			}
+		}
+		return existingVal
+	case map[string]interface{}:
+		newVal := new.(map[string]interface{})
+		for key, value := range newVal {
+			if _, exists := existingVal[key]; !exists {
+				existingVal[key] = value
+			}
+		}
+		return existingVal
+	default:
+		return new
+	}
 }
 
 func buildDockerTemplateData(cfg DockerConfig) map[string]any {
@@ -640,7 +823,7 @@ func (w selectWrapper) View() string {
 	return w.model.View()
 }
 
-func runDatabasePicker() (string, error) {
+func runDatabasePicker(promptLabel string) (string, error) {
 	items := make([]components.SelectItem, len(databaseChoices))
 	for i, choice := range databaseChoices {
 		items[i] = components.SelectItem{
@@ -651,7 +834,7 @@ func runDatabasePicker() (string, error) {
 	}
 
 	model := components.NewSelect(components.SelectConfig{
-		Label: "JPA detected but no database driver found. Select a database for docker-compose:",
+		Label: promptLabel,
 		Items: items,
 	})
 
