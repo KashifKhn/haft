@@ -106,6 +106,7 @@ haft dockerize --json
 | `--db` | | Database type (postgresql, mysql, mariadb, mongodb, redis, none) |
 | `--no-compose` | | Skip docker-compose.yml generation |
 | `--no-interactive` | | Skip interactive prompts |
+| `--force` | `-f` | Overwrite existing files |
 | `--json` | | Output result as JSON |
 
 ## Supported Databases

@@ -74,7 +74,7 @@ The `doctor` command performs comprehensive health checks on your Spring Boot pr
 |------|-------------|
 | `--json` | Output results as JSON (for CI/CD pipelines) |
 | `--strict` | Exit with code 1 on any warning |
-| `--category` | Filter by category (build, source, config, security, dependencies, best-practice) |
+| `--category` | Filter by category (build, source, config, security, dependencies, best-practice, docker) |
 
 ## Examples
 
