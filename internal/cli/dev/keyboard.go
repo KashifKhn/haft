@@ -16,6 +16,7 @@ const (
 	KeyQuit
 	KeyClear
 	KeyHelp
+	KeyEnter
 	KeyUnknown
 )
 
@@ -29,6 +30,8 @@ func (k KeyCommand) String() string {
 		return "clear"
 	case KeyHelp:
 		return "help"
+	case KeyEnter:
+		return "enter"
 	default:
 		return "unknown"
 	}
@@ -137,6 +140,8 @@ func (kl *KeyboardListener) parseKey(buf []byte) KeyCommand {
 			return KeyClear
 		case 'h', 'H', '?':
 			return KeyHelp
+		case 13, 10, 32:
+			return KeyEnter
 		}
 	}
 

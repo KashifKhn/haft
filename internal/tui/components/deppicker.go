@@ -404,12 +404,12 @@ func (m DepPickerModel) View() string {
 
 		b.WriteString(line + "\n")
 		if dep.Description != "" && m.cursor == i {
-			b.WriteString(fmt.Sprintf("      %s\n", styles.Subtle.Render(dep.Description)))
+			fmt.Fprintf(&b, "      %s\n", styles.Subtle.Render(dep.Description))
 		}
 	}
 
 	selectedCount := m.countSelected()
-	b.WriteString(fmt.Sprintf("\n%s\n", styles.Subtle.Render(fmt.Sprintf("Selected: %d", selectedCount))))
+	fmt.Fprintf(&b, "\n%s\n", styles.Subtle.Render(fmt.Sprintf("Selected: %d", selectedCount)))
 
 	if m.err != nil {
 		b.WriteString(styles.RenderError(m.err.Error()) + "\n")

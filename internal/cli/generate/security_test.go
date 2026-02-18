@@ -609,7 +609,7 @@ func TestSelectWrapperUpdateCtrlC(t *testing.T) {
 func TestDetectUserEntityNotFound(t *testing.T) {
 	tmpDir, err := os.MkdirTemp("", "test-detect-user-*")
 	require.NoError(t, err)
-	defer os.RemoveAll(tmpDir)
+	defer func() { _ = os.RemoveAll(tmpDir) }()
 
 	srcPath := filepath.Join(tmpDir, "src", "main", "java", "com", "example", "demo")
 	require.NoError(t, os.MkdirAll(srcPath, 0755))
@@ -622,7 +622,7 @@ func TestDetectUserEntityNotFound(t *testing.T) {
 func TestDetectUserEntityFound(t *testing.T) {
 	tmpDir, err := os.MkdirTemp("", "test-detect-user-*")
 	require.NoError(t, err)
-	defer os.RemoveAll(tmpDir)
+	defer func() { _ = os.RemoveAll(tmpDir) }()
 
 	entityPath := filepath.Join(tmpDir, "src", "main", "java", "com", "example", "demo", "entity")
 	require.NoError(t, os.MkdirAll(entityPath, 0755))
@@ -638,7 +638,7 @@ func TestDetectUserEntityFound(t *testing.T) {
 func TestDetectUserEntityAppUser(t *testing.T) {
 	tmpDir, err := os.MkdirTemp("", "test-detect-user-*")
 	require.NoError(t, err)
-	defer os.RemoveAll(tmpDir)
+	defer func() { _ = os.RemoveAll(tmpDir) }()
 
 	entityPath := filepath.Join(tmpDir, "src", "main", "java", "com", "example", "demo", "model")
 	require.NoError(t, os.MkdirAll(entityPath, 0755))
@@ -654,7 +654,7 @@ func TestDetectUserEntityAppUser(t *testing.T) {
 func TestDetectUserEntityNoSourcePath(t *testing.T) {
 	tmpDir, err := os.MkdirTemp("", "test-detect-user-nosrc-*")
 	require.NoError(t, err)
-	defer os.RemoveAll(tmpDir)
+	defer func() { _ = os.RemoveAll(tmpDir) }()
 
 	fs := afero.NewOsFs()
 	entityName, _ := detectUserEntity(tmpDir, fs, "com.example.demo")
@@ -667,7 +667,7 @@ func TestGenerateSecurityNoSourcePath(t *testing.T) {
 
 	tmpDir, err := os.MkdirTemp("", "test-security-nosrc-*")
 	require.NoError(t, err)
-	defer os.RemoveAll(tmpDir)
+	defer func() { _ = os.RemoveAll(tmpDir) }()
 
 	require.NoError(t, os.Chdir(tmpDir))
 
@@ -692,7 +692,7 @@ func TestGenerateSecurityJWTIntegration(t *testing.T) {
 
 	tmpDir, err := os.MkdirTemp("", "test-security-jwt-*")
 	require.NoError(t, err)
-	defer os.RemoveAll(tmpDir)
+	defer func() { _ = os.RemoveAll(tmpDir) }()
 
 	srcPath := filepath.Join(tmpDir, "src", "main", "java", "com", "example", "demo")
 	require.NoError(t, os.MkdirAll(srcPath, 0755))
@@ -745,7 +745,7 @@ func TestGenerateSecuritySessionIntegration(t *testing.T) {
 
 	tmpDir, err := os.MkdirTemp("", "test-security-session-*")
 	require.NoError(t, err)
-	defer os.RemoveAll(tmpDir)
+	defer func() { _ = os.RemoveAll(tmpDir) }()
 
 	srcPath := filepath.Join(tmpDir, "src", "main", "java", "com", "example", "demo")
 	require.NoError(t, os.MkdirAll(srcPath, 0755))
@@ -782,7 +782,7 @@ func TestGenerateSecurityOAuth2Integration(t *testing.T) {
 
 	tmpDir, err := os.MkdirTemp("", "test-security-oauth2-*")
 	require.NoError(t, err)
-	defer os.RemoveAll(tmpDir)
+	defer func() { _ = os.RemoveAll(tmpDir) }()
 
 	srcPath := filepath.Join(tmpDir, "src", "main", "java", "com", "example", "demo")
 	require.NoError(t, os.MkdirAll(srcPath, 0755))
@@ -818,7 +818,7 @@ func TestGenerateSecuritySkipsExistingFiles(t *testing.T) {
 
 	tmpDir, err := os.MkdirTemp("", "test-security-skip-*")
 	require.NoError(t, err)
-	defer os.RemoveAll(tmpDir)
+	defer func() { _ = os.RemoveAll(tmpDir) }()
 
 	srcPath := filepath.Join(tmpDir, "src", "main", "java", "com", "example", "demo", "security")
 	require.NoError(t, os.MkdirAll(srcPath, 0755))
@@ -853,7 +853,7 @@ func TestGenerateSecurityFeatureArchitecture(t *testing.T) {
 
 	tmpDir, err := os.MkdirTemp("", "test-security-feature-*")
 	require.NoError(t, err)
-	defer os.RemoveAll(tmpDir)
+	defer func() { _ = os.RemoveAll(tmpDir) }()
 
 	srcPath := filepath.Join(tmpDir, "src", "main", "java", "com", "example", "demo")
 	require.NoError(t, os.MkdirAll(srcPath, 0755))
@@ -889,7 +889,7 @@ func TestGenerateSecurityHexagonalArchitecture(t *testing.T) {
 
 	tmpDir, err := os.MkdirTemp("", "test-security-hexagonal-*")
 	require.NoError(t, err)
-	defer os.RemoveAll(tmpDir)
+	defer func() { _ = os.RemoveAll(tmpDir) }()
 
 	srcPath := filepath.Join(tmpDir, "src", "main", "java", "com", "example", "demo")
 	require.NoError(t, os.MkdirAll(srcPath, 0755))
@@ -935,7 +935,7 @@ func TestRunSecurityMissingPackage(t *testing.T) {
 
 	tmpDir, err := os.MkdirTemp("", "test-security-nopkg-*")
 	require.NoError(t, err)
-	defer os.RemoveAll(tmpDir)
+	defer func() { _ = os.RemoveAll(tmpDir) }()
 
 	require.NoError(t, os.Chdir(tmpDir))
 
@@ -971,7 +971,7 @@ func TestTemplateInfoWithConditional(t *testing.T) {
 func TestCheckSecurityDependenciesNoBuildFile(t *testing.T) {
 	tmpDir, err := os.MkdirTemp("", "test-check-deps-*")
 	require.NoError(t, err)
-	defer os.RemoveAll(tmpDir)
+	defer func() { _ = os.RemoveAll(tmpDir) }()
 
 	fs := afero.NewOsFs()
 	_, err = checkSecurityDependencies(tmpDir, fs, []SecurityType{SecurityJWT})
@@ -981,7 +981,7 @@ func TestCheckSecurityDependenciesNoBuildFile(t *testing.T) {
 func TestCheckSecurityDependenciesWithPom(t *testing.T) {
 	tmpDir, err := os.MkdirTemp("", "test-check-deps-pom-*")
 	require.NoError(t, err)
-	defer os.RemoveAll(tmpDir)
+	defer func() { _ = os.RemoveAll(tmpDir) }()
 
 	pomContent := `<?xml version="1.0" encoding="UTF-8"?>
 <project>
@@ -1022,7 +1022,7 @@ func TestCheckSecurityDependenciesWithPom(t *testing.T) {
 func TestCheckSecurityDependenciesSecurityExists(t *testing.T) {
 	tmpDir, err := os.MkdirTemp("", "test-check-deps-exists-*")
 	require.NoError(t, err)
-	defer os.RemoveAll(tmpDir)
+	defer func() { _ = os.RemoveAll(tmpDir) }()
 
 	pomContent := `<?xml version="1.0" encoding="UTF-8"?>
 <project>
@@ -1057,7 +1057,7 @@ func TestCheckSecurityDependenciesSecurityExists(t *testing.T) {
 func TestAddSecurityDependencies(t *testing.T) {
 	tmpDir, err := os.MkdirTemp("", "test-add-deps-*")
 	require.NoError(t, err)
-	defer os.RemoveAll(tmpDir)
+	defer func() { _ = os.RemoveAll(tmpDir) }()
 
 	pomContent := `<?xml version="1.0" encoding="UTF-8"?>
 <project>
@@ -1094,7 +1094,7 @@ func TestGenerateSecurityMultipleTypes(t *testing.T) {
 
 	tmpDir, err := os.MkdirTemp("", "test-security-multi-*")
 	require.NoError(t, err)
-	defer os.RemoveAll(tmpDir)
+	defer func() { _ = os.RemoveAll(tmpDir) }()
 
 	srcPath := filepath.Join(tmpDir, "src", "main", "java", "com", "example", "demo")
 	require.NoError(t, os.MkdirAll(srcPath, 0755))

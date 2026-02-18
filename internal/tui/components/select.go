@@ -100,10 +100,10 @@ func (m SelectModel) View() string {
 			line = styles.InactiveItem.Render(item.Label)
 		}
 
-		b.WriteString(fmt.Sprintf("%s%s\n", cursor, line))
+		fmt.Fprintf(&b, "%s%s\n", cursor, line)
 
 		if item.Description != "" && m.cursor == i {
-			b.WriteString(fmt.Sprintf("     %s\n", styles.Subtle.Render(item.Description)))
+			fmt.Fprintf(&b, "     %s\n", styles.Subtle.Render(item.Description))
 		}
 	}
 

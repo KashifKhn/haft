@@ -280,12 +280,12 @@ func (m PickerModel) View() string {
 		b.WriteString(line + "\n")
 
 		if m.cursor == i && item.description != "" {
-			b.WriteString(fmt.Sprintf("       %s\n", styles.Subtle.Render(item.description)))
+			fmt.Fprintf(&b, "       %s\n", styles.Subtle.Render(item.description))
 		}
 	}
 
 	selectedCount := m.countSelected()
-	b.WriteString(fmt.Sprintf("\n%s\n", styles.Subtle.Render(fmt.Sprintf("Selected: %d", selectedCount))))
+	fmt.Fprintf(&b, "\n%s\n", styles.Subtle.Render(fmt.Sprintf("Selected: %d", selectedCount)))
 
 	if m.searchMode {
 		b.WriteString(styles.RenderHelp("type to search • enter: apply filter • esc: cancel search"))

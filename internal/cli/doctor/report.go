@@ -60,16 +60,16 @@ func formatText(report *Report, opts Options) string {
 	sb.WriteString(strings.Repeat("=", 45))
 	sb.WriteString("\n\n")
 
-	sb.WriteString(fmt.Sprintf("Project: %s\n", report.ProjectName))
-	sb.WriteString(fmt.Sprintf("Path: %s\n", report.ProjectPath))
+	fmt.Fprintf(&sb, "Project: %s\n", report.ProjectName)
+	fmt.Fprintf(&sb, "Path: %s\n", report.ProjectPath)
 	if report.BuildTool != "" {
-		sb.WriteString(fmt.Sprintf("Build Tool: %s\n", report.BuildTool))
+		fmt.Fprintf(&sb, "Build Tool: %s\n", report.BuildTool)
 	}
 	if report.JavaVersion != "" {
-		sb.WriteString(fmt.Sprintf("Java: %s\n", report.JavaVersion))
+		fmt.Fprintf(&sb, "Java: %s\n", report.JavaVersion)
 	}
 	if report.SpringVersion != "" {
-		sb.WriteString(fmt.Sprintf("Spring Boot: %s\n", report.SpringVersion))
+		fmt.Fprintf(&sb, "Spring Boot: %s\n", report.SpringVersion)
 	}
 	sb.WriteString("\n")
 
@@ -83,10 +83,10 @@ func formatText(report *Report, opts Options) string {
 		sb.WriteString(headerStyle.Render("Passed Checks:"))
 		sb.WriteString("\n")
 		for _, r := range passed {
-			sb.WriteString(fmt.Sprintf("  %s %s\n",
+			fmt.Fprintf(&sb, "  %s %s\n",
 				passedStyle.Render("✓"),
 				r.Message,
-			))
+			)
 		}
 		sb.WriteString("\n")
 	}
@@ -95,15 +95,15 @@ func formatText(report *Report, opts Options) string {
 		sb.WriteString(headerStyle.Render("Issues:"))
 		sb.WriteString("\n")
 		for _, r := range errors {
-			sb.WriteString(fmt.Sprintf("  %s %s\n",
+			fmt.Fprintf(&sb, "  %s %s\n",
 				errorStyle.Render("✗"),
 				errorStyle.Render(r.Message),
-			))
+			)
 			if r.Details != "" {
-				sb.WriteString(fmt.Sprintf("    %s\n", mutedStyle.Render(r.Details)))
+				fmt.Fprintf(&sb, "    %s\n", mutedStyle.Render(r.Details))
 			}
 			if r.FixHint != "" {
-				sb.WriteString(fmt.Sprintf("    %s %s\n", mutedStyle.Render("→"), r.FixHint))
+				fmt.Fprintf(&sb, "    %s %s\n", mutedStyle.Render("→"), r.FixHint)
 			}
 		}
 		sb.WriteString("\n")
@@ -113,15 +113,15 @@ func formatText(report *Report, opts Options) string {
 		sb.WriteString(headerStyle.Render("Warnings:"))
 		sb.WriteString("\n")
 		for _, r := range warnings {
-			sb.WriteString(fmt.Sprintf("  %s %s\n",
+			fmt.Fprintf(&sb, "  %s %s\n",
 				warningStyle.Render("⚠"),
 				warningStyle.Render(r.Message),
-			))
+			)
 			if r.Details != "" {
-				sb.WriteString(fmt.Sprintf("    %s\n", mutedStyle.Render(r.Details)))
+				fmt.Fprintf(&sb, "    %s\n", mutedStyle.Render(r.Details))
 			}
 			if r.FixHint != "" {
-				sb.WriteString(fmt.Sprintf("    %s %s\n", mutedStyle.Render("→"), r.FixHint))
+				fmt.Fprintf(&sb, "    %s %s\n", mutedStyle.Render("→"), r.FixHint)
 			}
 		}
 		sb.WriteString("\n")
@@ -131,12 +131,12 @@ func formatText(report *Report, opts Options) string {
 		sb.WriteString(headerStyle.Render("Info:"))
 		sb.WriteString("\n")
 		for _, r := range infos {
-			sb.WriteString(fmt.Sprintf("  %s %s\n",
+			fmt.Fprintf(&sb, "  %s %s\n",
 				infoStyle.Render("ℹ"),
 				r.Message,
-			))
+			)
 			if r.Details != "" {
-				sb.WriteString(fmt.Sprintf("    %s\n", mutedStyle.Render(r.Details)))
+				fmt.Fprintf(&sb, "    %s\n", mutedStyle.Render(r.Details))
 			}
 		}
 		sb.WriteString("\n")
@@ -146,15 +146,15 @@ func formatText(report *Report, opts Options) string {
 		sb.WriteString(headerStyle.Render("Suggestions:"))
 		sb.WriteString("\n")
 		for _, r := range suggestions {
-			sb.WriteString(fmt.Sprintf("  %s %s\n",
+			fmt.Fprintf(&sb, "  %s %s\n",
 				suggestionStyle.Render("💡"),
 				r.Message,
-			))
+			)
 			if r.Details != "" {
-				sb.WriteString(fmt.Sprintf("    %s\n", mutedStyle.Render(r.Details)))
+				fmt.Fprintf(&sb, "    %s\n", mutedStyle.Render(r.Details))
 			}
 			if r.FixHint != "" {
-				sb.WriteString(fmt.Sprintf("    %s %s\n", mutedStyle.Render("→"), r.FixHint))
+				fmt.Fprintf(&sb, "    %s %s\n", mutedStyle.Render("→"), r.FixHint)
 			}
 		}
 		sb.WriteString("\n")
@@ -162,20 +162,20 @@ func formatText(report *Report, opts Options) string {
 
 	sb.WriteString(strings.Repeat("-", 45))
 	sb.WriteString("\n")
-	sb.WriteString(fmt.Sprintf("Summary: %s passed",
-		passedStyle.Render(fmt.Sprintf("%d", report.PassedCount))))
+	fmt.Fprintf(&sb, "Summary: %s passed",
+		passedStyle.Render(fmt.Sprintf("%d", report.PassedCount)))
 
 	if report.ErrorCount > 0 {
-		sb.WriteString(fmt.Sprintf(", %s",
-			errorStyle.Render(fmt.Sprintf("%d errors", report.ErrorCount))))
+		fmt.Fprintf(&sb, ", %s",
+			errorStyle.Render(fmt.Sprintf("%d errors", report.ErrorCount)))
 	}
 	if report.WarningCount > 0 {
-		sb.WriteString(fmt.Sprintf(", %s",
-			warningStyle.Render(fmt.Sprintf("%d warnings", report.WarningCount))))
+		fmt.Fprintf(&sb, ", %s",
+			warningStyle.Render(fmt.Sprintf("%d warnings", report.WarningCount)))
 	}
 	if report.SuggestionCount > 0 {
-		sb.WriteString(fmt.Sprintf(", %s",
-			suggestionStyle.Render(fmt.Sprintf("%d suggestions", report.SuggestionCount))))
+		fmt.Fprintf(&sb, ", %s",
+			suggestionStyle.Render(fmt.Sprintf("%d suggestions", report.SuggestionCount)))
 	}
 	sb.WriteString("\n")
 

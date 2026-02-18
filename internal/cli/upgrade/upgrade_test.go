@@ -802,9 +802,9 @@ func TestExtractFromTarGz(t *testing.T) {
 	_, err = tw.Write(binaryContent)
 	require.NoError(t, err)
 
-	tw.Close()
-	gzw.Close()
-	f.Close()
+	require.NoError(t, tw.Close())
+	require.NoError(t, gzw.Close())
+	require.NoError(t, f.Close())
 
 	extractedPath, err := extractFromTarGz(archivePath, tmpDir, binaryName)
 	require.NoError(t, err)
@@ -833,9 +833,9 @@ func TestExtractFromTarGzBinaryNotFound(t *testing.T) {
 	_ = tw.WriteHeader(hdr)
 	_, _ = tw.Write([]byte("hello"))
 
-	tw.Close()
-	gzw.Close()
-	f.Close()
+	require.NoError(t, tw.Close())
+	require.NoError(t, gzw.Close())
+	require.NoError(t, f.Close())
 
 	_, err = extractFromTarGz(archivePath, tmpDir, "haft-linux-amd64")
 	assert.Error(t, err)
@@ -869,8 +869,8 @@ func TestExtractFromZip(t *testing.T) {
 	_, err = fw.Write(binaryContent)
 	require.NoError(t, err)
 
-	zw.Close()
-	f.Close()
+	require.NoError(t, zw.Close())
+	require.NoError(t, f.Close())
 
 	extractedPath, err := extractFromZip(archivePath, tmpDir, binaryName)
 	require.NoError(t, err)
@@ -891,8 +891,8 @@ func TestExtractFromZipBinaryNotFound(t *testing.T) {
 	zw := zip.NewWriter(f)
 	fw, _ := zw.Create("other-file.txt")
 	_, _ = fw.Write([]byte("hello"))
-	zw.Close()
-	f.Close()
+	require.NoError(t, zw.Close())
+	require.NoError(t, f.Close())
 
 	_, err = extractFromZip(archivePath, tmpDir, "haft.exe")
 	assert.Error(t, err)
@@ -931,9 +931,9 @@ func TestExtractBinary(t *testing.T) {
 		}
 		_ = tw.WriteHeader(hdr)
 		_, _ = tw.Write(binaryContent)
-		tw.Close()
-		gzw.Close()
-		f.Close()
+		require.NoError(t, tw.Close())
+		require.NoError(t, gzw.Close())
+		require.NoError(t, f.Close())
 
 		platform := &PlatformInfo{OS: "linux", Arch: "amd64", ArchiveExt: ".tar.gz"}
 		extracted, err := ExtractBinary(archivePath, platform)
@@ -951,8 +951,8 @@ func TestExtractBinary(t *testing.T) {
 		zw := zip.NewWriter(f)
 		fw, _ := zw.Create(binaryName)
 		_, _ = fw.Write(binaryContent)
-		zw.Close()
-		f.Close()
+		require.NoError(t, zw.Close())
+		require.NoError(t, f.Close())
 
 		platform := &PlatformInfo{OS: "windows", Arch: "amd64", ArchiveExt: ".zip"}
 		extracted, err := ExtractBinary(archivePath, platform)
@@ -1163,7 +1163,7 @@ fedcba654321  haft-windows-amd64.zip`
 
 	resp, err := client.Do(req)
 	require.NoError(t, err)
-	defer resp.Body.Close()
+	defer func() { _ = resp.Body.Close() }()
 
 	assert.Equal(t, http.StatusOK, resp.StatusCode)
 }
@@ -1178,7 +1178,7 @@ func TestFetchChecksumsNotFound(t *testing.T) {
 	req, _ := http.NewRequest("GET", server.URL, nil)
 	resp, err := client.Do(req)
 	require.NoError(t, err)
-	defer resp.Body.Close()
+	defer func() { _ = resp.Body.Close() }()
 
 	assert.Equal(t, http.StatusNotFound, resp.StatusCode)
 }
@@ -1197,7 +1197,7 @@ func TestOutputJSON(t *testing.T) {
 	err := outputJSON(result)
 	assert.NoError(t, err)
 
-	w.Close()
+	require.NoError(t, w.Close())
 	os.Stdout = oldStdout
 
 	var output strings.Builder
@@ -1222,7 +1222,7 @@ func TestOutputError(t *testing.T) {
 
 	_ = outputError(true, result, testErr)
 
-	w.Close()
+	require.NoError(t, w.Close())
 	os.Stdout = oldStdout
 
 	var output strings.Builder

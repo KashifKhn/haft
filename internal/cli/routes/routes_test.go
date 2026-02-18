@@ -647,9 +647,10 @@ public class TestController {
 
 	var getRoute, postRoute Route
 	for _, r := range routes {
-		if r.Method == "GET" {
+		switch r.Method {
+		case "GET":
 			getRoute = r
-		} else if r.Method == "POST" {
+		case "POST":
 			postRoute = r
 		}
 	}

@@ -340,7 +340,7 @@ func TestGenerateConfigsNoSourcePath(t *testing.T) {
 
 	tmpDir, err := os.MkdirTemp("", "test-config-nosrc-*")
 	require.NoError(t, err)
-	defer os.RemoveAll(tmpDir)
+	defer func() { _ = os.RemoveAll(tmpDir) }()
 
 	require.NoError(t, os.Chdir(tmpDir))
 
@@ -364,7 +364,7 @@ func TestGenerateConfigsIntegration(t *testing.T) {
 
 	tmpDir, err := os.MkdirTemp("", "test-config-integration-*")
 	require.NoError(t, err)
-	defer os.RemoveAll(tmpDir)
+	defer func() { _ = os.RemoveAll(tmpDir) }()
 
 	srcPath := filepath.Join(tmpDir, "src", "main", "java", "com", "example", "demo")
 	require.NoError(t, os.MkdirAll(srcPath, 0755))
@@ -403,7 +403,7 @@ func TestGenerateConfigsSkipsExisting(t *testing.T) {
 
 	tmpDir, err := os.MkdirTemp("", "test-config-skip-*")
 	require.NoError(t, err)
-	defer os.RemoveAll(tmpDir)
+	defer func() { _ = os.RemoveAll(tmpDir) }()
 
 	srcPath := filepath.Join(tmpDir, "src", "main", "java", "com", "example", "demo", "config")
 	require.NoError(t, os.MkdirAll(srcPath, 0755))
@@ -445,7 +445,7 @@ func TestRunConfigMissingPackage(t *testing.T) {
 
 	tmpDir, err := os.MkdirTemp("", "test-config-nopkg-*")
 	require.NoError(t, err)
-	defer os.RemoveAll(tmpDir)
+	defer func() { _ = os.RemoveAll(tmpDir) }()
 
 	require.NoError(t, os.Chdir(tmpDir))
 

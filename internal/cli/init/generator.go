@@ -56,7 +56,8 @@ func generateProject(cfg ProjectConfig, projectDir string, jsonOutput bool) erro
 	}
 	filesCreated = append(filesCreated, generatedFiles...)
 
-	if cfg.BuildTool == "maven" {
+	switch cfg.BuildTool {
+	case "maven":
 		if !jsonOutput {
 			fmt.Printf("  %s Adding Maven wrapper\n", styles.CheckMark)
 		}
@@ -68,7 +69,7 @@ func generateProject(cfg ProjectConfig, projectDir string, jsonOutput bool) erro
 			return fmt.Errorf("failed to copy Maven wrapper: %w", err)
 		}
 		filesCreated = append(filesCreated, wrapperFiles...)
-	} else if cfg.BuildTool == "gradle" || cfg.BuildTool == "gradle-kotlin" {
+	case "gradle", "gradle-kotlin":
 		if !jsonOutput {
 			fmt.Printf("  %s Adding Gradle wrapper\n", styles.CheckMark)
 		}
@@ -192,7 +193,8 @@ func generateProjectFiles(engine *generator.Engine, projectDir string, cfg Proje
 		"HasValidation":     contains(cfg.Dependencies, "validation"),
 	}
 
-	if cfg.BuildTool == "maven" {
+	switch cfg.BuildTool {
+	case "maven":
 		filePath := filepath.Join(projectDir, "pom.xml")
 		if err := engine.RenderAndWrite(
 			"project/pom.xml.tmpl",
@@ -202,7 +204,7 @@ func generateProjectFiles(engine *generator.Engine, projectDir string, cfg Proje
 			return nil, err
 		}
 		filesCreated = append(filesCreated, filePath)
-	} else if cfg.BuildTool == "gradle" {
+	case "gradle":
 		buildFile := filepath.Join(projectDir, "build.gradle")
 		if err := engine.RenderAndWrite(
 			"project/build.gradle.tmpl",
@@ -222,7 +224,7 @@ func generateProjectFiles(engine *generator.Engine, projectDir string, cfg Proje
 			return nil, err
 		}
 		filesCreated = append(filesCreated, settingsFile)
-	} else if cfg.BuildTool == "gradle-kotlin" {
+	case "gradle-kotlin":
 		buildFile := filepath.Join(projectDir, "build.gradle.kts")
 		if err := engine.RenderAndWrite(
 			"project/build.gradle.kts.tmpl",

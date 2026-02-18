@@ -200,8 +200,8 @@ func (m removePickerModel) View() string {
 		}
 
 		groupStyle := styles.Subtle.Render(dep.GroupId)
-		b.WriteString(fmt.Sprintf("%s%s %s\n", cursor, checkbox, artifactStyle))
-		b.WriteString(fmt.Sprintf("       %s", groupStyle))
+		fmt.Fprintf(&b, "%s%s %s\n", cursor, checkbox, artifactStyle)
+		fmt.Fprintf(&b, "       %s", groupStyle)
 
 		if dep.Version != "" {
 			b.WriteString(styles.Subtle.Render(fmt.Sprintf(":%s", dep.Version)))
@@ -213,7 +213,7 @@ func (m removePickerModel) View() string {
 	}
 
 	selectedCount := m.countSelected()
-	b.WriteString(fmt.Sprintf("\n%s\n", styles.Subtle.Render(fmt.Sprintf("Selected for removal: %d", selectedCount))))
+	fmt.Fprintf(&b, "\n%s\n", styles.Subtle.Render(fmt.Sprintf("Selected for removal: %d", selectedCount)))
 
 	if selectedCount > 0 {
 		b.WriteString(styles.WarningText.Render("Press Enter to remove selected dependencies\n"))
