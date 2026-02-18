@@ -378,9 +378,7 @@ func TestInitCommandInvalidCategory(t *testing.T) {
 }
 
 func TestRunValidateWithTempDir(t *testing.T) {
-	tmpDir, err := os.MkdirTemp("", "haft-test-*")
-	require.NoError(t, err)
-	defer os.RemoveAll(tmpDir)
+	tmpDir := t.TempDir()
 
 	validTemplate := `package ${BasePackage}.controller;
 
@@ -391,7 +389,7 @@ public class ${Name}Controller {
 }
 `
 	templatePath := filepath.Join(tmpDir, "Controller.java.tmpl")
-	err = os.WriteFile(templatePath, []byte(validTemplate), 0644)
+	err := os.WriteFile(templatePath, []byte(validTemplate), 0644)
 	require.NoError(t, err)
 
 	err = runValidate([]string{templatePath}, false)
@@ -399,9 +397,8 @@ public class ${Name}Controller {
 }
 
 func TestRunValidateWithInvalidTemplate(t *testing.T) {
-	tmpDir, err := os.MkdirTemp("", "haft-test-*")
-	require.NoError(t, err)
-	defer os.RemoveAll(tmpDir)
+	tmpDir := t.TempDir()
+	var err error
 
 	invalidTemplate := `package ${BasePackage.controller;
 
@@ -419,9 +416,8 @@ func TestRunValidateWithInvalidTemplate(t *testing.T) {
 }
 
 func TestRunValidateWithDirectory(t *testing.T) {
-	tmpDir, err := os.MkdirTemp("", "haft-test-*")
-	require.NoError(t, err)
-	defer os.RemoveAll(tmpDir)
+	tmpDir := t.TempDir()
+	var err error
 
 	validTemplate := `package ${BasePackage}.service;
 
@@ -437,18 +433,15 @@ public class ${Name}Service {
 }
 
 func TestRunValidateEmptyDirectory(t *testing.T) {
-	tmpDir, err := os.MkdirTemp("", "haft-test-*")
-	require.NoError(t, err)
-	defer os.RemoveAll(tmpDir)
+	tmpDir := t.TempDir()
 
-	err = runValidate([]string{tmpDir}, false)
+	err := runValidate([]string{tmpDir}, false)
 	assert.NoError(t, err)
 }
 
 func TestRunValidateWithWarnings(t *testing.T) {
-	tmpDir, err := os.MkdirTemp("", "haft-test-*")
-	require.NoError(t, err)
-	defer os.RemoveAll(tmpDir)
+	tmpDir := t.TempDir()
+	var err error
 
 	templateWithUnknown := `package ${BasePackage}.service;
 import ${UnknownVariable};
@@ -539,7 +532,7 @@ func TestGroupByCategoryNested(t *testing.T) {
 func TestInitCommandCategoryResource(t *testing.T) {
 	tmpDir, err := os.MkdirTemp("", "haft-init-*")
 	require.NoError(t, err)
-	defer os.RemoveAll(tmpDir)
+	defer func() { _ = os.RemoveAll(tmpDir) }()
 
 	originalWd, _ := os.Getwd()
 	defer func() { _ = os.Chdir(originalWd) }()
@@ -553,7 +546,7 @@ func TestInitCommandCategoryResource(t *testing.T) {
 func TestInitCommandAllTemplates(t *testing.T) {
 	tmpDir, err := os.MkdirTemp("", "haft-init-*")
 	require.NoError(t, err)
-	defer os.RemoveAll(tmpDir)
+	defer func() { _ = os.RemoveAll(tmpDir) }()
 
 	originalWd, _ := os.Getwd()
 	defer func() { _ = os.Chdir(originalWd) }()
@@ -567,7 +560,7 @@ func TestInitCommandAllTemplates(t *testing.T) {
 func TestInitCommandForce(t *testing.T) {
 	tmpDir, err := os.MkdirTemp("", "haft-init-*")
 	require.NoError(t, err)
-	defer os.RemoveAll(tmpDir)
+	defer func() { _ = os.RemoveAll(tmpDir) }()
 
 	originalWd, _ := os.Getwd()
 	defer func() { _ = os.Chdir(originalWd) }()
@@ -584,7 +577,7 @@ func TestInitCommandForce(t *testing.T) {
 func TestInitCommandSkipExisting(t *testing.T) {
 	tmpDir, err := os.MkdirTemp("", "haft-init-*")
 	require.NoError(t, err)
-	defer os.RemoveAll(tmpDir)
+	defer func() { _ = os.RemoveAll(tmpDir) }()
 
 	originalWd, _ := os.Getwd()
 	defer func() { _ = os.Chdir(originalWd) }()

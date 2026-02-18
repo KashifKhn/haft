@@ -298,7 +298,7 @@ func TestEnrichProfileFromBuildFileNoError(t *testing.T) {
 
 	tmpDir, err := os.MkdirTemp("", "test-enrich-*")
 	require.NoError(t, err)
-	defer os.RemoveAll(tmpDir)
+	defer func() { _ = os.RemoveAll(tmpDir) }()
 
 	require.NoError(t, os.Chdir(tmpDir))
 
@@ -311,7 +311,7 @@ func TestEnrichProfileFromBuildFileWithValidation(t *testing.T) {
 
 	tmpDir, err := os.MkdirTemp("", "test-enrich-validation-*")
 	require.NoError(t, err)
-	defer os.RemoveAll(tmpDir)
+	defer func() { _ = os.RemoveAll(tmpDir) }()
 
 	pomContent := `<?xml version="1.0" encoding="UTF-8"?>
 <project xmlns="http://maven.apache.org/POM/4.0.0">
@@ -354,7 +354,7 @@ func TestEnrichProfilePreservesExistingValues(t *testing.T) {
 
 	tmpDir, err := os.MkdirTemp("", "test-enrich-preserve-*")
 	require.NoError(t, err)
-	defer os.RemoveAll(tmpDir)
+	defer func() { _ = os.RemoveAll(tmpDir) }()
 
 	pomContent := `<?xml version="1.0" encoding="UTF-8"?>
 <project xmlns="http://maven.apache.org/POM/4.0.0">
@@ -433,7 +433,7 @@ func TestGenerateExceptionHandlerNoSourcePath(t *testing.T) {
 
 	tmpDir, err := os.MkdirTemp("", "test-exception-nosrc-*")
 	require.NoError(t, err)
-	defer os.RemoveAll(tmpDir)
+	defer func() { _ = os.RemoveAll(tmpDir) }()
 
 	require.NoError(t, os.Chdir(tmpDir))
 
@@ -457,7 +457,7 @@ func TestGenerateExceptionHandlerIntegrationWithOptions(t *testing.T) {
 
 	tmpDir, err := os.MkdirTemp("", "test-exception-opts-*")
 	require.NoError(t, err)
-	defer os.RemoveAll(tmpDir)
+	defer func() { _ = os.RemoveAll(tmpDir) }()
 
 	srcPath := filepath.Join(tmpDir, "src", "main", "java", "com", "example", "demo")
 	require.NoError(t, os.MkdirAll(srcPath, 0755))
@@ -499,7 +499,7 @@ func TestGenerateExceptionHandlerSkipsExisting(t *testing.T) {
 
 	tmpDir, err := os.MkdirTemp("", "test-exception-skip-*")
 	require.NoError(t, err)
-	defer os.RemoveAll(tmpDir)
+	defer func() { _ = os.RemoveAll(tmpDir) }()
 
 	srcPath := filepath.Join(tmpDir, "src", "main", "java", "com", "example", "demo", "exception")
 	require.NoError(t, os.MkdirAll(srcPath, 0755))
@@ -532,7 +532,7 @@ func TestRunExceptionNoInteractiveWithoutPackage(t *testing.T) {
 
 	tmpDir, err := os.MkdirTemp("", "test-exception-nopkg-*")
 	require.NoError(t, err)
-	defer os.RemoveAll(tmpDir)
+	defer func() { _ = os.RemoveAll(tmpDir) }()
 
 	require.NoError(t, os.Chdir(tmpDir))
 

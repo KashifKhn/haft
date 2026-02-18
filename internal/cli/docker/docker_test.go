@@ -153,18 +153,14 @@ func TestDetectPort(t *testing.T) {
 	})
 
 	t.Run("default when no config", func(t *testing.T) {
-		tmpDir, err := os.MkdirTemp("", "test-port-*")
-		require.NoError(t, err)
-		defer os.RemoveAll(tmpDir)
+		tmpDir := t.TempDir()
 
 		result := detectPort(tmpDir, 0)
 		assert.Equal(t, 8080, result)
 	})
 
 	t.Run("from properties file", func(t *testing.T) {
-		tmpDir, err := os.MkdirTemp("", "test-port-props-*")
-		require.NoError(t, err)
-		defer os.RemoveAll(tmpDir)
+		tmpDir := t.TempDir()
 
 		resourcesPath := filepath.Join(tmpDir, "src", "main", "resources")
 		require.NoError(t, os.MkdirAll(resourcesPath, 0755))
@@ -181,9 +177,7 @@ func TestDetectPort(t *testing.T) {
 	})
 
 	t.Run("from yml file", func(t *testing.T) {
-		tmpDir, err := os.MkdirTemp("", "test-port-yml-*")
-		require.NoError(t, err)
-		defer os.RemoveAll(tmpDir)
+		tmpDir := t.TempDir()
 
 		resourcesPath := filepath.Join(tmpDir, "src", "main", "resources")
 		require.NoError(t, os.MkdirAll(resourcesPath, 0755))
@@ -202,9 +196,7 @@ func TestDetectPort(t *testing.T) {
 
 func TestHasWrapper(t *testing.T) {
 	t.Run("maven wrapper exists", func(t *testing.T) {
-		tmpDir, err := os.MkdirTemp("", "test-wrapper-mvn-*")
-		require.NoError(t, err)
-		defer os.RemoveAll(tmpDir)
+		tmpDir := t.TempDir()
 
 		require.NoError(t, os.WriteFile(
 			filepath.Join(tmpDir, "mvnw"),
@@ -217,9 +209,7 @@ func TestHasWrapper(t *testing.T) {
 	})
 
 	t.Run("gradle wrapper exists", func(t *testing.T) {
-		tmpDir, err := os.MkdirTemp("", "test-wrapper-gradle-*")
-		require.NoError(t, err)
-		defer os.RemoveAll(tmpDir)
+		tmpDir := t.TempDir()
 
 		require.NoError(t, os.WriteFile(
 			filepath.Join(tmpDir, "gradlew"),
@@ -232,9 +222,7 @@ func TestHasWrapper(t *testing.T) {
 	})
 
 	t.Run("no wrapper", func(t *testing.T) {
-		tmpDir, err := os.MkdirTemp("", "test-wrapper-none-*")
-		require.NoError(t, err)
-		defer os.RemoveAll(tmpDir)
+		tmpDir := t.TempDir()
 
 		result := hasWrapper(tmpDir, buildtool.Maven)
 		assert.False(t, result)
@@ -487,7 +475,7 @@ func TestRunDockerizeNoBuildFile(t *testing.T) {
 
 	tmpDir, err := os.MkdirTemp("", "test-docker-nobuild-*")
 	require.NoError(t, err)
-	defer os.RemoveAll(tmpDir)
+	defer func() { _ = os.RemoveAll(tmpDir) }()
 
 	require.NoError(t, os.Chdir(tmpDir))
 
@@ -505,7 +493,7 @@ func TestRunDockerizeInvalidDB(t *testing.T) {
 
 	tmpDir, err := os.MkdirTemp("", "test-docker-invaliddb-*")
 	require.NoError(t, err)
-	defer os.RemoveAll(tmpDir)
+	defer func() { _ = os.RemoveAll(tmpDir) }()
 
 	pomContent := `<?xml version="1.0" encoding="UTF-8"?>
 <project>
@@ -536,7 +524,7 @@ func TestGenerateDockerFilesMaven(t *testing.T) {
 
 	tmpDir, err := os.MkdirTemp("", "test-docker-maven-*")
 	require.NoError(t, err)
-	defer os.RemoveAll(tmpDir)
+	defer func() { _ = os.RemoveAll(tmpDir) }()
 
 	pomContent := `<?xml version="1.0" encoding="UTF-8"?>
 <project>
@@ -590,7 +578,7 @@ func TestGenerateDockerFilesGradle(t *testing.T) {
 
 	tmpDir, err := os.MkdirTemp("", "test-docker-gradle-*")
 	require.NoError(t, err)
-	defer os.RemoveAll(tmpDir)
+	defer func() { _ = os.RemoveAll(tmpDir) }()
 
 	buildGradle := `plugins {
     id 'java'
@@ -641,7 +629,7 @@ func TestGenerateDockerFilesWithDatabase(t *testing.T) {
 
 	tmpDir, err := os.MkdirTemp("", "test-docker-db-*")
 	require.NoError(t, err)
-	defer os.RemoveAll(tmpDir)
+	defer func() { _ = os.RemoveAll(tmpDir) }()
 
 	pomContent := `<?xml version="1.0" encoding="UTF-8"?>
 <project>
@@ -686,7 +674,7 @@ func TestGenerateDockerFilesNoCompose(t *testing.T) {
 
 	tmpDir, err := os.MkdirTemp("", "test-docker-nocompose-*")
 	require.NoError(t, err)
-	defer os.RemoveAll(tmpDir)
+	defer func() { _ = os.RemoveAll(tmpDir) }()
 
 	pomContent := `<?xml version="1.0" encoding="UTF-8"?>
 <project>
@@ -726,7 +714,7 @@ func TestGenerateDockerFilesSkipsExisting(t *testing.T) {
 
 	tmpDir, err := os.MkdirTemp("", "test-docker-skip-*")
 	require.NoError(t, err)
-	defer os.RemoveAll(tmpDir)
+	defer func() { _ = os.RemoveAll(tmpDir) }()
 
 	pomContent := `<?xml version="1.0" encoding="UTF-8"?>
 <project>
@@ -776,7 +764,7 @@ func TestGenerateDockerFilesForceOverwrite(t *testing.T) {
 
 	tmpDir, err := os.MkdirTemp("", "test-docker-force-*")
 	require.NoError(t, err)
-	defer os.RemoveAll(tmpDir)
+	defer func() { _ = os.RemoveAll(tmpDir) }()
 
 	pomContent := `<?xml version="1.0" encoding="UTF-8"?>
 <project>
@@ -871,7 +859,7 @@ func TestMergeDockerComposeWithDatabase(t *testing.T) {
 
 	tmpDir, err := os.MkdirTemp("", "test-docker-merge-*")
 	require.NoError(t, err)
-	defer os.RemoveAll(tmpDir)
+	defer func() { _ = os.RemoveAll(tmpDir) }()
 
 	pomContent := `<?xml version="1.0" encoding="UTF-8"?>
 <project>
@@ -953,7 +941,7 @@ func TestMergeDockerComposePreservesCustomizations(t *testing.T) {
 
 	tmpDir, err := os.MkdirTemp("", "test-docker-preserve-*")
 	require.NoError(t, err)
-	defer os.RemoveAll(tmpDir)
+	defer func() { _ = os.RemoveAll(tmpDir) }()
 
 	pomContent := `<?xml version="1.0" encoding="UTF-8"?>
 <project>

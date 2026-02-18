@@ -438,7 +438,7 @@ func TestFindSourcePath(t *testing.T) {
 func TestFindSourcePathRealFS(t *testing.T) {
 	tempDir, err := os.MkdirTemp("", "haft-test")
 	require.NoError(t, err)
-	defer os.RemoveAll(tempDir)
+	defer func() { _ = os.RemoveAll(tempDir) }()
 
 	srcPath := filepath.Join(tempDir, "src", "main", "java")
 	require.NoError(t, os.MkdirAll(srcPath, 0755))
@@ -451,7 +451,7 @@ func TestFindSourcePathRealFS(t *testing.T) {
 func TestFindSourcePathNotFound(t *testing.T) {
 	tempDir, err := os.MkdirTemp("", "haft-test-empty")
 	require.NoError(t, err)
-	defer os.RemoveAll(tempDir)
+	defer func() { _ = os.RemoveAll(tempDir) }()
 
 	result := FindSourcePath(tempDir)
 
@@ -688,7 +688,7 @@ func TestBuildTemplateDataAllCombinations(t *testing.T) {
 func TestFindSourcePathWithAppDir(t *testing.T) {
 	tempDir, err := os.MkdirTemp("", "haft-test-app")
 	require.NoError(t, err)
-	defer os.RemoveAll(tempDir)
+	defer func() { _ = os.RemoveAll(tempDir) }()
 
 	srcPath := filepath.Join(tempDir, "app", "src", "main", "java")
 	require.NoError(t, os.MkdirAll(srcPath, 0755))
@@ -1244,7 +1244,7 @@ func TestResourceCommandHasSkipTestsFlag(t *testing.T) {
 func TestFindTestPathRealFS(t *testing.T) {
 	tempDir, err := os.MkdirTemp("", "haft-test")
 	require.NoError(t, err)
-	defer os.RemoveAll(tempDir)
+	defer func() { _ = os.RemoveAll(tempDir) }()
 
 	testPath := filepath.Join(tempDir, "src", "test", "java")
 	require.NoError(t, os.MkdirAll(testPath, 0755))
@@ -1257,7 +1257,7 @@ func TestFindTestPathRealFS(t *testing.T) {
 func TestFindTestPathNotFound(t *testing.T) {
 	tempDir, err := os.MkdirTemp("", "haft-test-empty")
 	require.NoError(t, err)
-	defer os.RemoveAll(tempDir)
+	defer func() { _ = os.RemoveAll(tempDir) }()
 
 	result := FindTestPath(tempDir)
 
@@ -1267,7 +1267,7 @@ func TestFindTestPathNotFound(t *testing.T) {
 func TestFindTestPathWithAppDir(t *testing.T) {
 	tempDir, err := os.MkdirTemp("", "haft-test-app")
 	require.NoError(t, err)
-	defer os.RemoveAll(tempDir)
+	defer func() { _ = os.RemoveAll(tempDir) }()
 
 	testPath := filepath.Join(tempDir, "app", "src", "test", "java")
 	require.NoError(t, os.MkdirAll(testPath, 0755))
