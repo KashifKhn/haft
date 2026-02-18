@@ -55,7 +55,7 @@ func runRestart() error {
 	if err != nil {
 		return fmt.Errorf("could not create trigger file: %w", err)
 	}
-	file.Close()
+	_ = file.Close()
 
 	logger.Success("Restart triggered", "trigger", triggerPath)
 	return nil

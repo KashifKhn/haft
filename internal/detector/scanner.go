@@ -119,7 +119,7 @@ func (s *Scanner) parseJavaFile(path, rootDir string, isTest bool) (*JavaFile, e
 	if err != nil {
 		return nil, err
 	}
-	defer file.Close()
+	defer func() { _ = file.Close() }()
 
 	jf := &JavaFile{
 		Path:     path,

@@ -301,21 +301,21 @@ func (pm *ProcessManager) Restart(ctx context.Context) error {
 	pm.restartCount++
 	pm.mu.Unlock()
 
-	fmt.Fprintln(pm.stdout, "\n\033[33m─────────────────────────────────────────\033[0m")
-	fmt.Fprintln(pm.stdout, "\033[33m→ Compiling...\033[0m")
+	_, _ = fmt.Fprintln(pm.stdout, "\n\033[33m─────────────────────────────────────────\033[0m")
+	_, _ = fmt.Fprintln(pm.stdout, "\033[33m→ Compiling...\033[0m")
 
 	if err := pm.Compile(ctx); err != nil {
-		fmt.Fprintf(pm.stderr, "\n\033[31m✗ Compilation failed: %v\033[0m\n", err)
-		fmt.Fprintln(pm.stdout, "\033[33m→ Keeping current server running\033[0m")
-		fmt.Fprintln(pm.stdout, "\033[33m─────────────────────────────────────────\033[0m")
+		_, _ = fmt.Fprintf(pm.stderr, "\n\033[31m✗ Compilation failed: %v\033[0m\n", err)
+		_, _ = fmt.Fprintln(pm.stdout, "\033[33m→ Keeping current server running\033[0m")
+		_, _ = fmt.Fprintln(pm.stdout, "\033[33m─────────────────────────────────────────\033[0m")
 		pm.mu.Lock()
 		pm.setState(StateRunning)
 		pm.mu.Unlock()
 		return err
 	}
 
-	fmt.Fprintln(pm.stdout, "\n\033[32m✓ Compilation successful\033[0m")
-	fmt.Fprintln(pm.stdout, "\033[33m→ Stopping server...\033[0m")
+	_, _ = fmt.Fprintln(pm.stdout, "\n\033[32m✓ Compilation successful\033[0m")
+	_, _ = fmt.Fprintln(pm.stdout, "\033[33m→ Stopping server...\033[0m")
 
 	pm.mu.Lock()
 	cmd := pm.cmd
@@ -323,12 +323,12 @@ func (pm *ProcessManager) Restart(ctx context.Context) error {
 
 	if cmd != nil && cmd.Process != nil {
 		if err := pm.gracefulStop(cmd); err != nil {
-			fmt.Fprintf(pm.stderr, "\033[31m✗ Failed to stop server: %v\033[0m\n", err)
+			_, _ = fmt.Fprintf(pm.stderr, "\033[31m✗ Failed to stop server: %v\033[0m\n", err)
 		}
 	}
 
-	fmt.Fprintln(pm.stdout, "\033[33m→ Starting server...\033[0m")
-	fmt.Fprintln(pm.stdout, "\033[33m─────────────────────────────────────────\033[0m")
+	_, _ = fmt.Fprintln(pm.stdout, "\033[33m→ Starting server...\033[0m")
+	_, _ = fmt.Fprintln(pm.stdout, "\033[33m─────────────────────────────────────────\033[0m")
 
 	return pm.Start()
 }

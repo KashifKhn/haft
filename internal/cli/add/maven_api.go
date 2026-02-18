@@ -50,10 +50,10 @@ func (c *MavenClient) VerifyDependency(groupId, artifactId string) (*MavenArtifa
 	if err != nil {
 		return nil, fmt.Errorf("failed to connect to Maven Central: %w", err)
 	}
-	defer resp.Body.Close()
+	defer func() { _ = resp.Body.Close() }()
 
 	if resp.StatusCode != http.StatusOK {
-		return nil, fmt.Errorf("Maven Central returned status %d", resp.StatusCode)
+		return nil, fmt.Errorf("maven central returned status %d", resp.StatusCode)
 	}
 
 	var searchResp MavenSearchResponse
@@ -85,10 +85,10 @@ func (c *MavenClient) SearchDependencies(query string, limit int) ([]MavenArtifa
 	if err != nil {
 		return nil, fmt.Errorf("failed to connect to Maven Central: %w", err)
 	}
-	defer resp.Body.Close()
+	defer func() { _ = resp.Body.Close() }()
 
 	if resp.StatusCode != http.StatusOK {
-		return nil, fmt.Errorf("Maven Central returned status %d", resp.StatusCode)
+		return nil, fmt.Errorf("maven central returned status %d", resp.StatusCode)
 	}
 
 	var searchResp MavenSearchResponse

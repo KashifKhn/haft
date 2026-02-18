@@ -48,7 +48,7 @@ func (tw *TriggerWatcher) Setup() error {
 }
 
 func (tw *TriggerWatcher) cleanup() {
-	os.Remove(tw.triggerPath)
+	_ = os.Remove(tw.triggerPath)
 }
 
 func (tw *TriggerWatcher) Events() <-chan struct{} {
@@ -79,7 +79,7 @@ func (tw *TriggerWatcher) checkTrigger() {
 	if modTime.After(tw.lastModTime) {
 		tw.lastModTime = modTime
 
-		os.Remove(tw.triggerPath)
+		_ = os.Remove(tw.triggerPath)
 
 		select {
 		case tw.events <- struct{}{}:

@@ -29,7 +29,7 @@ func CreateBackup(binaryPath string) (*BackupInfo, error) {
 	backupPath := filepath.Join(backupDir, filepath.Base(binaryPath)+".backup")
 
 	if err := copyFile(binaryPath, backupPath); err != nil {
-		os.RemoveAll(backupDir)
+		_ = os.RemoveAll(backupDir)
 		return nil, fmt.Errorf("failed to create backup: %w", err)
 	}
 
@@ -64,7 +64,7 @@ func RestoreBackup(backup *BackupInfo) error {
 
 func CleanupBackup(backup *BackupInfo) {
 	if backup != nil && backup.BackupPath != "" {
-		os.RemoveAll(filepath.Dir(backup.BackupPath))
+		_ = os.RemoveAll(filepath.Dir(backup.BackupPath))
 	}
 }
 
@@ -73,7 +73,7 @@ func copyFile(src, dst string) error {
 	if err != nil {
 		return err
 	}
-	defer sourceFile.Close()
+	defer func() { _ = sourceFile.Close() }()
 
 	sourceInfo, err := sourceFile.Stat()
 	if err != nil {
@@ -84,7 +84,7 @@ func copyFile(src, dst string) error {
 	if err != nil {
 		return err
 	}
-	defer destFile.Close()
+	defer func() { _ = destFile.Close() }()
 
 	if _, err := io.Copy(destFile, sourceFile); err != nil {
 		return err
