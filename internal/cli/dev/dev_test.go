@@ -228,6 +228,7 @@ func TestKeyCommand_String(t *testing.T) {
 		{KeyQuit, "quit"},
 		{KeyClear, "clear"},
 		{KeyHelp, "help"},
+		{KeyEnter, "enter"},
 		{KeyNone, "unknown"},
 		{KeyUnknown, "unknown"},
 	}
@@ -323,6 +324,9 @@ func TestKeyboardListener_ParseKey(t *testing.T) {
 		{"help uppercase", []byte{'H'}, KeyHelp},
 		{"help question mark", []byte{'?'}, KeyHelp},
 		{"ctrl+c", []byte{3}, KeyQuit},
+		{"enter CR", []byte{13}, KeyEnter},
+		{"enter LF", []byte{10}, KeyEnter},
+		{"enter space", []byte{32}, KeyEnter},
 		{"unknown key", []byte{'x'}, KeyNone},
 		{"empty", []byte{}, KeyNone},
 	}

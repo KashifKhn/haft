@@ -160,6 +160,9 @@ func runServe(profile string, debug bool, port int, noInteractive bool) error {
 
 			case KeyHelp:
 				PrintKeyCommands()
+
+			case KeyEnter:
+				fmt.Print("\r\n")
 			}
 
 		case <-trigger.Events():
@@ -224,6 +227,8 @@ func waitForRestartOrQuit(keyboard *KeyboardListener, sigChan chan os.Signal, pm
 			case KeyClear:
 				ClearScreen()
 				PrintBanner()
+			case KeyEnter:
+				fmt.Print("\r\n")
 			}
 		}
 	}
