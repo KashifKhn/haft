@@ -435,9 +435,10 @@ func BuildTemplateContextFromProfile(name string, profile *detector.ProjectProfi
 		}
 	}
 
-	if profile.ValidationStyle == detector.ValidationJakarta {
+	switch profile.ValidationStyle {
+	case detector.ValidationJakarta:
 		ctx.ValidationImport = "jakarta.validation"
-	} else if profile.ValidationStyle == detector.ValidationJavax {
+	case detector.ValidationJavax:
 		ctx.ValidationImport = "javax.validation"
 	}
 

@@ -148,7 +148,7 @@ func (m MultiSelectModel) View() string {
 			line = styles.InactiveItem.Render(item.Label)
 		}
 
-		b.WriteString(fmt.Sprintf("%s%s %s\n", cursor, checkbox, line))
+		fmt.Fprintf(&b, "%s%s %s\n", cursor, checkbox, line)
 	}
 
 	if m.err != nil {

@@ -74,12 +74,12 @@ func FindBuildFile(startDir string, fs afero.Fs) (string, Type, error) {
 
 func DetectFromPath(path string) Type {
 	base := filepath.Base(path)
-	switch {
-	case base == "pom.xml":
+	switch base {
+	case "pom.xml":
 		return Maven
-	case base == "build.gradle.kts":
+	case "build.gradle.kts":
 		return GradleKotln
-	case base == "build.gradle":
+	case "build.gradle":
 		return Gradle
 	default:
 		return ""
