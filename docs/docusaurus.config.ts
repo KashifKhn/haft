@@ -49,8 +49,32 @@ const config: Config = {
     ],
   ],
 
+  headTags: [
+    {
+      tagName: 'meta',
+      attributes: {
+        name: 'google-site-verification',
+        content: 'GsnVvhnHNdZC3YMYInZxanh97DATIV3-Ooup2YHYcS8',
+      },
+    },
+  ],
+
   themeConfig: {
     image: 'img/haft-social-card.jpg',
+    metadata: [
+      {name: 'keywords', content: 'haft, spring boot, cli, java, spring, scaffolding, code generator, spring initializr'},
+      {name: 'description', content: 'Haft is a fast Spring Boot CLI for scaffolding projects, generating components, and managing Spring Boot applications from the terminal.'},
+      {name: 'robots', content: 'index, follow'},
+      {property: 'og:title', content: 'Haft - The Spring Boot CLI'},
+      {property: 'og:description', content: 'Haft is a fast Spring Boot CLI for scaffolding projects, generating components, and managing Spring Boot applications from the terminal.'},
+      {property: 'og:type', content: 'website'},
+      {property: 'og:url', content: 'https://haft.kashifkhan.dev'},
+      {property: 'og:image', content: 'https://haft.kashifkhan.dev/img/haft-social-card.jpg'},
+      {name: 'twitter:card', content: 'summary_large_image'},
+      {name: 'twitter:title', content: 'Haft - The Spring Boot CLI'},
+      {name: 'twitter:description', content: 'Haft is a fast Spring Boot CLI for scaffolding projects, generating components, and managing Spring Boot applications from the terminal.'},
+      {name: 'twitter:image', content: 'https://haft.kashifkhan.dev/img/haft-social-card.jpg'},
+    ],
     colorMode: {
       defaultMode: 'dark',
       disableSwitch: false,
